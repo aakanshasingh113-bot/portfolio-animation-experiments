@@ -81,6 +81,7 @@
   <div id="game"></div>
   <div id="buttons">
     <button id="slowButton" title="Slow motion (S)">Slow-mo</button>
+    <button id="muteButton" title="Sound on/off (M)">🔊</button>
     <button id="gearButton" title="Tuning panel (T)">⚙</button>
   </div>
   <div id="status"></div>
@@ -144,6 +145,14 @@
 
       // ----- Testing tools -----
       slowMotionSpeed: 0.3,        // how fast the game runs in slow motion (0.3 = 30% speed)
+
+      // ----- Sound (0 = silent, 1 = loud) -----
+      soundVolume: 0.7,            // overall loudness of every sound
+      windVolume: 0.25,            // the whoosh of the wind (louder in gusts)
+      sawVolume: 0.5,              // the raspy sound of the strings sawing against each other
+      creakVolume: 0.3,            // the warning creak while your tension is in the red
+      twangVolume: 0.6,            // the twang when a string breaks
+      jingleVolume: 0.4,           // the little tune when you win or lose
 
       // ----- Looks -----
       skyTopColor: "#7fb8e6",      // sky colour at the top of the screen
@@ -488,13 +497,14 @@
     function setFree(k) {
       k.free = true;
       k.spin = randomBetween(4, 8) * (Math.random() < 0.5 ? -1 : 1);
+      playTwang();
     }
 
     // The string snaps from too much tension
     function snapString(k) {
       setFree(k);
-      if (k === player) endRound("Your string snapped");
-      else endRound("Their string snapped!");
+      if (k === player) endRound("Your string snapped", false);
+      else endRound("Their string snapped!", true);
     }
 
     // A free kite spins, drifts with the wind and falls
@@ -659,8 +669,8 @@
       crossing.burst = 1;
       crossing.burstX = hit.x;
       crossing.burstY = hit.y;
-      if (k === opponent) endRound("Kai po che! You cut it!");
-      else endRound("You've been cut!");
+      if (k === opponent) endRound("Kai po che! You cut it!", true);
+      else endRound("You've been cut!", false);
     }
 
     function pieceLengthOf(points) {
@@ -885,14 +895,170 @@
       g.strokeRect(m.x, m.y, m.w, m.h);
     }
 
+    // ----- Sound -----
+    // Every sound is made from code, like a tiny synthesizer, so there are no sound files.
+    // Browsers only allow sound after you tap or press a key, so it starts on your first tap.
+
+    const sound = {
+      ready: false,     // has the sound engine been switched on yet?
+      muted: false,
+    };
+
+    // A short burst of random "hiss", reused for wind and sawing
+    function makeNoise(ctx) {
+      const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.start();
+      return source;
+    }
+
+    // Switch the sound engine on and build the sounds that play all the time (at zero volume to begin with)
+    function startSound() {
+      if (sound.ready) {
+        if (sound.ctx.state === "suspended") sound.ctx.resume();
+        return;
+      }
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return; // very old browser: play without sound
+      const ctx = new AudioContext();
+      sound.ctx = ctx;
+
+      sound.master = ctx.createGain();
+      sound.master.gain.value = sound.muted ? 0 : SETTINGS.soundVolume;
+      sound.master.connect(ctx.destination);
+
+      // Wind: soft, muffled hiss
+      sound.windFilter = ctx.createBiquadFilter();
+      sound.windFilter.type = "lowpass";
+      sound.windFilter.frequency.value = 400;
+      sound.windGain = ctx.createGain();
+      sound.windGain.gain.value = 0;
+      makeNoise(ctx).connect(sound.windFilter).connect(sound.windGain).connect(sound.master);
+
+      // Sawing: sharp hiss that buzzes on and off very fast, like string rubbing on string
+      sound.sawFilter = ctx.createBiquadFilter();
+      sound.sawFilter.type = "bandpass";
+      sound.sawFilter.frequency.value = 2500;
+      sound.sawFilter.Q.value = 3;
+      const rasp = ctx.createGain();
+      rasp.gain.value = 0.5;
+      const raspWobble = ctx.createOscillator();
+      raspWobble.type = "square";
+      raspWobble.frequency.value = 32;
+      const raspDepth = ctx.createGain();
+      raspDepth.gain.value = 0.5;
+      raspWobble.connect(raspDepth).connect(rasp.gain);
+      raspWobble.start();
+      sound.sawGain = ctx.createGain();
+      sound.sawGain.gain.value = 0;
+      makeNoise(ctx).connect(sound.sawFilter).connect(rasp).connect(sound.sawGain).connect(sound.master);
+
+      // Creak: a low, wobbling groan
+      sound.creak = ctx.createOscillator();
+      sound.creak.type = "sawtooth";
+      sound.creak.frequency.value = 70;
+      const creakWobble = ctx.createOscillator();
+      creakWobble.frequency.value = 7;
+      const creakWobbleDepth = ctx.createGain();
+      creakWobbleDepth.gain.value = 12;
+      creakWobble.connect(creakWobbleDepth).connect(sound.creak.frequency);
+      creakWobble.start();
+      const creakFilter = ctx.createBiquadFilter();
+      creakFilter.type = "lowpass";
+      creakFilter.frequency.value = 500;
+      sound.creakGain = ctx.createGain();
+      sound.creakGain.gain.value = 0;
+      sound.creak.connect(creakFilter).connect(sound.creakGain).connect(sound.master);
+      sound.creak.start();
+
+      sound.ready = true;
+    }
+
+    // Smoothly move a volume (or pitch) towards a new value, so nothing clicks or pops
+    function glide(param, value, smoothness = 0.08) {
+      param.setTargetAtTime(value, sound.ctx.currentTime, smoothness);
+    }
+
+    // Every frame: set the volume of the always-on sounds to match what's happening
+    function updateSound() {
+      if (!sound.ready) return;
+      const quiet = game.paused;
+
+      // Wind: louder and brighter in strong wind and gusts
+      const windNow = clamp(windStrengthNow() / 2, 0, 1);
+      glide(sound.windGain.gain, quiet ? 0 : SETTINGS.windVolume * (0.25 + 0.75 * windNow), 0.3);
+      glide(sound.windFilter.frequency, 300 + 900 * windNow, 0.3);
+
+      // Sawing: only while the strings are crossed, louder and higher when they slide faster
+      const sawing = crossing.now && crossing.before && !quiet;
+      glide(sound.sawGain.gain, sawing ? SETTINGS.sawVolume * crossing.sparkPower : 0, 0.04);
+      glide(sound.sawFilter.frequency, 1500 + 2500 * crossing.sparkPower);
+
+      // Creak: while your tension is in the red, getting higher as you get closer to snapping
+      const straining = !player.free && player.tension >= SETTINGS.redZone && !quiet;
+      const danger = clamp(player.timeInRed / Math.max(0.1, SETTINGS.snapTime), 0, 1);
+      glide(sound.creakGain.gain, straining ? SETTINGS.creakVolume * (0.5 + 0.5 * danger) : 0, 0.05);
+      glide(sound.creak.frequency, 70 + 60 * danger);
+    }
+
+    // A note that starts at one pitch, slides to another, and fades out
+    function playNote(type, startPitch, endPitch, startTime, length, volume) {
+      if (!sound.ready) return;
+      const ctx = sound.ctx;
+      const note = ctx.createOscillator();
+      note.type = type;
+      note.frequency.setValueAtTime(startPitch, startTime);
+      note.frequency.exponentialRampToValueAtTime(endPitch, startTime + length);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + length);
+      note.connect(gain).connect(sound.master);
+      note.start(startTime);
+      note.stop(startTime + length + 0.05);
+    }
+
+    // The twang of a string breaking: a quick pitch drop
+    function playTwang() {
+      if (!sound.ready) return;
+      const now = sound.ctx.currentTime;
+      playNote("triangle", 900, 120, now, 0.35, SETTINGS.twangVolume);
+      playNote("square", 1800, 300, now, 0.08, SETTINGS.twangVolume * 0.3);
+    }
+
+    // A happy little rising tune when you win, a sad falling one when you lose
+    function playJingle(playerWon) {
+      if (!sound.ready) return;
+      const start = sound.ctx.currentTime + 0.35; // just after the twang
+      const volume = SETTINGS.jingleVolume;
+      if (playerWon) {
+        [523, 659, 784, 1047].forEach((pitch, i) =>
+          playNote("triangle", pitch, pitch, start + i * 0.12, i === 3 ? 0.5 : 0.15, volume));
+      } else {
+        playNote("triangle", 440, 330, start, 0.3, volume);
+        playNote("triangle", 330, 110, start + 0.3, 0.7, volume);
+      }
+    }
+
+    function toggleMute() {
+      sound.muted = !sound.muted;
+      document.getElementById("muteButton").textContent = sound.muted ? "🔇" : "🔊";
+      if (sound.ready) glide(sound.master.gain, sound.muted ? 0 : SETTINGS.soundVolume, 0.02);
+    }
+
     // ----- Messages -----
 
     let messageText, hintText;
 
-    // The round is over: show a message and wait for a tap or R
-    function endRound(message) {
+    // The round is over: show a message, play a tune, and wait for a tap or R
+    function endRound(message, playerWon) {
       if (game.over) return;
       game.over = true;
+      playJingle(playerWon);
       game.endedAt = performance.now();
       messageText.setText(message).setVisible(true);
       hintText.setText("Tap or press R to restart").setVisible(true);
@@ -1014,6 +1180,7 @@
         if (event.code === "KeyP") togglePause();
         if (event.code === "KeyS") toggleSlowMotion();
         if (event.code === "KeyT") toggleTuningPanel();
+        if (event.code === "KeyM") toggleMute();
       });
 
       window.addEventListener("keyup", (event) => {
@@ -1059,6 +1226,11 @@
       createTuningPanel();
       document.getElementById("gearButton").addEventListener("click", toggleTuningPanel);
       document.getElementById("slowButton").addEventListener("click", toggleSlowMotion);
+      document.getElementById("muteButton").addEventListener("click", toggleMute);
+
+      // Sound can only start after a tap or key press (a browser rule)
+      window.addEventListener("pointerdown", startSound, true);
+      window.addEventListener("keydown", startSound, true);
 
       // When the window changes size or the phone rotates, redo the layout
       this.scale.on("resize", (size) => {
@@ -1090,6 +1262,7 @@
       drawRooftops(graphics);
       drawSparks(graphics, dt);
       drawTensionMeter(graphics);
+      updateSound();
     }
 
     new Phaser.Game({
