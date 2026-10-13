@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patang</title>
+  <style>
+    /* Remove the default white border around the page */
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #87ceeb;
+    }
+
+    /* Make the canvas fill the whole screen */
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- The canvas is our drawing board. Everything in the game is drawn on it. -->
+  <canvas id="game"></canvas>
+
+  <script>
+    // ----- STAGE 1: draw the sky, a kite, and its string -----
+
+    // Find the canvas and get a "pen" (ctx) we can draw with
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    // Make the canvas the same size as the browser window
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Where the kite is: in the middle, a third of the way down
+    const kiteX = canvas.width / 2;
+    const kiteY = canvas.height / 3;
+    const kiteSize = 40;
+
+    // 1. Sky: a fill that fades from deep blue at the top to light blue at the bottom
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#4a90d9");
+    sky.addColorStop(1, "#cfeeff");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. String: a thin line from the bottom of the kite down to the bottom of the screen
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(kiteX, kiteY + kiteSize);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.stroke();
+
+    // 3. Kite: a diamond shape made of four corner points (top, right, bottom, left)
+    ctx.fillStyle = "#e63946";
+    ctx.beginPath();
+    ctx.moveTo(kiteX, kiteY - kiteSize);
+    ctx.lineTo(kiteX + kiteSize, kiteY);
+    ctx.lineTo(kiteX, kiteY + kiteSize);
+    ctx.lineTo(kiteX - kiteSize, kiteY);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Cross sticks on the kite, like a real patang
+    ctx.strokeStyle = "#7a1f27";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(kiteX, kiteY - kiteSize);
+    ctx.lineTo(kiteX, kiteY + kiteSize);
+    ctx.moveTo(kiteX - kiteSize, kiteY);
+    ctx.lineTo(kiteX + kiteSize, kiteY);
+    ctx.stroke();
+  </script>
+</body>
+</html>
