@@ -154,6 +154,15 @@
       twangVolume: 0.6,            // the twang when a string breaks
       jingleVolume: 0.4,           // the little tune when you win or lose
 
+      // ----- Visual effects -----
+      burstPieces: 24,             // how many paper scraps fly out when a string breaks (0 = none)
+      shakeStrength: 0.008,        // how hard the screen shakes when a string breaks (0 = no shake)
+      shakeTime: 0.3,              // how long the shake lasts, in seconds
+      confettiAmount: 120,         // how many confetti pieces fall when you win (0 = none)
+      strainColor: "#e63946",      // colour your string turns while tension is in the red
+      strainTremble: 3,            // how much your string trembles in the red, in pixels (0 = no trembling)
+      gustBrightness: 1.5,         // how much brighter the wind lines get during a gust (0 = no change)
+
       // ----- Looks -----
       skyTopColor: "#7fb8e6",      // sky colour at the top of the screen
       skyBottomColor: "#fde7c8",   // sky colour at the bottom of the screen (a warm festival haze)
@@ -494,10 +503,13 @@
     }
 
     // Set a kite free: it spins and tumbles away
-    function setFree(k) {
+    // (breakX, breakY) is where the string broke, for the burst of paper scraps
+    function setFree(k, breakX = k.x, breakY = k.y) {
       k.free = true;
       k.spin = randomBetween(4, 8) * (Math.random() < 0.5 ? -1 : 1);
       playTwang();
+      burstAt(breakX, breakY, k.color);
+      shakeScreen();
     }
 
     // The string snaps from too much tension
@@ -665,7 +677,7 @@
         { points: roofPiece, followsKite: false, pieceLength: pieceLengthOf([{ x: k.anchorX, y: k.anchorY }, ...roofPiece]) },
       ];
 
-      setFree(k);
+      setFree(k, hit.x, hit.y);
       crossing.burst = 1;
       crossing.burstX = hit.x;
       crossing.burstY = hit.y;
@@ -771,7 +783,9 @@
     // ----- Drawing -----
 
     function drawWindLines(g) {
-      g.lineStyle(1, 0xffffff, SETTINGS.windLineOpacity);
+      // Gusts make the lines brighter, so you can see them coming
+      const opacity = SETTINGS.windLineOpacity * (1 + SETTINGS.gustBrightness * wind.gustPower);
+      g.lineStyle(1, 0xffffff, clamp(opacity, 0, 1));
       const normalSpeed = SETTINGS.windStrength * layout.scale || 1;
       for (const line of windLines) {
         const w = windAt(line.y);
@@ -793,8 +807,8 @@
     }
 
     // Draw a line through a list of points
-    function drawLine(g, points, startX, startY) {
-      g.lineStyle(SETTINGS.stringWidth, color(SETTINGS.stringColor), 1);
+    function drawLine(g, points, startX, startY, lineColor = SETTINGS.stringColor) {
+      g.lineStyle(SETTINGS.stringWidth, color(lineColor), 1);
       g.beginPath();
       g.moveTo(startX, startY);
       for (const p of points) g.lineTo(p.x, p.y);
@@ -804,8 +818,15 @@
     // A kite's string: whole while it's flying, broken bits after a cut
     function drawString(g, k) {
       if (!k.free) {
-        const points = stringPoints(k);
-        drawLine(g, points.slice(1), points[0].x, points[0].y);
+        let points = stringPoints(k);
+        let lineColor = SETTINGS.stringColor;
+        // Your string turns red and trembles while tension is in the red
+        if (k === player && k.tension >= SETTINGS.redZone) {
+          const danger = clamp(k.timeInRed / Math.max(0.1, SETTINGS.snapTime), 0, 1);
+          lineColor = SETTINGS.strainColor;
+          points = trembling(points, SETTINGS.strainTremble * (0.4 + 0.6 * danger));
+        }
+        drawLine(g, points.slice(1), points[0].x, points[0].y, lineColor);
       }
       for (const loose of k.looseStrings) {
         const startX = loose.followsKite ? k.x : k.anchorX;
@@ -893,6 +914,109 @@
       // Outline
       g.lineStyle(1.5, color(SETTINGS.rooftopColor), 0.8);
       g.strokeRect(m.x, m.y, m.w, m.h);
+    }
+
+    // ----- Visual effects -----
+
+    // Little pieces that fly about: paper scraps when a string breaks, confetti when you win
+    const particles = [];
+
+    // A burst of paper scraps flying out from where a string broke
+    function burstAt(x, y, scrapColor) {
+      for (let i = 0; i < SETTINGS.burstPieces; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = randomBetween(60, 260) * layout.scale;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 60 * layout.scale,
+          angle: Math.random() * Math.PI,
+          spin: randomBetween(-10, 10),
+          size: randomBetween(3, 7),
+          color: color(Math.random() < 0.3 ? "#ffd166" : scrapColor),
+          life: randomBetween(0.8, 1.6),
+          maxLife: 1.6,
+          flutter: 0,
+        });
+      }
+    }
+
+    // Confetti fluttering down from the top of the screen when you win
+    function confetti() {
+      const colors = ["#f28c28", "#ffd166", "#e63946", "#2a9d4a", "#3a7bd5", "#ffffff"];
+      for (let i = 0; i < SETTINGS.confettiAmount; i++) {
+        particles.push({
+          x: Math.random() * layout.width,
+          y: -randomBetween(0, layout.height * 0.6), // start above the screen, so they arrive in a stream
+          vx: randomBetween(-20, 20),
+          vy: randomBetween(40, 90) * layout.scale,
+          angle: Math.random() * Math.PI,
+          spin: randomBetween(-6, 6),
+          size: randomBetween(4, 8),
+          color: color(colors[i % colors.length]),
+          life: 6,
+          maxLife: 6,
+          flutter: randomBetween(1, 3),
+        });
+      }
+    }
+
+    // Move the pieces: they fall, drift with the wind, spin, and fade away
+    function updateParticles(dt) {
+      for (const piece of particles) {
+        const w = windAt(piece.y);
+        piece.vx += (w.x * 0.4 - piece.vx) * dt;
+        if (piece.flutter) {
+          // Confetti sways side to side and falls gently
+          piece.x += Math.sin(piece.life * piece.flutter * 3) * 40 * dt;
+        } else {
+          piece.vy += SETTINGS.gravity * layout.scale * dt;
+        }
+        piece.x += piece.vx * dt;
+        piece.y += piece.vy * dt;
+        piece.angle += piece.spin * dt;
+        piece.life -= dt;
+      }
+      // Forget pieces that have faded or fallen off the screen
+      for (let i = particles.length - 1; i >= 0; i--) {
+        if (particles[i].life <= 0 || particles[i].y > layout.height + 20) particles.splice(i, 1);
+      }
+    }
+
+    function drawParticles(g) {
+      for (const piece of particles) {
+        const alpha = clamp(piece.life / (piece.maxLife * 0.3), 0, 1); // fade out at the end
+        const cos = Math.cos(piece.angle), sin = Math.sin(piece.angle);
+        const w = piece.size, h = piece.size * 0.6;
+        // A small spinning rectangle; squashing it by the spin makes it look like it's tumbling
+        const squash = Math.abs(Math.cos(piece.angle * 1.7));
+        const corner = (dx, dy) => ({
+          x: piece.x + dx * cos - dy * squash * sin,
+          y: piece.y + dx * sin + dy * squash * cos,
+        });
+        g.fillStyle(piece.color, alpha);
+        g.fillPoints([corner(-w / 2, -h / 2), corner(w / 2, -h / 2), corner(w / 2, h / 2), corner(-w / 2, h / 2)], true);
+      }
+    }
+
+    // A quick shake of the whole screen
+    function shakeScreen() {
+      if (scene && SETTINGS.shakeStrength > 0) {
+        scene.cameras.main.shake(SETTINGS.shakeTime * 1000, SETTINGS.shakeStrength);
+      }
+    }
+
+    // Wobble the middle of a string from side to side (the ends stay put)
+    function trembling(points, amount) {
+      const last = points.length - 1;
+      const dx = points[last].x - points[0].x, dy = points[last].y - points[0].y;
+      const length = Math.hypot(dx, dy) || 1;
+      const sideX = -dy / length, sideY = dx / length;
+      return points.map((p, i) => {
+        const middle = Math.sin(Math.PI * i / last); // 0 at the ends, 1 in the middle
+        const wobble = Math.sin(i * 1.7 + wind.time * 60) * amount * middle;
+        return { x: p.x + sideX * wobble, y: p.y + sideY * wobble };
+      });
     }
 
     // ----- Sound -----
@@ -1059,6 +1183,7 @@
       if (game.over) return;
       game.over = true;
       playJingle(playerWon);
+      if (playerWon) confetti();
       game.endedAt = performance.now();
       messageText.setText(message).setVisible(true);
       hintText.setText("Tap or press R to restart").setVisible(true);
@@ -1085,6 +1210,7 @@
       brain.targetY = opponent.y;
       crossing.now = crossing.before = null;
       crossing.burst = 0;
+      particles.length = 0;
       game.over = false;
       hideMessage();
     }
@@ -1193,11 +1319,13 @@
     // ----- Phaser scene: set up once, then update every frame -----
 
     let graphics;
+    let scene; // the Phaser scene, used for the screen shake
 
     function create() {
       updateLayout(this.scale.width, this.scale.height);
       createWindLines();
       graphics = this.add.graphics();
+      scene = this;
 
       const textStyle = { fontFamily: "system-ui, sans-serif", color: "#ffffff", stroke: "#2b2d42", align: "center" };
       messageText = this.add.text(0, 0, "", { ...textStyle, fontSize: "32px", fontStyle: "bold", strokeThickness: 6 })
@@ -1253,6 +1381,7 @@
         updateKite(opponent, dt, opponentThinks(dt));
         for (const k of kites) updateLooseStrings(k, dt);
         updateCrossing(dt);
+        updateParticles(dt);
       }
 
       graphics.clear();
@@ -1261,6 +1390,7 @@
       for (const k of kites) drawKite(graphics, k);
       drawRooftops(graphics);
       drawSparks(graphics, dt);
+      drawParticles(graphics);
       drawTensionMeter(graphics);
       updateSound();
     }
