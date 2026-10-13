@@ -23,6 +23,23 @@
   <canvas id="game"></canvas>
 
   <script>
+    // =====================================================
+    //  SETTINGS - change these numbers to tweak the game
+    // =====================================================
+    const SETTINGS = {
+      skyTopColor: "#4a90d9",      // colour of the sky at the very top of the screen
+      skyBottomColor: "#cfeeff",   // colour of the sky at the bottom of the screen
+
+      kiteSize: 40,                // how big the kite is (distance from its centre to a corner, in pixels)
+      kiteHeight: 1 / 3,           // how far down the screen the kite sits (0 = top, 1 = bottom)
+      kiteColor: "#e63946",        // main colour of the kite
+      kiteStickColor: "#7a1f27",   // colour of the two sticks crossing the kite
+      kiteStickWidth: 2,           // thickness of the kite's sticks
+
+      stringColor: "#333",         // colour of the kite's string
+      stringWidth: 1,              // thickness of the kite's string
+    };
+
     // ----- STAGE 1: draw the sky, a kite, and its string -----
 
     // Find the canvas and get a "pen" (ctx) we can draw with
@@ -33,28 +50,28 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Where the kite is: in the middle, a third of the way down
+    // Where the kite is: in the middle, part of the way down
     const kiteX = canvas.width / 2;
-    const kiteY = canvas.height / 3;
-    const kiteSize = 40;
+    const kiteY = canvas.height * SETTINGS.kiteHeight;
+    const kiteSize = SETTINGS.kiteSize;
 
-    // 1. Sky: a fill that fades from deep blue at the top to light blue at the bottom
+    // 1. Sky: a fill that fades from the top colour to the bottom colour
     const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    sky.addColorStop(0, "#4a90d9");
-    sky.addColorStop(1, "#cfeeff");
+    sky.addColorStop(0, SETTINGS.skyTopColor);
+    sky.addColorStop(1, SETTINGS.skyBottomColor);
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 2. String: a thin line from the bottom of the kite down to the bottom of the screen
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = SETTINGS.stringColor;
+    ctx.lineWidth = SETTINGS.stringWidth;
     ctx.beginPath();
     ctx.moveTo(kiteX, kiteY + kiteSize);
     ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
 
     // 3. Kite: a diamond shape made of four corner points (top, right, bottom, left)
-    ctx.fillStyle = "#e63946";
+    ctx.fillStyle = SETTINGS.kiteColor;
     ctx.beginPath();
     ctx.moveTo(kiteX, kiteY - kiteSize);
     ctx.lineTo(kiteX + kiteSize, kiteY);
@@ -64,8 +81,8 @@
     ctx.fill();
 
     // 4. Cross sticks on the kite, like a real patang
-    ctx.strokeStyle = "#7a1f27";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = SETTINGS.kiteStickColor;
+    ctx.lineWidth = SETTINGS.kiteStickWidth;
     ctx.beginPath();
     ctx.moveTo(kiteX, kiteY - kiteSize);
     ctx.lineTo(kiteX, kiteY + kiteSize);
