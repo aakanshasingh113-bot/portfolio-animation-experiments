@@ -5,90 +5,408 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Patang</title>
   <style>
-    /* Remove the default white border around the page */
-    body {
+    /* Remove the default white border and scrollbars */
+    html, body {
       margin: 0;
+      height: 100%;
       overflow: hidden;
-      background: #87ceeb;
     }
 
-    /* Make the canvas fill the whole screen */
-    canvas {
-      display: block;
+    /* The game is drawn inside this box, which fills the whole window */
+    #game {
+      width: 100%;
+      height: 100%;
     }
   </style>
+  <!-- Phaser: the game toolkit, loaded from the internet (a "CDN") -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 </head>
 <body>
-  <!-- The canvas is our drawing board. Everything in the game is drawn on it. -->
-  <canvas id="game"></canvas>
+  <div id="game"></div>
 
   <script>
-    // =====================================================
+    // =====================================================================
     //  SETTINGS - change these numbers to tweak the game
-    // =====================================================
+    // =====================================================================
     const SETTINGS = {
-      skyTopColor: "#4a90d9",      // colour of the sky at the very top of the screen
-      skyBottomColor: "#cfeeff",   // colour of the sky at the bottom of the screen
+      // ----- Wind -----
+      windStrength: 250,           // how fast the wind blows at the top of the sky (bigger = stronger wind)
+      windAtRoof: 0.12,            // how much wind there is at rooftop level, compared to the top (0.12 = 12%)
+      windHeightGain: 1.0,         // how much stronger the wind gets as you go higher (0 = same everywhere)
+      windChangeSpeed: 0.05,       // how quickly the wind slowly changes its strength and direction
+      windStrengthVariation: 0.3,  // how much the wind's strength wanders up and down (0.3 = 30% either way)
+      windDirectionVariation: 12,  // how far (in degrees) the wind's direction wanders away from straight left-to-right
 
-      kiteSize: 40,                // how big the kite is (distance from its centre to a corner, in pixels)
-      kiteHeight: 1 / 3,           // how far down the screen the kite sits (0 = top, 1 = bottom)
-      kiteColor: "#e63946",        // main colour of the kite
-      kiteStickColor: "#7a1f27",   // colour of the two sticks crossing the kite
-      kiteStickWidth: 2,           // thickness of the kite's sticks
+      // ----- Gusts (short bursts of extra wind) -----
+      gustStrength: 0.8,           // how much extra wind a gust adds (0.8 = 80% stronger at its peak)
+      gustEvery: 5,                // roughly how many seconds between gusts
+      gustShortest: 1,             // shortest gust, in seconds
+      gustLongest: 2,              // longest gust, in seconds
 
-      stringColor: "#333",         // colour of the kite's string
-      stringWidth: 1,              // thickness of the kite's string
+      // ----- Kite physics -----
+      gravity: 150,                // how strongly the kite is pulled down
+      kiteWeight: 1,               // how heavy the kite is (heavier = slower to react, harder to lift)
+      kiteDrag: 1.5,               // how much the wind pushes the kite along with it (downwind)
+      kiteLift: 3,                   // how much the wind lifts the kite upwards
+      kiteWobble: 0.1,             // how much the kite bobs and flutters on its own (0 = perfectly steady)
+      stringLength: 0.75,          // how long the string is, as a fraction of the screen size
+
+      // ----- Looks -----
+      skyTopColor: "#7fb8e6",      // sky colour at the top of the screen
+      skyBottomColor: "#fde7c8",   // sky colour at the bottom of the screen (a warm festival haze)
+      rooftopColor: "#2b2d42",     // colour of both rooftops
+      rooftopWidth: 0.2,           // rooftop width, as a fraction of the screen width
+      rooftopHeight: 0.12,         // rooftop height, as a fraction of the screen height
+      playerKiteColor: "#f28c28",  // colour of your kite (warm orange)
+      kiteSize: 40,                // how tall the kite is, in pixels
+      tailLength: 6,               // how many little pieces the kite's tail is made of
+      stringColor: "#333333",      // colour of the string
+      stringWidth: 1,              // thickness of the string
+      stringSag: 1,                // how much a slack string droops (0 = always straight)
+      windLineCount: 40,           // how many wind lines drift across the sky
+      windLineLength: 30,          // length of a wind line in normal wind
+      windLineOpacity: 0.5,        // how see-through the wind lines are (0 = invisible, 1 = solid)
     };
 
-    // ----- STAGE 1: draw the sky, a kite, and its string -----
+    // =====================================================================
+    //  GAME CODE - you shouldn't need to change anything below here
+    // =====================================================================
 
-    // Find the canvas and get a "pen" (ctx) we can draw with
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    // Paint the sky as a soft gradient behind the game
+    document.body.style.background =
+      `linear-gradient(${SETTINGS.skyTopColor}, ${SETTINGS.skyBottomColor})`;
 
-    // Make the canvas the same size as the browser window
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Turns a colour like "#f28c28" into the number format Phaser wants
+    function color(hex) {
+      return Phaser.Display.Color.HexStringToColor(hex).color;
+    }
 
-    // Where the kite is: in the middle, part of the way down
-    const kiteX = canvas.width / 2;
-    const kiteY = canvas.height * SETTINGS.kiteHeight;
-    const kiteSize = SETTINGS.kiteSize;
+    // Small maths helpers
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function randomBetween(min, max) { return min + Math.random() * (max - min); }
 
-    // 1. Sky: a fill that fades from the top colour to the bottom colour
-    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    sky.addColorStop(0, SETTINGS.skyTopColor);
-    sky.addColorStop(1, SETTINGS.skyBottomColor);
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Everything about the screen layout (recalculated when the window changes size)
+    const layout = {};
 
-    // 2. String: a thin line from the bottom of the kite down to the bottom of the screen
-    ctx.strokeStyle = SETTINGS.stringColor;
-    ctx.lineWidth = SETTINGS.stringWidth;
-    ctx.beginPath();
-    ctx.moveTo(kiteX, kiteY + kiteSize);
-    ctx.lineTo(canvas.width / 2, canvas.height);
-    ctx.stroke();
+    // The wind's current state
+    const wind = {
+      time: 0,          // seconds since the game started
+      gustTimeLeft: 0,  // seconds left in the current gust (0 = no gust)
+      gustDuration: 1,  // how long the current gust lasts in total
+      nextGust: 3,      // seconds until the next gust starts
+      gustPower: 0,     // 0 = calm, 1 = peak of a gust
+    };
 
-    // 3. Kite: a diamond shape made of four corner points (top, right, bottom, left)
-    ctx.fillStyle = SETTINGS.kiteColor;
-    ctx.beginPath();
-    ctx.moveTo(kiteX, kiteY - kiteSize);
-    ctx.lineTo(kiteX + kiteSize, kiteY);
-    ctx.lineTo(kiteX, kiteY + kiteSize);
-    ctx.lineTo(kiteX - kiteSize, kiteY);
-    ctx.closePath();
-    ctx.fill();
+    // Your kite
+    const kite = { x: 0, y: 0, vx: 0, vy: 0, angle: -Math.PI / 2, tail: [] };
 
-    // 4. Cross sticks on the kite, like a real patang
-    ctx.strokeStyle = SETTINGS.kiteStickColor;
-    ctx.lineWidth = SETTINGS.kiteStickWidth;
-    ctx.beginPath();
-    ctx.moveTo(kiteX, kiteY - kiteSize);
-    ctx.lineTo(kiteX, kiteY + kiteSize);
-    ctx.moveTo(kiteX - kiteSize, kiteY);
-    ctx.lineTo(kiteX + kiteSize, kiteY);
-    ctx.stroke();
+    // The faint lines that show the wind
+    const windLines = [];
+
+    // Work out sizes and positions from the current window size
+    function updateLayout(width, height) {
+      layout.width = width;
+      layout.height = height;
+
+      // A "reference size" so the game feels the same on phones and big screens
+      layout.size = Math.min(height, width * 1.4);
+      layout.scale = layout.size / 800;
+
+      const roofW = clamp(width * SETTINGS.rooftopWidth, 70, 260);
+      const roofH = clamp(height * SETTINGS.rooftopHeight, 50, 140);
+      layout.roofTop = height - roofH;
+      layout.playerRoof = { x: 0, y: height - roofH, w: roofW, h: roofH };
+      layout.opponentRoof = { x: width - roofW, y: height - roofH, w: roofW, h: roofH };
+
+      // The point on your rooftop where the string is held
+      layout.anchorX = roofW * 0.6;
+      layout.anchorY = height - roofH;
+
+      layout.stringLength = SETTINGS.stringLength * layout.size;
+    }
+
+    // How strong the wind is right now overall (slowly wandering, plus gusts)
+    function windStrengthNow() {
+      const t = wind.time * SETTINGS.windChangeSpeed * Math.PI * 2;
+      const wander = 0.6 * Math.sin(t) + 0.4 * Math.sin(t * 2.3 + 1);
+      const gust = 1 + SETTINGS.gustStrength * wind.gustPower;
+      return (1 + SETTINGS.windStrengthVariation * wander) * gust;
+    }
+
+    // Which way the wind blows right now (an angle; 0 = straight left-to-right)
+    function windAngleNow() {
+      const t = wind.time * SETTINGS.windChangeSpeed * Math.PI * 2;
+      const wander = 0.7 * Math.sin(t * 0.8 + 2) + 0.3 * Math.sin(t * 1.9);
+      return (SETTINGS.windDirectionVariation * wander) * Math.PI / 180;
+    }
+
+    // The wind at a given height on screen, as a speed sideways (x) and up/down (y)
+    function windAt(y) {
+      const height = clamp((layout.roofTop - y) / layout.size, 0, 1); // 0 = roof level, 1 = high up
+      const heightFactor = SETTINGS.windAtRoof +
+        (1 - SETTINGS.windAtRoof) * clamp(height * SETTINGS.windHeightGain, 0, 1);
+      const speed = SETTINGS.windStrength * layout.scale * windStrengthNow() * heightFactor;
+      const angle = windAngleNow();
+      return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
+    }
+
+    // Move the wind forward in time: slow changes happen by themselves, gusts come and go
+    function updateWind(dt) {
+      wind.time += dt;
+
+      if (wind.gustTimeLeft > 0) {
+        wind.gustTimeLeft -= dt;
+        // A gust rises smoothly, peaks in the middle, then fades
+        const progress = 1 - wind.gustTimeLeft / wind.gustDuration;
+        wind.gustPower = Math.max(0, Math.sin(Math.PI * progress));
+      } else {
+        wind.gustPower = 0;
+        wind.nextGust -= dt;
+        if (wind.nextGust <= 0) {
+          wind.gustDuration = randomBetween(SETTINGS.gustShortest, SETTINGS.gustLongest);
+          wind.gustTimeLeft = wind.gustDuration;
+          wind.nextGust = SETTINGS.gustEvery * randomBetween(0.5, 1.5);
+        }
+      }
+    }
+
+    // Put the kite in the sky at the start
+    function launchKite() {
+      const startAngle = -55 * Math.PI / 180; // up and to the right of the rooftop
+      kite.x = layout.anchorX + Math.cos(startAngle) * layout.stringLength;
+      kite.y = layout.anchorY + Math.sin(startAngle) * layout.stringLength;
+      kite.vx = 0;
+      kite.vy = 0;
+      kite.angle = -Math.PI / 2;
+      kite.tail = [];
+      for (let i = 0; i < SETTINGS.tailLength; i++) {
+        kite.tail.push({ x: kite.x, y: kite.y + i * 6 });
+      }
+    }
+
+    // Move the kite: wind pushes and lifts it, gravity pulls it down, the string holds it
+    function updateKite(dt) {
+      const w = windAt(kite.y);
+
+      // A little flutter so the kite never sits perfectly still
+      const flutter = SETTINGS.kiteWobble;
+      w.x *= 1 + flutter * Math.sin(wind.time * 3.1);
+      w.y += flutter * SETTINGS.windStrength * layout.scale * 0.3 * Math.sin(wind.time * 4.7 + 1);
+
+      // The wind as the kite feels it (wind speed minus the kite's own speed)
+      const relX = w.x - kite.vx;
+      const relY = w.y - kite.vy;
+
+      // Drag pushes the kite along with the wind
+      let forceX = SETTINGS.kiteDrag * relX;
+      let forceY = SETTINGS.kiteDrag * relY;
+
+      // Lift pushes the kite sideways to the wind, whichever way is upwards
+      let liftX = -relY, liftY = relX;
+      if (liftY > 0) { liftX = -liftX; liftY = -liftY; }
+      forceX += SETTINGS.kiteLift * liftX;
+      forceY += SETTINGS.kiteLift * liftY;
+
+      // Heavier kites react more slowly; gravity pulls down
+      const weight = Math.max(0.1, SETTINGS.kiteWeight);
+      kite.vx += (forceX / weight) * dt;
+      kite.vy += (forceY / weight + SETTINGS.gravity * layout.scale) * dt;
+
+      kite.x += kite.vx * dt;
+      kite.y += kite.vy * dt;
+
+      // The string: the kite can't go further from the rooftop than the string is long
+      const dx = kite.x - layout.anchorX;
+      const dy = kite.y - layout.anchorY;
+      const distance = Math.hypot(dx, dy);
+      if (distance > layout.stringLength) {
+        const nx = dx / distance, ny = dy / distance;
+        kite.x = layout.anchorX + nx * layout.stringLength;
+        kite.y = layout.anchorY + ny * layout.stringLength;
+        // Stop any movement that would stretch the string
+        const outward = kite.vx * nx + kite.vy * ny;
+        if (outward > 0) {
+          kite.vx -= outward * nx;
+          kite.vy -= outward * ny;
+        }
+      }
+
+      // The kite can't sink below the rooftops
+      if (kite.y > layout.roofTop - SETTINGS.kiteSize / 2) {
+        kite.y = layout.roofTop - SETTINGS.kiteSize / 2;
+        kite.vy = Math.min(0, kite.vy);
+        kite.vx *= 0.9;
+      }
+
+      // The kite's nose turns to point away from the rooftop and a bit upwards, like a real kite
+      const awayAngle = Math.atan2(dy, dx);
+      const target = (awayAngle + -Math.PI / 2) / 2 + flutter * 0.5 * Math.sin(wind.time * 2.3);
+      kite.angle += (target - kite.angle) * Math.min(1, dt * 3);
+
+      updateTail(dt);
+    }
+
+    // The tail follows the bottom of the kite like a chain blowing in the wind
+    function updateTail(dt) {
+      const pieceLength = SETTINGS.kiteSize * 0.18;
+      const tailStartDistance = SETTINGS.kiteSize * 0.6;
+      let leaderX = kite.x - Math.cos(kite.angle) * tailStartDistance;
+      let leaderY = kite.y - Math.sin(kite.angle) * tailStartDistance;
+
+      for (const piece of kite.tail) {
+        // Each piece drifts with the wind and droops a little...
+        const w = windAt(piece.y);
+        piece.x += w.x * dt * 0.5;
+        piece.y += (w.y * 0.5 + 40 * layout.scale) * dt;
+        // ...but stays joined to the piece in front of it
+        const dx = piece.x - leaderX, dy = piece.y - leaderY;
+        const d = Math.hypot(dx, dy) || 1;
+        piece.x = leaderX + (dx / d) * pieceLength;
+        piece.y = leaderY + (dy / d) * pieceLength;
+        leaderX = piece.x;
+        leaderY = piece.y;
+      }
+    }
+
+    // Create the wind lines, scattered across the sky
+    function createWindLines() {
+      windLines.length = 0;
+      for (let i = 0; i < SETTINGS.windLineCount; i++) {
+        windLines.push({
+          x: Math.random() * layout.width,
+          y: Math.random() * layout.roofTop,
+        });
+      }
+    }
+
+    // Move each wind line at the speed of the wind at its height
+    function updateWindLines(dt) {
+      const margin = SETTINGS.windLineLength * 4;
+      for (const line of windLines) {
+        const w = windAt(line.y);
+        line.x += w.x * dt;
+        line.y += w.y * dt;
+        // When a line leaves the screen, bring it back in on the other side
+        if (line.x > layout.width + margin) { line.x = -margin; line.y = Math.random() * layout.roofTop; }
+        if (line.x < -margin) { line.x = layout.width + margin; line.y = Math.random() * layout.roofTop; }
+        if (line.y < 0) line.y += layout.roofTop;
+        if (line.y > layout.roofTop) line.y -= layout.roofTop;
+      }
+    }
+
+    // ----- Drawing -----
+
+    function drawWindLines(g) {
+      g.lineStyle(1, 0xffffff, SETTINGS.windLineOpacity);
+      const normalSpeed = SETTINGS.windStrength * layout.scale;
+      for (const line of windLines) {
+        const w = windAt(line.y);
+        const speed = Math.hypot(w.x, w.y) || 1;
+        // Faster wind = longer streak
+        const length = SETTINGS.windLineLength * (0.3 + speed / normalSpeed);
+        g.beginPath();
+        g.moveTo(line.x, line.y);
+        g.lineTo(line.x - (w.x / speed) * length, line.y - (w.y / speed) * length);
+        g.strokePath();
+      }
+    }
+
+    function drawRooftops(g) {
+      g.fillStyle(color(SETTINGS.rooftopColor), 1);
+      for (const roof of [layout.playerRoof, layout.opponentRoof]) {
+        g.fillRect(roof.x, roof.y, roof.w, roof.h);
+      }
+    }
+
+    // The string: straight when tight, drooping in a curve when slack
+    function drawString(g, fromX, fromY, toX, toY, length) {
+      const distance = Math.hypot(toX - fromX, toY - fromY);
+      const slack = Math.sqrt(Math.max(0, length * length - distance * distance));
+      const sag = slack * 0.5 * SETTINGS.stringSag;
+      const controlX = (fromX + toX) / 2;
+      const controlY = (fromY + toY) / 2 + sag;
+
+      g.lineStyle(SETTINGS.stringWidth, color(SETTINGS.stringColor), 1);
+      g.beginPath();
+      g.moveTo(fromX, fromY);
+      const steps = 24;
+      for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        const x = (1 - t) * (1 - t) * fromX + 2 * (1 - t) * t * controlX + t * t * toX;
+        const y = (1 - t) * (1 - t) * fromY + 2 * (1 - t) * t * controlY + t * t * toY;
+        g.lineTo(x, y);
+      }
+      g.strokePath();
+    }
+
+    // The kite: a diamond pointing where its nose points, with a tail
+    function drawKite(g, k, kiteColor) {
+      const size = SETTINGS.kiteSize;
+      const ax = Math.cos(k.angle), ay = Math.sin(k.angle); // towards the nose
+      const sx = -ay, sy = ax;                              // sideways
+      const nose = { x: k.x + ax * size * 0.4, y: k.y + ay * size * 0.4 };
+      const bottom = { x: k.x - ax * size * 0.6, y: k.y - ay * size * 0.6 };
+      const left = { x: k.x + sx * size * 0.35, y: k.y + sy * size * 0.35 };
+      const right = { x: k.x - sx * size * 0.35, y: k.y - sy * size * 0.35 };
+
+      // Tail
+      g.lineStyle(2, color(kiteColor), 0.8);
+      g.beginPath();
+      g.moveTo(bottom.x, bottom.y);
+      for (const piece of k.tail) g.lineTo(piece.x, piece.y);
+      g.strokePath();
+
+      // Diamond body
+      g.fillStyle(color(kiteColor), 1);
+      g.fillPoints([nose, left, bottom, right], true);
+
+      // Cross sticks
+      g.lineStyle(1.5, 0x000000, 0.35);
+      g.beginPath();
+      g.moveTo(nose.x, nose.y); g.lineTo(bottom.x, bottom.y);
+      g.moveTo(left.x, left.y); g.lineTo(right.x, right.y);
+      g.strokePath();
+    }
+
+    // ----- Phaser scene: set up once, then update every frame -----
+
+    let graphics;
+
+    function create() {
+      updateLayout(this.scale.width, this.scale.height);
+      createWindLines();
+      launchKite();
+      graphics = this.add.graphics();
+
+      // When the window changes size or the phone rotates, redo the layout
+      this.scale.on("resize", (size) => {
+        updateLayout(size.width, size.height);
+        createWindLines();
+      });
+    }
+
+    function update(time, delta) {
+      // Seconds since the last frame (capped so a hiccup doesn't make things jump)
+      const dt = Math.min(delta / 1000, 1 / 30);
+
+      updateWind(dt);
+      updateWindLines(dt);
+      updateKite(dt);
+
+      graphics.clear();
+      drawWindLines(graphics);
+      drawString(graphics, layout.anchorX, layout.anchorY, kite.x, kite.y, layout.stringLength);
+      drawRooftops(graphics);
+      drawKite(graphics, kite, SETTINGS.playerKiteColor);
+    }
+
+    new Phaser.Game({
+      type: Phaser.AUTO,
+      parent: "game",
+      transparent: true, // let the sky gradient show through
+      scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
+      scene: { create, update },
+    });
   </script>
 </body>
 </html>
