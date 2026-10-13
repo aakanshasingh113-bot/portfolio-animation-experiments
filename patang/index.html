@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- "user-scalable=no" stops phones from zooming in while you play -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Patang</title>
   <style>
     /* Remove the default white border and scrollbars */
@@ -10,6 +11,12 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
+      /* Stop phones from scrolling, zooming or selecting text while you play */
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      font-family: system-ui, sans-serif;
     }
 
     /* The game is drawn inside this box, which fills the whole window */
@@ -17,12 +24,66 @@
       width: 100%;
       height: 100%;
     }
+
+    /* The small buttons in the top-right corner */
+    #buttons {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+    #buttons button {
+      height: 36px;
+      min-width: 36px;
+      padding: 0 10px;
+      border: none;
+      border-radius: 18px;
+      background: rgba(43, 45, 66, 0.7);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #buttons button.on {
+      background: #f28c28;
+    }
+
+    /* "PAUSED" / "SLOW MOTION" label at the top */
+    #status {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #2b2d42;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
+
+    /* Put the tuning panel just below the buttons */
+    .lil-gui.root {
+      position: fixed;
+      top: 56px;
+      right: 10px;
+      z-index: 10;
+      max-height: calc(100% - 66px);
+      overflow-y: auto;
+    }
   </style>
   <!-- Phaser: the game toolkit, loaded from the internet (a "CDN") -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <!-- lil-gui: makes the tuning panel with sliders -->
+  <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js"></script>
 </head>
 <body>
   <div id="game"></div>
+  <div id="buttons">
+    <button id="slowButton" title="Slow motion (S)">Slow-mo</button>
+    <button id="gearButton" title="Tuning panel (T)">⚙</button>
+  </div>
+  <div id="status"></div>
 
   <script>
     // =====================================================================
@@ -39,7 +100,7 @@
 
       // ----- Gusts (short bursts of extra wind) -----
       gustStrength: 0.8,           // how much extra wind a gust adds (0.8 = 80% stronger at its peak)
-      gustEvery: 5,                // roughly how many seconds between gusts
+      gustEvery: 5,                // roughly how many seconds between gusts (smaller = more often)
       gustShortest: 1,             // shortest gust, in seconds
       gustLongest: 2,              // longest gust, in seconds
 
@@ -47,9 +108,32 @@
       gravity: 150,                // how strongly the kite is pulled down
       kiteWeight: 1,               // how heavy the kite is (heavier = slower to react, harder to lift)
       kiteDrag: 1.5,               // how much the wind pushes the kite along with it (downwind)
-      kiteLift: 3,                   // how much the wind lifts the kite upwards
+      kiteLift: 3,                 // how much the wind lifts the kite upwards while you pull
+      slackLift: 0.3,              // how much lift is left when you let go (0.3 = 30%), so the kite slowly sinks
       kiteWobble: 0.1,             // how much the kite bobs and flutters on its own (0 = perfectly steady)
-      stringLength: 0.75,          // how long the string is, as a fraction of the screen size
+
+      // ----- String -----
+      startStringLength: 0.75,     // how much string is out at the start, as a fraction of the screen size
+      shortestString: 0.25,        // the least string you can reel in to, as a fraction of the screen size
+      longestString: 1.0,          // the most string you can let out, as a fraction of the screen size
+
+      // ----- Controls -----
+      pullStrength: 500,           // how hard the kite darts forward (where its nose points) while you pull
+      reelInSpeed: 0.15,           // how fast the string is reeled in while you pull
+      releaseSpeed: 0.25,          // how fast the string is let out when you let go
+      steeringSensitivity: 180,    // how fast the nose turns when you steer, in degrees per second
+      steeringSlide: 60,           // how far (in pixels) you slide your finger/mouse for full-speed steering
+      noseSettleSpeed: 1.5,        // when you let go, how quickly the nose drifts back to pointing up-and-away
+
+      // ----- Tension -----
+      tensionBuildUp: 0.25,        // how fast tension rises while you pull (it rises faster in strong wind and up high)
+      tensionDrop: 0.4,            // how fast tension falls when you let go
+      redZone: 0.8,                // where the red part of the meter starts (0.8 = top 20%)
+      yellowZone: 0.5,             // where the yellow part of the meter starts
+      snapTime: 1.5,               // how many seconds tension can stay in the red before the string snaps
+
+      // ----- Testing tools -----
+      slowMotionSpeed: 0.3,        // how fast the game runs in slow motion (0.3 = 30% speed)
 
       // ----- Looks -----
       skyTopColor: "#7fb8e6",      // sky colour at the top of the screen
@@ -84,6 +168,8 @@
     // Small maths helpers
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function randomBetween(min, max) { return min + Math.random() * (max - min); }
+    // The shortest way to turn from one angle to another (so the nose never spins the long way round)
+    function angleDifference(from, to) { return Phaser.Math.Angle.Wrap(to - from); }
 
     // Everything about the screen layout (recalculated when the window changes size)
     const layout = {};
@@ -98,7 +184,34 @@
     };
 
     // Your kite
-    const kite = { x: 0, y: 0, vx: 0, vy: 0, angle: -Math.PI / 2, tail: [] };
+    const kite = {
+      x: 0, y: 0,           // position
+      vx: 0, vy: 0,         // speed
+      angle: -Math.PI / 2,  // which way the nose points
+      tail: [],             // the pieces of the tail
+      stringOut: 0,         // how much string is let out right now
+      tension: 0,           // 0 = no tension, 1 = meter full
+      timeInRed: 0,         // how long tension has been in the red
+      snapped: false,       // has the string snapped?
+      spin: 0,              // how fast it spins while tumbling away
+    };
+
+    // What the player is doing right now
+    const controls = {
+      pointerDown: false,   // mouse button or finger held down
+      pointerStartX: 0,     // where the press started (sliding away from here steers)
+      pointerX: 0,
+      spaceDown: false,
+      leftDown: false,
+      rightDown: false,
+    };
+
+    // Game-wide state
+    const game = {
+      paused: false,
+      slowMotion: false,
+      endedAt: 0,           // when the round ended (so a tap still held from playing doesn't restart instantly)
+    };
 
     // The faint lines that show the wind
     const windLines = [];
@@ -122,8 +235,11 @@
       layout.anchorX = roofW * 0.6;
       layout.anchorY = height - roofH;
 
-      layout.stringLength = SETTINGS.stringLength * layout.size;
+      // The tension meter, on the left edge above your rooftop
+      layout.meter = { x: 10, y: height * 0.15, w: 14, h: Math.max(60, layout.roofTop - 20 - height * 0.15) };
     }
+
+    // ----- Wind -----
 
     // How strong the wind is right now overall (slowly wandering, plus gusts)
     function windStrengthNow() {
@@ -140,11 +256,15 @@
       return (SETTINGS.windDirectionVariation * wander) * Math.PI / 180;
     }
 
+    // How high something is: 0 = rooftop level, 1 = high up
+    function heightAt(y) {
+      return clamp((layout.roofTop - y) / layout.size, 0, 1);
+    }
+
     // The wind at a given height on screen, as a speed sideways (x) and up/down (y)
     function windAt(y) {
-      const height = clamp((layout.roofTop - y) / layout.size, 0, 1); // 0 = roof level, 1 = high up
       const heightFactor = SETTINGS.windAtRoof +
-        (1 - SETTINGS.windAtRoof) * clamp(height * SETTINGS.windHeightGain, 0, 1);
+        (1 - SETTINGS.windAtRoof) * clamp(heightAt(y) * SETTINGS.windHeightGain, 0, 1);
       const speed = SETTINGS.windStrength * layout.scale * windStrengthNow() * heightFactor;
       const angle = windAngleNow();
       return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
@@ -170,28 +290,76 @@
       }
     }
 
-    // Put the kite in the sky at the start
+    // ----- The kite -----
+
+    // Put the kite in the sky at the start (or on restart)
     function launchKite() {
+      kite.stringOut = SETTINGS.startStringLength * layout.size;
       const startAngle = -55 * Math.PI / 180; // up and to the right of the rooftop
-      kite.x = layout.anchorX + Math.cos(startAngle) * layout.stringLength;
-      kite.y = layout.anchorY + Math.sin(startAngle) * layout.stringLength;
+      kite.x = layout.anchorX + Math.cos(startAngle) * kite.stringOut;
+      kite.y = layout.anchorY + Math.sin(startAngle) * kite.stringOut;
       kite.vx = 0;
       kite.vy = 0;
       kite.angle = -Math.PI / 2;
+      kite.tension = 0;
+      kite.timeInRed = 0;
+      kite.snapped = false;
+      kite.spin = 0;
       kite.tail = [];
       for (let i = 0; i < SETTINGS.tailLength; i++) {
         kite.tail.push({ x: kite.x, y: kite.y + i * 6 });
       }
     }
 
+    // Read the controls: are we pulling, and which way are we steering (-1 = left, 1 = right)?
+    function readControls() {
+      const pulling = controls.pointerDown || controls.spaceDown;
+      let steer = 0;
+      if (controls.leftDown) steer -= 1;
+      if (controls.rightDown) steer += 1;
+      if (controls.pointerDown) {
+        steer += (controls.pointerX - controls.pointerStartX) / SETTINGS.steeringSlide;
+      }
+      return { pulling, steer: clamp(steer, -1, 1) };
+    }
+
     // Move the kite: wind pushes and lifts it, gravity pulls it down, the string holds it
-    function updateKite(dt) {
+    function updateKite(dt, input) {
+      if (kite.snapped) {
+        updateTumblingKite(dt);
+        return;
+      }
+
       const w = windAt(kite.y);
+      const normalWind = SETTINGS.windStrength * layout.scale || 1;
+      const windFactor = Math.hypot(w.x, w.y) / normalWind; // about 1 in normal wind high up
 
       // A little flutter so the kite never sits perfectly still
       const flutter = SETTINGS.kiteWobble;
       w.x *= 1 + flutter * Math.sin(wind.time * 3.1);
-      w.y += flutter * SETTINGS.windStrength * layout.scale * 0.3 * Math.sin(wind.time * 4.7 + 1);
+      w.y += flutter * normalWind * 0.3 * Math.sin(wind.time * 4.7 + 1);
+
+      // STEER: turn the nose
+      kite.angle += input.steer * SETTINGS.steeringSensitivity * Math.PI / 180 * dt;
+
+      const dx = kite.x - layout.anchorX;
+      const dy = kite.y - layout.anchorY;
+
+      // When you let go, the nose slowly drifts back to pointing up-and-away, like a loose kite
+      if (!input.pulling) {
+        const awayAngle = Math.atan2(dy, dx);
+        const target = (awayAngle + -Math.PI / 2) / 2 + flutter * 0.5 * Math.sin(wind.time * 2.3);
+        kite.angle += angleDifference(kite.angle, target) * Math.min(1, dt * SETTINGS.noseSettleSpeed);
+      }
+
+      // PULL reels the string in, RELEASE lets it out
+      if (input.pulling) {
+        kite.stringOut -= SETTINGS.reelInSpeed * layout.size * dt;
+      } else {
+        kite.stringOut += SETTINGS.releaseSpeed * layout.size * dt;
+      }
+      kite.stringOut = clamp(kite.stringOut,
+        SETTINGS.shortestString * layout.size, SETTINGS.longestString * layout.size);
 
       // The wind as the kite feels it (wind speed minus the kite's own speed)
       const relX = w.x - kite.vx;
@@ -201,11 +369,20 @@
       let forceX = SETTINGS.kiteDrag * relX;
       let forceY = SETTINGS.kiteDrag * relY;
 
-      // Lift pushes the kite sideways to the wind, whichever way is upwards
+      // Lift pushes the kite sideways to the wind, whichever way is upwards.
+      // A loose (released) kite loses most of its lift.
       let liftX = -relY, liftY = relX;
       if (liftY > 0) { liftX = -liftX; liftY = -liftY; }
-      forceX += SETTINGS.kiteLift * liftX;
-      forceY += SETTINGS.kiteLift * liftY;
+      const lift = SETTINGS.kiteLift * (input.pulling ? 1 : SETTINGS.slackLift);
+      forceX += lift * liftX;
+      forceY += lift * liftY;
+
+      // Pulling makes the kite dart where its nose points, harder in good wind
+      if (input.pulling) {
+        const dart = SETTINGS.pullStrength * layout.scale * clamp(windFactor, 0.2, 2);
+        forceX += Math.cos(kite.angle) * dart;
+        forceY += Math.sin(kite.angle) * dart;
+      }
 
       // Heavier kites react more slowly; gravity pulls down
       const weight = Math.max(0.1, SETTINGS.kiteWeight);
@@ -215,14 +392,14 @@
       kite.x += kite.vx * dt;
       kite.y += kite.vy * dt;
 
-      // The string: the kite can't go further from the rooftop than the string is long
-      const dx = kite.x - layout.anchorX;
-      const dy = kite.y - layout.anchorY;
-      const distance = Math.hypot(dx, dy);
-      if (distance > layout.stringLength) {
-        const nx = dx / distance, ny = dy / distance;
-        kite.x = layout.anchorX + nx * layout.stringLength;
-        kite.y = layout.anchorY + ny * layout.stringLength;
+      // The string: the kite can't go further from the rooftop than the string that's out
+      const ddx = kite.x - layout.anchorX;
+      const ddy = kite.y - layout.anchorY;
+      const distance = Math.hypot(ddx, ddy);
+      if (distance > kite.stringOut) {
+        const nx = ddx / distance, ny = ddy / distance;
+        kite.x = layout.anchorX + nx * kite.stringOut;
+        kite.y = layout.anchorY + ny * kite.stringOut;
         // Stop any movement that would stretch the string
         const outward = kite.vx * nx + kite.vy * ny;
         if (outward > 0) {
@@ -231,18 +408,56 @@
         }
       }
 
-      // The kite can't sink below the rooftops
-      if (kite.y > layout.roofTop - SETTINGS.kiteSize / 2) {
-        kite.y = layout.roofTop - SETTINGS.kiteSize / 2;
+      // The kite stays on screen and can't sink below the rooftops
+      const half = SETTINGS.kiteSize / 2;
+      if (kite.x < half) { kite.x = half; kite.vx = Math.max(0, kite.vx); }
+      if (kite.x > layout.width - half) { kite.x = layout.width - half; kite.vx = Math.min(0, kite.vx); }
+      if (kite.y < half) { kite.y = half; kite.vy = Math.max(0, kite.vy); }
+      if (kite.y > layout.roofTop - half) {
+        kite.y = layout.roofTop - half;
         kite.vy = Math.min(0, kite.vy);
         kite.vx *= 0.9;
       }
 
-      // The kite's nose turns to point away from the rooftop and a bit upwards, like a real kite
-      const awayAngle = Math.atan2(dy, dx);
-      const target = (awayAngle + -Math.PI / 2) / 2 + flutter * 0.5 * Math.sin(wind.time * 2.3);
-      kite.angle += (target - kite.angle) * Math.min(1, dt * 3);
+      updateTension(dt, input.pulling, windFactor);
+      updateTail(dt);
+    }
 
+    // Tension rises while pulling (faster in strong wind and up high) and falls when you let go
+    function updateTension(dt, pulling, windFactor) {
+      if (pulling) {
+        const height = heightAt(kite.y);
+        kite.tension += SETTINGS.tensionBuildUp * (0.5 + windFactor) * (0.5 + height) * dt;
+      } else {
+        kite.tension -= SETTINGS.tensionDrop * dt;
+      }
+      kite.tension = clamp(kite.tension, 0, 1);
+
+      // Too long in the red and the string snaps
+      if (kite.tension >= SETTINGS.redZone) {
+        kite.timeInRed += dt;
+        if (kite.timeInRed > SETTINGS.snapTime) snapString();
+      } else {
+        kite.timeInRed = 0;
+      }
+    }
+
+    // The string snaps: the kite is free and tumbles away
+    function snapString() {
+      kite.snapped = true;
+      kite.spin = randomBetween(4, 8) * (Math.random() < 0.5 ? -1 : 1);
+      showMessage("Your string snapped", "Tap or press R to restart");
+    }
+
+    // A free kite spins, drifts with the wind and falls
+    function updateTumblingKite(dt) {
+      const w = windAt(kite.y);
+      kite.vx += SETTINGS.kiteDrag * (w.x - kite.vx) * dt;
+      kite.vy += (SETTINGS.kiteDrag * (w.y - kite.vy) * 0.3 + SETTINGS.gravity * layout.scale) * dt;
+      kite.x += kite.vx * dt;
+      kite.y += kite.vy * dt;
+      kite.angle += kite.spin * dt;
+      kite.tension = Math.max(0, kite.tension - SETTINGS.tensionDrop * 2 * dt);
       updateTail(dt);
     }
 
@@ -267,6 +482,8 @@
         leaderY = piece.y;
       }
     }
+
+    // ----- Wind lines -----
 
     // Create the wind lines, scattered across the sky
     function createWindLines() {
@@ -298,7 +515,7 @@
 
     function drawWindLines(g) {
       g.lineStyle(1, 0xffffff, SETTINGS.windLineOpacity);
-      const normalSpeed = SETTINGS.windStrength * layout.scale;
+      const normalSpeed = SETTINGS.windStrength * layout.scale || 1;
       for (const line of windLines) {
         const w = windAt(line.y);
         const speed = Math.hypot(w.x, w.y) || 1;
@@ -368,6 +585,165 @@
       g.strokePath();
     }
 
+    // The tension meter: green, then yellow, then red at the top
+    function drawTensionMeter(g) {
+      const m = layout.meter;
+      const zoneY = (fraction) => m.y + m.h * (1 - fraction); // turn 0..1 into a screen position
+
+      // Faint coloured zones as the background
+      g.fillStyle(0x2a9d4a, 0.25);
+      g.fillRect(m.x, zoneY(SETTINGS.yellowZone), m.w, m.h * SETTINGS.yellowZone);
+      g.fillStyle(0xe9c46a, 0.3);
+      g.fillRect(m.x, zoneY(SETTINGS.redZone), m.w, m.h * (SETTINGS.redZone - SETTINGS.yellowZone));
+      g.fillStyle(0xe63946, 0.3);
+      g.fillRect(m.x, m.y, m.w, m.h * (1 - SETTINGS.redZone));
+
+      // The filled part shows the current tension, coloured by its zone
+      let fill = 0x2a9d4a;
+      let alpha = 1;
+      if (kite.tension >= SETTINGS.redZone) {
+        fill = 0xe63946;
+        alpha = 0.6 + 0.4 * Math.sin(wind.time * 25); // flash while in the red
+      } else if (kite.tension >= SETTINGS.yellowZone) {
+        fill = 0xe9c46a;
+      }
+      g.fillStyle(fill, alpha);
+      g.fillRect(m.x, zoneY(kite.tension), m.w, m.h * kite.tension);
+
+      // Outline
+      g.lineStyle(1.5, color(SETTINGS.rooftopColor), 0.8);
+      g.strokeRect(m.x, m.y, m.w, m.h);
+    }
+
+    // ----- Messages -----
+
+    let messageText, hintText;
+
+    function showMessage(big, small) {
+      messageText.setText(big).setVisible(true);
+      hintText.setText(small).setVisible(true);
+      game.endedAt = performance.now();
+    }
+
+    function hideMessage() {
+      messageText.setVisible(false);
+      hintText.setVisible(false);
+    }
+
+    function placeMessage() {
+      messageText.setPosition(layout.width / 2, layout.height * 0.4);
+      hintText.setPosition(layout.width / 2, layout.height * 0.4 + 44);
+    }
+
+    // ----- Restart, pause, slow motion, tuning panel -----
+
+    function restart() {
+      launchKite();
+      hideMessage();
+    }
+
+    function roundIsOver() {
+      return kite.snapped;
+    }
+
+    function togglePause() {
+      game.paused = !game.paused;
+      updateStatus();
+    }
+
+    function toggleSlowMotion() {
+      game.slowMotion = !game.slowMotion;
+      document.getElementById("slowButton").classList.toggle("on", game.slowMotion);
+      updateStatus();
+    }
+
+    function updateStatus() {
+      const words = [];
+      if (game.paused) words.push("PAUSED");
+      if (game.slowMotion) words.push("SLOW MOTION");
+      document.getElementById("status").textContent = words.join(" · ");
+    }
+
+    // The tuning panel: live sliders for the most important settings
+    let tuningPanel;
+    let tuningPanelOpen = false;
+
+    function createTuningPanel() {
+      tuningPanel = new lil.GUI({ title: "Tuning" });
+      tuningPanel.add(SETTINGS, "windStrength", 0, 600, 10).name("Wind strength");
+      tuningPanel.add(SETTINGS, "windHeightGain", 0, 3, 0.1).name("Wind increase with height");
+      tuningPanel.add(SETTINGS, "gustStrength", 0, 3, 0.1).name("Gust strength");
+      tuningPanel.add(SETTINGS, "gustEvery", 1, 20, 0.5).name("Seconds between gusts");
+      tuningPanel.add(SETTINGS, "gravity", 0, 600, 10).name("Gravity");
+      tuningPanel.add(SETTINGS, "kiteWeight", 0.2, 5, 0.1).name("Kite weight");
+      tuningPanel.add(SETTINGS, "pullStrength", 0, 1500, 10).name("Pull strength");
+      tuningPanel.add(SETTINGS, "releaseSpeed", 0, 1, 0.01).name("Release speed");
+      tuningPanel.add(SETTINGS, "steeringSensitivity", 0, 720, 10).name("Steering sensitivity");
+      tuningPanel.add(SETTINGS, "tensionBuildUp", 0, 2, 0.01).name("Tension build-up speed");
+      tuningPanel.add(SETTINGS, "snapTime", 0.2, 5, 0.1).name("Snap time (seconds)");
+      tuningPanel.add({ copySettings }, "copySettings").name("📋 Copy settings");
+      tuningPanel.show(false);
+    }
+
+    function toggleTuningPanel() {
+      tuningPanelOpen = !tuningPanelOpen;
+      tuningPanel.show(tuningPanelOpen);
+      document.getElementById("gearButton").classList.toggle("on", tuningPanelOpen);
+    }
+
+    // Copy every setting as text, ready to paste into a message
+    function copySettings() {
+      const lines = Object.entries(SETTINGS).map(([name, value]) =>
+        `  ${name}: ${typeof value === "string" ? `"${value}"` : Math.round(value * 1000) / 1000},`);
+      const text = "const SETTINGS = {\n" + lines.join("\n") + "\n};";
+
+      const done = () => {
+        const button = tuningPanel.controllers[tuningPanel.controllers.length - 1];
+        button.name("✅ Copied!");
+        setTimeout(() => button.name("📋 Copy settings"), 1500);
+      };
+      // Try the modern way first, then an older way that works in more places
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done, () => { oldStyleCopy(text); done(); });
+      } else {
+        oldStyleCopy(text);
+        done();
+      }
+    }
+
+    function oldStyleCopy(text) {
+      const box = document.createElement("textarea");
+      box.value = text;
+      document.body.appendChild(box);
+      box.select();
+      document.execCommand("copy");
+      box.remove();
+    }
+
+    // ----- Keyboard -----
+
+    function setUpKeyboard() {
+      const typingInPanel = (event) => ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName);
+
+      window.addEventListener("keydown", (event) => {
+        if (typingInPanel(event)) return;
+        if (event.code === "Space") { controls.spaceDown = true; event.preventDefault(); }
+        if (event.code === "ArrowLeft") { controls.leftDown = true; event.preventDefault(); }
+        if (event.code === "ArrowRight") { controls.rightDown = true; event.preventDefault(); }
+        if (event.repeat) return;
+        if (event.code === "KeyR") restart();
+        if (event.code === "KeyP") togglePause();
+        if (event.code === "KeyS") toggleSlowMotion();
+        if (event.code === "KeyT") toggleTuningPanel();
+      });
+
+      window.addEventListener("keyup", (event) => {
+        if (event.code === "Space") controls.spaceDown = false;
+        if (event.code === "ArrowLeft") controls.leftDown = false;
+        if (event.code === "ArrowRight") controls.rightDown = false;
+      });
+    }
+
     // ----- Phaser scene: set up once, then update every frame -----
 
     let graphics;
@@ -378,26 +754,61 @@
       launchKite();
       graphics = this.add.graphics();
 
+      const textStyle = { fontFamily: "system-ui, sans-serif", color: "#ffffff", stroke: "#2b2d42", align: "center" };
+      messageText = this.add.text(0, 0, "", { ...textStyle, fontSize: "32px", fontStyle: "bold", strokeThickness: 6 })
+        .setOrigin(0.5).setVisible(false);
+      hintText = this.add.text(0, 0, "", { ...textStyle, fontSize: "16px", strokeThickness: 4 })
+        .setOrigin(0.5).setVisible(false);
+      placeMessage();
+
+      // Mouse and touch both arrive here as "pointer" events
+      this.input.on("pointerdown", (pointer) => {
+        if (roundIsOver()) {
+          // Wait a moment, so the press you were already holding doesn't restart straight away
+          if (performance.now() - game.endedAt > 600) restart();
+          return;
+        }
+        controls.pointerDown = true;
+        controls.pointerStartX = pointer.x;
+        controls.pointerX = pointer.x;
+      });
+      this.input.on("pointermove", (pointer) => { controls.pointerX = pointer.x; });
+      this.input.on("pointerup", () => { controls.pointerDown = false; });
+      this.input.on("pointerupoutside", () => { controls.pointerDown = false; });
+
+      setUpKeyboard();
+      createTuningPanel();
+      document.getElementById("gearButton").addEventListener("click", toggleTuningPanel);
+      document.getElementById("slowButton").addEventListener("click", toggleSlowMotion);
+
       // When the window changes size or the phone rotates, redo the layout
       this.scale.on("resize", (size) => {
         updateLayout(size.width, size.height);
         createWindLines();
+        placeMessage();
       });
     }
 
     function update(time, delta) {
       // Seconds since the last frame (capped so a hiccup doesn't make things jump)
-      const dt = Math.min(delta / 1000, 1 / 30);
+      let dt = Math.min(delta / 1000, 1 / 30);
+      if (game.slowMotion) dt *= SETTINGS.slowMotionSpeed;
+      if (game.paused) dt = 0;
 
-      updateWind(dt);
-      updateWindLines(dt);
-      updateKite(dt);
+      if (dt > 0) {
+        updateWind(dt);
+        updateWindLines(dt);
+        updateKite(dt, readControls());
+      }
 
       graphics.clear();
       drawWindLines(graphics);
-      drawString(graphics, layout.anchorX, layout.anchorY, kite.x, kite.y, layout.stringLength);
-      drawRooftops(graphics);
+      if (!kite.snapped) {
+        drawString(graphics, layout.anchorX, layout.anchorY, kite.x, kite.y, kite.stringOut);
+      }
       drawKite(graphics, kite, SETTINGS.playerKiteColor);
+      drawRooftops(graphics);
+      drawTensionMeter(graphics);
     }
 
     new Phaser.Game({
