@@ -10,7 +10,6 @@ import {
   items,
   spillItems,
   statusText,
-  USE_PHOTOS,
   type Item,
   type Placement,
 } from "@/data/items";
@@ -27,7 +26,7 @@ const DESKTOP_REF = 1200; // item sizes in items.ts are px at this stage width
 const MOBILE_REF = 580;
 const TIP_MS = 500;
 const SPILL_DELAY = 200; // items start pouring while the bag is still turning
-const yogaMat = items.find((i) => i.strappedToBag)!;
+const yogaMat = items.find((i) => i.staysPut)!;
 
 const loadMatter = () => import("matter-js").then((m) => m.default ?? m);
 
@@ -116,10 +115,12 @@ export function BagStage() {
     const bagTip = toPx(bag.target[mode]);
     // The opening is at the top of the upright bag; rotate that point with the bag.
     const rad = (bagTip.rot * Math.PI) / 180;
-    const lip = bagH * 0.4;
+    const lip = bagH * bag.mouth;
     const mouth = { x: bagTip.x + lip * Math.sin(rad), y: bagTip.y - lip * Math.cos(rad) };
     const targets = new Map(spillItems.map((i) => [i.id, toPx(i.target[mode])]));
-    return { scale, box, bagW, bagH, bagIdle, bagTip, mouth, targets };
+    const matIdle = toPx((yogaMat.idle ?? yogaMat.target)[mode]);
+    const matTip = toPx(yogaMat.target[mode]);
+    return { scale, box, bagW, bagH, bagIdle, bagTip, mouth, targets, matIdle, matTip };
   }, [dims]);
 
   // ── Writing poses to the DOM (no React render per frame) ─────────────
@@ -522,27 +523,14 @@ export function BagStage() {
     `translate3d(${pose.x - layout!.bagW / 2}px, ${pose.y - layout!.bagH / 2}px, 0) rotate(${pose.rot}deg)`;
   const bagTransition = animateBag && !calm ? `transform ${TIP_MS}ms cubic-bezier(0.34, 1.3, 0.64, 1)` : "none";
 
-  // The yoga mat rides on the left side of the bag.
+  // The yoga mat leans on the bag, then moves beside it when the bag tips.
   const mat = layout
-    ? (() => {
-        const w = yogaMat.size.w * layout.scale;
-        const h = yogaMat.size.h * layout.scale;
-        const ox = -layout.bagW / 2 + w * 0.15;
-        const oy = layout.bagH * 0.06;
-        return { w, h, left: layout.bagW / 2 + ox - w / 2, top: layout.bagH / 2 + oy - h / 2, ox, oy };
-      })()
+    ? { pose: bagTipped ? layout.matTip : layout.matIdle, ...layout.box(yogaMat) }
     : null;
 
   const anchorFor = (item: Item): Anchor | null => {
     if (!layout) return null;
-    if (item.strappedToBag && mat && bagPose) {
-      const rad = (bagPose.rot * Math.PI) / 180;
-      const x = bagPose.x + mat.ox * Math.cos(rad) - mat.oy * Math.sin(rad);
-      const y = bagPose.y + mat.ox * Math.sin(rad) + mat.oy * Math.cos(rad);
-      const sideways = Math.abs(Math.sin(rad)) > 0.5;
-      return { x, y, w: sideways ? mat.h : mat.w, h: sideways ? mat.w : mat.h };
-    }
-    const p = poses.current.get(item.id);
+    const p = item.staysPut ? mat?.pose : poses.current.get(item.id);
     if (!p) return null;
     const { w, h } = layout.box(item);
     const sideways = Math.abs(Math.sin((p.rot * Math.PI) / 180)) > 0.7;
@@ -586,8 +574,13 @@ export function BagStage() {
                   onPointerMove={onBagPointerMove}
                   onPointerUp={() => (bagDrag.current = null)}
                 >
-                  <span className="thing-visual">
-                    <BagArt />
+                  <span className="thing-visual bag-visual">
+                    {bag.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={bag.image} alt="" draggable={false} className="h-full w-full object-contain" />
+                    ) : (
+                      <BagArt />
+                    )}
                   </span>
                 </button>
               </div>
@@ -624,9 +617,9 @@ export function BagStage() {
                     >
                       <TrekPhoto />
                     </motion.span>
-                  ) : USE_PHOTOS ? (
+                  ) : item.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.image} alt="" width={w} height={h} draggable={false} className="h-full w-full object-contain" />
+                    <img src={item.image} alt="" draggable={false} className="h-full w-full object-contain" />
                   ) : (
                     <ItemArt id={item.id} w={item.size.w} h={item.size.h} />
                   )}
@@ -665,32 +658,38 @@ export function BagStage() {
             })}
         </div>
 
-        {/* The yoga mat, strapped to the bag (after the pages in tab order) */}
-        {layout && bagPose && mat && (
-          <div
-            className="pointer-events-none absolute left-0 top-0 z-20"
-            style={{ width: layout.bagW, height: layout.bagH, transform: bagTransform(bagPose), transition: bagTransition }}
+        {/* The yoga mat (after the pages in tab order) */}
+        {layout && mat && (
+          <button
+            type="button"
+            data-thing={yogaMat.id}
+            className="thing z-20"
+            style={{
+              width: mat.bw,
+              height: mat.bh,
+              transform: `translate3d(${mat.pose.x - mat.bw / 2}px, ${mat.pose.y - mat.bh / 2}px, 0) rotate(${mat.pose.rot}deg)`,
+              transition: bagTransition,
+              touchAction: "manipulation",
+            }}
+            aria-label={`${yogaMat.label}: ${yogaMat.a11y}`}
+            aria-pressed={calm}
+            aria-describedby={`desc-${yogaMat.id}`}
+            data-active={matShown ? "true" : undefined}
+            onPointerEnter={(e) => e.pointerType === "mouse" && setHoverId(yogaMat.id)}
+            onPointerLeave={() => setHoverId((h) => (h === yogaMat.id ? null : h))}
+            onFocus={() => setFocusId(yogaMat.id)}
+            onBlur={() => setFocusId((f) => (f === yogaMat.id ? null : f))}
+            onClick={() => setCalm(!calm)}
           >
-            <button
-              type="button"
-              data-thing={yogaMat.id}
-              className="thing pointer-events-auto"
-              style={{ width: mat.w, height: mat.h, transform: `translate(${mat.left}px, ${mat.top}px)` }}
-              aria-label={`${yogaMat.label}: ${yogaMat.a11y}`}
-              aria-pressed={calm}
-              aria-describedby={`desc-${yogaMat.id}`}
-              data-active={matShown ? "true" : undefined}
-              onPointerEnter={(e) => e.pointerType === "mouse" && setHoverId(yogaMat.id)}
-              onPointerLeave={() => setHoverId((h) => (h === yogaMat.id ? null : h))}
-              onFocus={() => setFocusId(yogaMat.id)}
-              onBlur={() => setFocusId((f) => (f === yogaMat.id ? null : f))}
-              onClick={() => setCalm(!calm)}
-            >
-              <span className="thing-visual">
+            <span className="thing-visual" style={{ width: mat.w, height: mat.h }}>
+              {yogaMat.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={yogaMat.image} alt="" draggable={false} className="h-full w-full object-contain" />
+              ) : (
                 <ItemArt id={yogaMat.id} w={yogaMat.size.w} h={yogaMat.size.h} />
-              </span>
-            </button>
-          </div>
+              )}
+            </span>
+          </button>
         )}
 
         {/* Tags */}

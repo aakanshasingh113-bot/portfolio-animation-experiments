@@ -9,7 +9,9 @@ export type Placement = { x: number; y: number; rot: number }; // % of stage, de
 export type Item = {
   id: string;
   label: string; // accessible name, e.g. "Smartwatch"
-  image: string; // /items/watch.png (transparent PNG, used once USE_PHOTOS is true)
+  // Cut-out photo with a transparent background (WebP or PNG in /public/items).
+  // Leave it out and the drawn placeholder is used instead.
+  image?: string;
   kind: "project" | "page" | "toggle" | "easter-egg";
   href?: string;
   tagPersonal: string; // handwritten line
@@ -24,18 +26,19 @@ export type Item = {
   project?: { name: string; client: string; line: string };
   // Words that finish the accessible name, e.g. "About page".
   a11y?: string;
-  // Strapped to the side of the bag instead of spilling out (the yoga mat).
-  strappedToBag?: boolean;
+  // Doesn't spill out (the yoga mat): it sits at `idle` beside the upright bag
+  // and moves to `target` when the bag tips.
+  staysPut?: boolean;
+  idle?: { desktop: Placement; mobile: Placement };
 };
-
-/** Flip to true once the real cut-out photos are in /public/items. */
-export const USE_PHOTOS = false;
 
 /** The tote bag itself. Upright size; it lies on its side once tipped. */
 export const bag = {
   label: "Tote bag",
-  image: "/items/bag.png",
-  size: { w: 230, h: 280 },
+  image: "/items/bag.webp" as string | undefined,
+  size: { w: 300, h: 271 },
+  // Where the opening is: fraction of the bag's height above its centre.
+  mouth: 0.18,
   idle: {
     desktop: { x: 50, y: 52, rot: 0 },
     mobile: { x: 50, y: 42, rot: 0 },
@@ -44,7 +47,7 @@ export const bag = {
   // mobile: upside down at the top, opening facing down the screen.
   target: {
     desktop: { x: 14, y: 55, rot: 90 },
-    mobile: { x: 50, y: 13, rot: 180 },
+    mobile: { x: 50, y: 14, rot: 180 },
   },
 };
 
@@ -58,7 +61,6 @@ export const items: Item[] = [
   {
     id: "smartwatch",
     label: "Smartwatch",
-    image: "/items/watch.png",
     kind: "project",
     href: "/work/trends",
     protected: true,
@@ -74,14 +76,14 @@ export const items: Item[] = [
   {
     id: "paperback",
     label: "Paperback",
-    image: "/items/book.png",
+    image: "/items/book.webp",
     kind: "project",
     href: "/work/oman-vision-2040",
     tagPersonal: "Always one book in the bag.",
     ...project("Oman Vision 2040", "MTCIT", "200 pages of policy → a one-minute holographic experience."),
     status: "Live",
     statusNote: "COMEX 2025",
-    size: { w: 150, h: 205 },
+    size: { w: 136, h: 224 },
     target: {
       desktop: { x: 56, y: 56, rot: 6 },
       mobile: { x: 70, y: 32, rot: 6 },
@@ -90,7 +92,6 @@ export const items: Item[] = [
   {
     id: "keyring",
     label: "Keyring with clip-on charms",
-    image: "/items/keyring.png",
     kind: "project",
     href: "/work/legrand",
     tagPersonal: "Too many charms. They all clip on.",
@@ -105,7 +106,6 @@ export const items: Item[] = [
   {
     id: "recipe-card",
     label: "Handwritten recipe card",
-    image: "/items/recipe-card.png",
     kind: "project",
     href: "/work/prescriptions",
     protected: true,
@@ -121,7 +121,6 @@ export const items: Item[] = [
   {
     id: "resistance-band",
     label: "Resistance band",
-    image: "/items/band.png",
     kind: "project",
     href: "/work/rep-counter",
     protected: true,
@@ -139,7 +138,6 @@ export const items: Item[] = [
   {
     id: "train-pass",
     label: "Train pass",
-    image: "/items/train-pass.png",
     kind: "page",
     href: "/about",
     a11y: "About page",
@@ -153,7 +151,6 @@ export const items: Item[] = [
   {
     id: "folded-paper",
     label: "Folded sheet of paper",
-    image: "/items/paper.png",
     kind: "page",
     href: "/resume.pdf",
     a11y: "Résumé (PDF)",
@@ -167,7 +164,6 @@ export const items: Item[] = [
   {
     id: "phone",
     label: "Phone",
-    image: "/items/phone.png",
     kind: "page",
     a11y: "open contact details",
     tagPersonal: "Say hi.",
@@ -182,16 +178,21 @@ export const items: Item[] = [
   {
     id: "yoga-mat",
     label: "Yoga mat",
-    image: "/items/yoga-mat.png",
+    image: "/items/yoga-mat.webp",
     kind: "toggle",
     a11y: "calm mode, turns off all motion",
     tagPersonal: "Breathe. Everything stays still.",
-    strappedToBag: true,
-    size: { w: 64, h: 250 },
-    // Unused while strapped to the bag; kept so it can be moved to the floor later.
+    staysPut: true,
+    size: { w: 150, h: 130 },
+    // Leaning on the upright bag…
+    idle: {
+      desktop: { x: 68, y: 64, rot: 0 },
+      mobile: { x: 78, y: 52, rot: 0 },
+    },
+    // …and lying just beside it once it tips.
     target: {
-      desktop: { x: 14, y: 55, rot: 90 },
-      mobile: { x: 50, y: 12, rot: 180 },
+      desktop: { x: 9, y: 20, rot: -8 },
+      mobile: { x: 50, y: 93, rot: 0 },
     },
   },
 
@@ -199,7 +200,6 @@ export const items: Item[] = [
   {
     id: "earphones",
     label: "Earphones",
-    image: "/items/earphones.png",
     kind: "easter-egg",
     tagPersonal: "Now playing: [song you dance to]",
     easterEgg: { text: "Now playing: [song you dance to]" },
@@ -212,7 +212,6 @@ export const items: Item[] = [
   {
     id: "cookie",
     label: "Cookie wrapped in foil",
-    image: "/items/cookie.png",
     kind: "easter-egg",
     tagPersonal: "Baking attempt #1: 6/10. Will iterate.",
     easterEgg: { text: "Baking attempt #1: 6/10. Will iterate." },
@@ -225,7 +224,6 @@ export const items: Item[] = [
   {
     id: "sunglasses",
     label: "Sunglasses",
-    image: "/items/sunglasses.png",
     kind: "easter-egg",
     tagPersonal: "[trek name, altitude]",
     easterEgg: {
@@ -242,20 +240,20 @@ export const items: Item[] = [
   {
     id: "swim-goggles",
     label: "Swim goggles",
-    image: "/items/goggles.png",
+    image: "/items/goggles.webp",
     kind: "easter-egg",
     tagPersonal: "Early lap, then work.",
     easterEgg: { text: "Early lap, then work." },
-    size: { w: 130, h: 60 },
+    size: { w: 150, h: 81 },
     target: {
-      desktop: { x: 93, y: 14, rot: 12 },
+      desktop: { x: 91, y: 14, rot: 12 },
       mobile: { x: 14, y: 20, rot: 12 },
     },
   },
 ];
 
-/** Items that spill out of the bag (everything not strapped to it). */
-export const spillItems = items.filter((i) => !i.strappedToBag);
+/** Items that spill out of the bag (everything except the yoga mat). */
+export const spillItems = items.filter((i) => !i.staysPut);
 export const projectItems = items.filter((i) => i.kind === "project");
 
 /** Where a click on the item should go (protected work goes through the gate). */
