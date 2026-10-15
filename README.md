@@ -23,8 +23,11 @@ npm run build      # production build + type check
 | Spill physics (matter-js, loaded only when the bag tips) | `lib/spill.ts` |
 | Colour tokens (light + dark) | `app/globals.css` |
 
-**Swapping in real photos:** drop transparent PNGs into `public/items/` using the
-`image` paths in `data/items.ts`, then set `USE_PHOTOS = true` in the same file.
+**Adding real photos:** cut the item out on a transparent background, save it
+in `public/items/` (WebP or PNG, about 400px wide), and set that item's `image`
+in `data/items.ts`. Items without an `image` use the drawn placeholder. If the
+photo's shape differs from the drawing, update `size` to match its aspect ratio.
+Photos so far: tote bag, paperback, yoga mat, swim goggles.
 
 **Retuning the layout:** each item's `target` is its resting place as a
 percentage of the stage (`x`, `y`) plus a rotation in degrees, with separate
