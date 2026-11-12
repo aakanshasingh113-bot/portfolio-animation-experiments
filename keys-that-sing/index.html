@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#edeff3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111319" media="(prefers-color-scheme: dark)">
+<title>Keys That Sing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&family=Martian+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: one quiet ruled sheet, controls tucked above, a staff-like legend below. The only loud thing is the light under each new letter. */
+  :root {
+    --paper: #edeff3;
+    --sheet: #f8f9fb;
+    --ink: #1d2130;
+    --muted: #646b7e;
+    --rule: #dde1e9;
+    --mel: #3d5a9f;
+    --hope: #a86a0f;
+    --dream: #8550b5;
+    --accent: var(--mel);
+
+    --font-display: "Gloock", "Iowan Old Style", Georgia, serif;
+    --font-write: "Literata", "Iowan Old Style", Georgia, serif;
+    --font-label: "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --fs-write: 1.2rem;
+    --lh-write: 2.1rem;
+    --gutter: 16px;
+    --tap: 2.1rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #111319;
+      --sheet: #181b23;
+      --ink: #e2e5ee;
+      --muted: #8c93a6;
+      --rule: #262a36;
+      --mel: #93acec;
+      --hope: #f2b75a;
+      --dream: #c79ff0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #111319;
+    --sheet: #181b23;
+    --ink: #e2e5ee;
+    --muted: #8c93a6;
+    --rule: #262a36;
+    --mel: #93acec;
+    --hope: #f2b75a;
+    --dream: #c79ff0;
+    color-scheme: dark;
+  }
+  /* Phones: slightly smaller writing (still above 16px, so iOS never zooms on focus), finger-sized controls. */
+  @media (max-width: 600px) {
+    :root { --fs-write: 1.125rem; --lh-write: 1.95rem; }
+  }
+  @media (pointer: coarse) {
+    :root { --tap: 2.75rem; }
+  }
+
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-write);
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body[data-mood="melancholy"] { --accent: var(--mel); }
+  body[data-mood="hopeful"]    { --accent: var(--hope); }
+  body[data-mood="dreamy"]     { --accent: var(--dream); }
+
+  /* The app pins itself to the visible viewport, so the on-screen keyboard shrinks the sheet instead of covering it. */
+  .app {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--vv-top, 0px);
+    height: var(--vv-height, 100%);
+    box-sizing: border-box;
+    max-width: 50rem;
+    margin: 0 auto;
+    padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px));
+    padding-block: calc(1.25rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "title moods actions";
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+  h1 {
+    grid-area: title;
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+  }
+  h1 em { font-style: normal; color: var(--accent); transition: color 0.6s ease; }
+
+  .moods {
+    grid-area: moods;
+    display: flex;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--sheet);
+    margin: 0;
+    min-width: 0;
+  }
+  .moods legend {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
+  }
+  .moods input { position: absolute; opacity: 0; pointer-events: none; }
+  .moods label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(var(--tap) - 6px);
+    box-sizing: border-box;
+    font-family: var(--font-label);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    padding: 0 0.8rem;
+    border-radius: 999px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: color 0.25s, background 0.25s;
+  }
+  .moods input:checked + label { background: var(--accent); color: var(--sheet); }
+  .moods input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .actions { grid-area: actions; display: flex; gap: 0.4rem; }
+  .icon-btn {
+    min-height: var(--tap);
+    box-sizing: border-box;
+    font-family: var(--font-label);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .icon-btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+  @media (hover: hover) {
+    .moods label:hover { color: var(--ink); }
+    .moods input:checked + label:hover { color: var(--sheet); }
+    .icon-btn:hover { color: var(--ink); border-color: var(--muted); }
+  }
+
+  /* Narrow screens: title and buttons share the first row, the mood switch spans the second. */
+  @media (max-width: 720px) {
+    header {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "title actions" "moods moods";
+    }
+  }
+  @media (max-width: 440px) {
+    h1 { font-size: 1.45rem; }
+    .moods label { padding: 0 0.4rem; font-size: 0.68rem; }
+    .icon-btn { padding: 0 0.65rem; }
+  }
+
+  /* The sheet scrolls; inside it the textarea and its mirror share one grid cell. */
+  .sheet {
+    flex: 1;
+    min-height: 6rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    cursor: text;
+  }
+  .page {
+    display: grid;
+    min-height: 100%;
+    box-sizing: border-box;
+    padding: calc(var(--lh-write) * 0.75) clamp(1rem, 5vw, 3rem) calc(var(--lh-write) * 2);
+    background-image: linear-gradient(to bottom, transparent calc(var(--lh-write) - 1px), var(--rule) calc(var(--lh-write) - 1px));
+    background-size: 100% var(--lh-write);
+    background-origin: content-box;
+    background-clip: content-box;
+  }
+  .page > * {
+    grid-area: 1 / 1;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    font-family: var(--font-write);
+    font-size: var(--fs-write);
+    line-height: var(--lh-write);
+    letter-spacing: 0.01em;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: normal;
+    tab-size: 4;
+    min-width: 0;
+  }
+  .mirror { color: var(--ink); pointer-events: none; }
+  textarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    caret-color: var(--accent);
+    resize: none;
+    overflow: hidden;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  textarea::placeholder { color: var(--muted); -webkit-text-fill-color: var(--muted); opacity: 0.8; font-style: italic; }
+  textarea::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); color: transparent; }
+
+  /* Glows: bells bloom slowly, plucks flash, chords spread wide. */
+  .g {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+    border-radius: 2px;
+  }
+  .g-bell  { animation-name: glow-bell;  animation-duration: 1500ms; }
+  .g-pluck { animation-name: glow-pluck; animation-duration: 600ms; }
+  .g-chord { animation-name: glow-chord; animation-duration: 1300ms; }
+  @keyframes glow-bell {
+    0%   { color: var(--accent); text-shadow: 0 0 0.35em var(--accent), 0 0 1.1em var(--accent); }
+    100% { color: var(--ink); text-shadow: 0 0 0 transparent; }
+  }
+  @keyframes glow-pluck {
+    0%   { color: var(--accent); text-shadow: 0 0 0.3em var(--accent); }
+    100% { color: var(--ink); text-shadow: 0 0 0 transparent; }
+  }
+  @keyframes glow-chord {
+    0%   { color: var(--accent); text-shadow: 0 0 0.5em var(--accent), 0 0 1.6em var(--accent), 0 0 2.6em var(--accent); }
+    100% { color: var(--ink); text-shadow: 0 0 0 transparent; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    @keyframes glow-bell  { 0% { color: var(--accent); } 100% { color: var(--ink); } }
+    @keyframes glow-pluck { 0% { color: var(--accent); } 100% { color: var(--ink); } }
+    @keyframes glow-chord { 0% { color: var(--accent); } 100% { color: var(--ink); } }
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    font-family: var(--font-label);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin: 0; padding: 0; list-style: none; }
+  .legend b { color: var(--ink); font-weight: 500; }
+  .readout { display: flex; gap: 0.4rem 1.1rem; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .readout output { color: var(--accent); font-weight: 500; transition: color 0.6s ease; }
+  .scale-notes { color: var(--ink); }
+
+  /* While a phone keyboard is open, give the sheet every spare line. */
+  body.keyboard .app { gap: 0.6rem; padding-block: calc(0.6rem + env(safe-area-inset-top, 0px)) 0.5rem; }
+  body.keyboard .legend { display: none; }
+  body.keyboard h1 { font-size: 1.3rem; }
+  @media (max-width: 720px) {
+    body.keyboard .scale-label { display: none; }
+  }
+</style>
+</head>
+<body data-mood="melancholy">
+<div class="app">
+  <header>
+    <h1>Keys That <em>Sing</em></h1>
+    <fieldset class="moods" id="moods">
+      <legend>Mood</legend>
+      <input type="radio" name="mood" id="mood-melancholy" value="melancholy" checked>
+      <label for="mood-melancholy">melancholy</label>
+      <input type="radio" name="mood" id="mood-hopeful" value="hopeful">
+      <label for="mood-hopeful">hopeful</label>
+      <input type="radio" name="mood" id="mood-dreamy" value="dreamy">
+      <label for="mood-dreamy">dreamy</label>
+    </fieldset>
+    <div class="actions">
+      <button class="icon-btn" id="mute" type="button" aria-pressed="false">sound on</button>
+      <button class="icon-btn" id="clear" type="button">clear</button>
+    </div>
+  </header>
+
+  <div class="sheet" id="sheet">
+    <div class="page">
+      <div class="mirror" id="mirror" aria-hidden="true"></div>
+      <textarea id="writer" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="sentences"
+        enterkeyhint="enter"
+        aria-label="Writing space. Each key you type plays a note."
+        placeholder="Start typing. Vowels ring like small bells, consonants pluck, a full stop settles on a chord."></textarea>
+    </div>
+  </div>
+
+  <footer>
+    <ul class="legend">
+      <li><b>a e i o u</b> bell</li>
+      <li><b>b–z</b> pluck</li>
+      <li><b>space</b> rest</li>
+      <li><b>. , ? !</b> chord</li>
+    </ul>
+    <div class="readout">
+      <span class="scale-label">scale <span class="scale-notes" id="scale">A minor · A B C D E F G</span></span>
+      <span>last <output id="last">—</output></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  // ---------- Musical model ----------
+  const MOODS = {
+    melancholy: {
+      name: "A minor", root: 57, scale: [0, 2, 3, 5, 7, 8, 10],
+      chords: { home: 0, lift: 3, ask: 4, warm: 5 },   // i, iv, v, VI
+      wet: 0.38, tone: 1900, shimmer: false
+    },
+    hopeful: {
+      name: "C major", root: 60, scale: [0, 2, 4, 5, 7, 9, 11],
+      chords: { home: 0, lift: 3, ask: 4, warm: 5 },   // I, IV, V, vi
+      wet: 0.22, tone: 4200, shimmer: false
+    },
+    dreamy: {
+      name: "D Lydian", root: 62, scale: [0, 2, 4, 6, 7, 9, 11],
+      chords: { home: 0, lift: 1, ask: 4, warm: 2 },   // I, II, V, iii
+      wet: 0.6, tone: 2800, shimmer: true
+    }
+  };
+  const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+  const VOWEL_DEGREE = { a: 0, e: 2, i: 4, o: 7, u: 9 };     // chord tones, so bells always consonate
+  const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
+  const PUNCT_CHORD = { ".": "home", "…": "home", ",": "lift", ";": "lift", "?": "ask", ":": "ask", "!": "warm" };
+
+  let mood = "melancholy";
+
+  function degreeToMidi(deg, m = MOODS[mood]) {
+    const oct = Math.floor(deg / 7);
+    const step = ((deg % 7) + 7) % 7;
+    return m.root + m.scale[step] + 12 * oct;
+  }
+  const midiToHz = (n) => 440 * Math.pow(2, (n - 69) / 12);
+  const midiName = (n) => NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1);
+
+  function classify(ch) {
+    const base = ch.normalize("NFD")[0].toLowerCase();
+    if (/\s/.test(ch)) return null;
+    if (base in VOWEL_DEGREE) return { kind: "bell", degree: VOWEL_DEGREE[base] + 7, loud: ch !== base };
+    const ci = CONSONANTS.indexOf(base);
+    if (ci >= 0) return { kind: "pluck", degree: ci % 10, loud: ch !== base };
+    if (/[0-9]/.test(base)) return { kind: "pluck", degree: Number(base), loud: false };
+    return { kind: "chord", fn: PUNCT_CHORD[ch] || "home" };
+  }
+
+  // ---------- Audio engine (all synthesized) ----------
+  let ctx = null, bus, toneFilter, wetGain, dryGain, master;
+  let muted = false;
+
+  function makeImpulse(seconds, decay) {
+    const len = Math.floor(ctx.sampleRate * seconds);
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+
+  function ensureAudio() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+      bus = ctx.createGain();
+      toneFilter = ctx.createBiquadFilter();
+      toneFilter.type = "lowpass";
+      toneFilter.Q.value = 0.4;
+      const verb = ctx.createConvolver();
+      verb.buffer = makeImpulse(3.2, 2.6);
+      wetGain = ctx.createGain();
+      dryGain = ctx.createGain();
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -18;
+      comp.ratio.value = 4;
+      comp.attack.value = 0.004;
+      comp.release.value = 0.25;
+      master = ctx.createGain();
+      master.gain.value = muted ? 0 : 0.85;
+
+      bus.connect(toneFilter);
+      toneFilter.connect(dryGain).connect(comp);
+      toneFilter.connect(verb).connect(wetGain).connect(comp);
+      comp.connect(master).connect(ctx.destination);
+      applyMoodToAudio(true);
+    }
+    if (ctx.state !== "running") ctx.resume().catch(() => {});
+    return ctx;
+  }
+
+  // Phones only allow audio to start inside a tap. Soft-keyboard input events often don't count,
+  // so the first touch anywhere wakes the engine with a silent blip.
+  function unlockAudio() {
+    if (!ensureAudio()) return;
+    const src = ctx.createBufferSource();
+    src.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    src.connect(ctx.destination);
+    src.start(0);
+    if (ctx.state === "running") {
+      ["pointerdown", "touchend", "keydown"].forEach((t) => document.removeEventListener(t, unlockAudio, true));
+    }
+  }
+  ["pointerdown", "touchend", "keydown"].forEach((t) => document.addEventListener(t, unlockAudio, true));
+
+  function applyMoodToAudio(immediate) {
+    if (!ctx) return;
+    const m = MOODS[mood], t = ctx.currentTime, k = immediate ? 0.001 : 0.4;
+    toneFilter.frequency.setTargetAtTime(m.tone, t, k);
+    wetGain.gain.setTargetAtTime(m.wet, t, k);
+    dryGain.gain.setTargetAtTime(1 - m.wet * 0.55, t, k);
+  }
+
+  function envOsc(type, freq, start, peak, attack, decay, dest, detune = 0) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    o.detune.value = detune;
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(peak, start + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + attack + decay);
+    o.connect(g).connect(dest);
+    o.start(start);
+    o.stop(start + attack + decay + 0.05);
+    return o;
+  }
+
+  function playBell(midi, loud) {
+    const t = ctx.currentTime + 0.005, f = midiToHz(midi);
+    const v = (loud ? 0.2 : 0.14) * (0.9 + Math.random() * 0.2);
+    envOsc("sine", f, t, v, 0.006, 2.2, bus);
+    envOsc("sine", f * 2.76, t, v * 0.22, 0.004, 0.9, bus);   // inharmonic partials give the bell its glass
+    envOsc("sine", f * 5.4, t, v * 0.08, 0.003, 0.4, bus);
+    if (MOODS[mood].shimmer) envOsc("sine", f * 2, t, v * 0.12, 0.08, 2.6, bus, 7);
+  }
+
+  function playPluck(midi, loud) {
+    const t = ctx.currentTime + 0.005, f = midiToHz(midi);
+    const v = (loud ? 0.26 : 0.2) * (0.85 + Math.random() * 0.3);
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.Q.value = 2;
+    lp.frequency.setValueAtTime(Math.min(f * 9, 9000), t);
+    lp.frequency.exponentialRampToValueAtTime(f * 1.3, t + 0.18);
+    lp.connect(bus);
+    envOsc("triangle", f, t, v, 0.003, 0.32, lp);
+    envOsc("sawtooth", f, t, v * 0.18, 0.002, 0.14, lp, 4);
+    setTimeout(() => lp.disconnect(), 700);
+  }
+
+  function playChord(fn) {
+    const m = MOODS[mood];
+    const d = m.chords[fn];
+    const notes = [d - 7, d, d + 2, d + 4].map((x) => degreeToMidi(x));   // low root + triad
+    const t0 = ctx.currentTime + 0.005;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 1600;
+    lp.connect(bus);
+    notes.forEach((n, i) => {
+      const t = t0 + i * 0.028;   // a soft strum
+      const f = midiToHz(n);
+      const v = i === 0 ? 0.07 : 0.06;
+      envOsc("sine", f, t, v, 0.05, 1.9, lp);
+      envOsc("triangle", f, t, v * 0.35, 0.07, 1.4, lp, i % 2 ? 5 : -5);
+    });
+    setTimeout(() => lp.disconnect(), 2600);
+    return notes;
+  }
+
+  // Returns the label for the readout, or null if silent.
+  function sing(ch) {
+    const c = classify(ch);
+    if (!c) return null;
+    if (!ensureAudio()) return null;
+    if (c.kind === "bell") {
+      const n = degreeToMidi(c.degree);
+      playBell(n, c.loud);
+      return { kind: "bell", label: midiName(n) + " bell" };
+    }
+    if (c.kind === "pluck") {
+      const n = degreeToMidi(c.degree);
+      playPluck(n, c.loud);
+      return { kind: "pluck", label: midiName(n) + " pluck" };
+    }
+    const notes = playChord(c.fn);
+    const root = NOTE_NAMES[notes[1] % 12];
+    return { kind: "chord", label: root + " chord" };
+  }
+
+  // ---------- Writing surface ----------
+  const ta = document.getElementById("writer");
+  const mirror = document.getElementById("mirror");
+  const sheet = document.getElementById("sheet");
+  const lastOut = document.getElementById("last");
+  const scaleOut = document.getElementById("scale");
+  const GLOW_MS = { bell: 1500, pluck: 600, chord: 1300 };
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+
+  const glows = new Map();   // character index -> { t, kind }
+  let prev = "";
+  let cleanupTimer = 0;
+  let caretMark = null;
+
+  function render() {
+    const text = ta.value;
+    const now = performance.now();
+    for (const [i, g] of glows) if (now - g.t > GLOW_MS[g.kind] || i >= text.length) glows.delete(i);
+
+    // Break points: every glowing letter, plus the caret (an empty marker used to scroll it into view).
+    const caret = Math.min(ta.selectionEnd, text.length);
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    caretMark = document.createElement("span");
+    caretMark.className = "caret-mark";
+    const stops = [...glows.keys(), caret].sort((a, b) => a - b);
+    let markPlaced = false;
+    for (const i of stops) {
+      if (i > last) frag.append(text.slice(last, i));
+      last = Math.max(last, i);
+      if (i === caret && !markPlaced) { frag.append(caretMark); markPlaced = true; }
+      const g = glows.get(i);
+      if (g && i >= last) {
+        const s = document.createElement("span");
+        s.className = "g g-" + g.kind;
+        s.style.animationDelay = -(now - g.t) + "ms";   // keeps mid-flight glows continuous across redraws
+        s.textContent = text[i];
+        frag.append(s);
+        last = i + 1;
+      }
+    }
+    frag.append(text.slice(last) + "​");   // zero-width tail so a trailing newline still takes a line
+    mirror.replaceChildren(frag);
+    ta.scrollTop = 0;
+
+    clearTimeout(cleanupTimer);
+    if (glows.size) cleanupTimer = setTimeout(render, 1600);
+  }
+
+  function shiftGlows(at, removed, added) {
+    if (!glows.size) return;
+    const next = new Map();
+    for (const [i, g] of glows) {
+      if (i < at) next.set(i, g);
+      else if (i >= at + removed) next.set(i - removed + added, g);
+    }
+    glows.clear();
+    for (const [i, g] of next) glows.set(i, g);
+  }
+
+  // Keep the line being written in view, with a line of breathing room, wherever the caret is.
+  function keepCaretVisible() {
+    if (!caretMark || !caretMark.isConnected) return;
+    const s = sheet.getBoundingClientRect();
+    const c = caretMark.getBoundingClientRect();
+    const pad = c.height || 32;
+    if (c.bottom + pad > s.bottom) sheet.scrollTop += c.bottom + pad - s.bottom;
+    else if (c.top - pad / 2 < s.top) sheet.scrollTop -= s.top - (c.top - pad / 2);
+  }
+
+  ta.addEventListener("input", () => {
+    const text = ta.value;
+    const delta = text.length - prev.length;
+    const caret = ta.selectionStart;
+
+    if (delta === 1 && caret > 0 && text.slice(0, caret - 1) + text.slice(caret) === prev) {
+      // A single typed character: give it a voice and a glow.
+      const idx = caret - 1;
+      shiftGlows(idx, 0, 1);
+      const sung = sing(text[idx]);
+      if (sung) {
+        glows.set(idx, { t: performance.now(), kind: sung.kind });
+        lastOut.textContent = sung.label;
+      }
+    } else {
+      // Deletes, pastes, autocorrect: find the changed region and keep other glows aligned.
+      let p = 0;
+      const min = Math.min(prev.length, text.length);
+      while (p < min && prev[p] === text[p]) p++;
+      let s = 0;
+      while (s < min - p && prev[prev.length - 1 - s] === text[text.length - 1 - s]) s++;
+      shiftGlows(p, prev.length - p - s, text.length - p - s);
+    }
+    prev = text;
+    render();
+    keepCaretVisible();
+    saveDraft();
+  });
+
+  // Moving the caret by tap or arrow keys also needs the marker to follow.
+  document.addEventListener("selectionchange", () => {
+    if (document.activeElement !== ta || ta.value !== prev) return;
+    render();
+  });
+  ta.addEventListener("focus", () => setTimeout(keepCaretVisible, 300));
+
+  sheet.addEventListener("pointerdown", (e) => {
+    if (e.target === sheet || e.target.classList.contains("page")) {
+      e.preventDefault();
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+  });
+
+  // ---------- Fit to the visible screen (phone keyboards) ----------
+  const vv = window.visualViewport;
+  const root = document.documentElement;
+  function fitViewport() {
+    if (!vv) return;
+    root.style.setProperty("--vv-height", vv.height + "px");
+    root.style.setProperty("--vv-top", vv.offsetTop + "px");
+    const keyboardOpen = coarse && window.innerHeight - vv.height > 120;
+    document.body.classList.toggle("keyboard", keyboardOpen);
+    if (document.activeElement === ta) requestAnimationFrame(keepCaretVisible);
+  }
+  if (vv) {
+    vv.addEventListener("resize", fitViewport);
+    vv.addEventListener("scroll", fitViewport);
+    fitViewport();
+  }
+  // iOS sometimes scrolls the page itself when the keyboard opens; the app is pinned, so undo it.
+  window.addEventListener("scroll", () => { if (window.scrollY) window.scrollTo(0, 0); });
+
+  // ---------- Mood, mute, clear ----------
+  // Tapping a control shouldn't close a phone keyboard that's open, or open one that isn't.
+  let wasWriting = false;
+  document.querySelector("header").addEventListener("pointerdown", () => {
+    wasWriting = document.activeElement === ta;
+  }, true);
+  function returnToWriting() {
+    if (!coarse || wasWriting) ta.focus({ preventScroll: true });
+    wasWriting = false;
+  }
+
+  function setMood(next, announce) {
+    if (!MOODS[next]) return;
+    mood = next;
+    document.body.dataset.mood = next;
+    document.getElementById("mood-" + next).checked = true;
+    const m = MOODS[next];
+    scaleOut.textContent = m.name + " · " + m.scale.map((x) => NOTE_NAMES[(m.root + x) % 12]).join(" ");
+    applyMoodToAudio(false);
+    if (announce && ensureAudio()) {
+      playChord("home");
+      lastOut.textContent = NOTE_NAMES[m.root % 12] + " chord";
+    }
+    store("keys-that-sing:mood", next);
+  }
+
+  document.getElementById("moods").addEventListener("change", (e) => {
+    setMood(e.target.value, true);
+    returnToWriting();
+  });
+
+  const muteBtn = document.getElementById("mute");
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    muteBtn.setAttribute("aria-pressed", String(muted));
+    muteBtn.textContent = muted ? "muted" : "sound on";
+    if (ctx) master.gain.setTargetAtTime(muted ? 0 : 0.85, ctx.currentTime, 0.05);
+    returnToWriting();
+  });
+
+  document.getElementById("clear").addEventListener("click", () => {
+    ta.value = "";
+    prev = "";
+    glows.clear();
+    render();
+    saveDraft();
+    returnToWriting();
+  });
+
+  // ---------- Draft memory (per browser, optional) ----------
+  function store(key, value) { try { localStorage.setItem(key, value); } catch (_) {} }
+  function load(key) { try { return localStorage.getItem(key); } catch (_) { return null; } }
+  let saveTimer = 0;
+  function saveDraft() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => store("keys-that-sing:draft", ta.value), 400);
+  }
+
+  const savedMood = load("keys-that-sing:mood");
+  setMood(MOODS[savedMood] ? savedMood : "melancholy", false);
+  ta.value = load("keys-that-sing:draft") || "";
+  prev = ta.value;
+  render();
+  // On desktop, be ready to type at once. On phones, wait for a tap rather than throwing up the keyboard.
+  if (!coarse) ta.focus({ preventScroll: true });
+})();
+</script>
+</body>
+</html>
