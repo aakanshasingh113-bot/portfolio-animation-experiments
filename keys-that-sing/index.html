@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&family=Martian+Mono:wght@400;500&display=swap">
 <style>
-  /* Layout: one quiet ruled sheet, controls tucked above, a staff-like legend below. The only loud thing is the light under each new letter. */
+  /* Layout: one quiet ruled sheet floating in a mood-tinted haze, controls above, a five-line melody staff below. The light under each new letter is the loudest thing. */
   :root {
     --paper: #edeff3;
     --sheet: #f8f9fb;
@@ -21,6 +21,7 @@
     --hope: #a86a0f;
     --dream: #8550b5;
     --accent: var(--mel);
+    --haze: 16%;
 
     --font-display: "Gloock", "Iowan Old Style", Georgia, serif;
     --font-write: "Literata", "Iowan Old Style", Georgia, serif;
@@ -41,6 +42,7 @@
       --mel: #93acec;
       --hope: #f2b75a;
       --dream: #c79ff0;
+      --haze: 12%;
       color-scheme: dark;
     }
   }
@@ -53,6 +55,7 @@
     --mel: #93acec;
     --hope: #f2b75a;
     --dream: #c79ff0;
+    --haze: 12%;
     color-scheme: dark;
   }
   /* Phones: slightly smaller writing (still above 16px, so iOS never zooms on focus), finger-sized controls. */
@@ -78,6 +81,25 @@
   body[data-mood="hopeful"]    { --accent: var(--hope); }
   body[data-mood="dreamy"]     { --accent: var(--dream); }
 
+  /* Mood haze: two slow-drifting pools of the accent colour. Each note briefly brightens it. */
+  .aura {
+    position: fixed;
+    inset: -15%;
+    pointer-events: none;
+    opacity: 0.55;
+    background:
+      radial-gradient(42% 38% at 18% 12%, color-mix(in srgb, var(--accent) var(--haze), transparent), transparent 70%),
+      radial-gradient(38% 34% at 86% 88%, color-mix(in srgb, var(--accent) var(--haze), transparent), transparent 70%),
+      radial-gradient(30% 30% at 70% 20%, color-mix(in srgb, var(--accent) calc(var(--haze) * 0.6), transparent), transparent 70%);
+    animation: drift 46s ease-in-out infinite alternate;
+    transition: background 1.2s ease;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(4%, 3%, 0) scale(1.06); }
+    100% { transform: translate3d(-3%, 5%, 0) scale(1.02); }
+  }
+
   /* The app pins itself to the visible viewport, so the on-screen keyboard shrinks the sheet instead of covering it. */
   .app {
     position: fixed;
@@ -98,9 +120,9 @@
   header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: "title moods actions";
+    grid-template-areas: "title tune actions";
     align-items: center;
-    gap: 0.75rem 1rem;
+    gap: 0.75rem 0.6rem;
   }
   h1 {
     grid-area: title;
@@ -114,8 +136,9 @@
   }
   h1 em { font-style: normal; color: var(--accent); transition: color 0.6s ease; }
 
+  .tune { grid-area: tune; display: flex; gap: 0.4rem; min-width: 0; }
   .moods {
-    grid-area: moods;
+    flex: 1;
     display: flex;
     border: 1px solid var(--rule);
     border-radius: 999px;
@@ -151,46 +174,64 @@
   .moods input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .actions { grid-area: actions; display: flex; gap: 0.4rem; }
-  .icon-btn {
+  .btn {
     min-height: var(--tap);
+    min-width: var(--tap);
     box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
     font-family: var(--font-label);
     font-size: 0.72rem;
     letter-spacing: 0.04em;
     color: var(--muted);
-    background: transparent;
+    background: var(--sheet);
     border: 1px solid var(--rule);
     border-radius: 999px;
-    padding: 0 0.8rem;
+    padding: 0 0.6rem;
     cursor: pointer;
     white-space: nowrap;
     touch-action: manipulation;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
   }
-  .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .icon-btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+  .btn svg { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .btn.icon { padding: 0; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+  .btn .when-on, .btn[aria-pressed="true"] .when-off { display: none; }
+  .btn[aria-pressed="true"] .when-on { display: inline; }
+  #drone { flex: none; padding: 0 0.8rem; }
+  #drone[aria-pressed="true"] svg { animation: hum 2.4s ease-in-out infinite; }
+  @keyframes hum { 50% { transform: scaleY(0.55); } }
   @media (hover: hover) {
     .moods label:hover { color: var(--ink); }
     .moods input:checked + label:hover { color: var(--sheet); }
-    .icon-btn:hover { color: var(--ink); border-color: var(--muted); }
+    .btn:hover { color: var(--ink); border-color: var(--muted); }
+    .btn[aria-pressed="true"]:hover { color: var(--accent); border-color: var(--accent); }
   }
 
-  /* Narrow screens: title and buttons share the first row, the mood switch spans the second. */
+  /* Narrow screens: title and buttons share the first row, the mood switch and drone the second. */
   @media (max-width: 720px) {
     header {
       grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas: "title actions" "moods moods";
+      grid-template-areas: "title actions" "tune tune";
     }
   }
   @media (max-width: 440px) {
     h1 { font-size: 1.45rem; }
     .moods label { padding: 0 0.4rem; font-size: 0.68rem; }
-    .icon-btn { padding: 0 0.65rem; }
+  }
+  @media (max-width: 370px) {
+    #drone { padding: 0; }
+    #drone .btn-text { display: none; }
   }
 
-  /* The sheet scrolls; inside it the textarea and its mirror share one grid cell. */
+  /* The sheet scrolls; inside it the textarea and its mirror share one grid cell. A canvas above it carries the particles. */
+  .stage { position: relative; flex: 1; min-height: 6rem; display: flex; border-radius: 6px; }
   .sheet {
     flex: 1;
-    min-height: 6rem;
+    min-width: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
@@ -199,6 +240,7 @@
     border-radius: 6px;
     cursor: text;
   }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 6px; }
   .page {
     display: grid;
     min-height: 100%;
@@ -241,6 +283,7 @@
   }
   textarea::placeholder { color: var(--muted); -webkit-text-fill-color: var(--muted); opacity: 0.8; font-style: italic; }
   textarea::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); color: transparent; }
+  body.playing textarea { caret-color: transparent; }
 
   /* Glows: bells bloom slowly, plucks flash, chords spread wide. */
   .g {
@@ -263,22 +306,22 @@
     0%   { color: var(--accent); text-shadow: 0 0 0.5em var(--accent), 0 0 1.6em var(--accent), 0 0 2.6em var(--accent); }
     100% { color: var(--ink); text-shadow: 0 0 0 transparent; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    @keyframes glow-bell  { 0% { color: var(--accent); } 100% { color: var(--ink); } }
-    @keyframes glow-pluck { 0% { color: var(--accent); } 100% { color: var(--ink); } }
-    @keyframes glow-chord { 0% { color: var(--accent); } 100% { color: var(--ink); } }
-  }
 
   footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem 1.5rem;
+    display: grid;
+    gap: 0.45rem;
     font-family: var(--font-label);
     font-size: 0.68rem;
     letter-spacing: 0.04em;
     color: var(--muted);
+  }
+  #staff { display: block; width: 100%; height: 2.4rem; }
+  .footline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.4rem 1.5rem;
   }
   .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin: 0; padding: 0; list-style: none; }
   .legend b { color: var(--ink); font-weight: 500; }
@@ -290,15 +333,26 @@
   body.keyboard .app { gap: 0.6rem; padding-block: calc(0.6rem + env(safe-area-inset-top, 0px)) 0.5rem; }
   body.keyboard .legend { display: none; }
   body.keyboard h1 { font-size: 1.3rem; }
+  body.keyboard #staff { height: 1.8rem; }
   @media (max-width: 720px) {
     body.keyboard .scale-label { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aura { animation: none; }
+    #drone[aria-pressed="true"] svg { animation: none; }
+    @keyframes glow-bell  { 0% { color: var(--accent); } 100% { color: var(--ink); } }
+    @keyframes glow-pluck { 0% { color: var(--accent); } 100% { color: var(--ink); } }
+    @keyframes glow-chord { 0% { color: var(--accent); } 100% { color: var(--ink); } }
   }
 </style>
 </head>
 <body data-mood="melancholy">
+<div class="aura" id="aura" aria-hidden="true"></div>
 <div class="app">
   <header>
     <h1>Keys That <em>Sing</em></h1>
+    <div class="tune">
     <fieldset class="moods" id="moods">
       <legend>Mood</legend>
       <input type="radio" name="mood" id="mood-melancholy" value="melancholy" checked>
@@ -308,32 +362,52 @@
       <input type="radio" name="mood" id="mood-dreamy" value="dreamy">
       <label for="mood-dreamy">dreamy</label>
     </fieldset>
+    <button class="btn" id="drone" type="button" aria-pressed="false" title="Hold a soft drone under your typing">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10c2-5 4-5 6 0s4 5 6 0 3-4 4-2"/></svg>
+      <span class="btn-text">drone</span>
+    </button>
+    </div>
     <div class="actions">
-      <button class="icon-btn" id="mute" type="button" aria-pressed="false">sound on</button>
-      <button class="icon-btn" id="clear" type="button">clear</button>
+      <button class="btn icon" id="listen" type="button" aria-pressed="false" aria-label="Play back what you wrote" title="Play back what you wrote">
+        <svg class="when-off" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5z"/></svg>
+        <svg class="when-on" viewBox="0 0 20 20" aria-hidden="true"><rect x="5.5" y="5.5" width="9" height="9" rx="1"/></svg>
+      </button>
+      <button class="btn icon" id="mute" type="button" aria-pressed="false" aria-label="Mute" title="Mute">
+        <svg class="when-off" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8v4h3l4 3.5v-11L6 8z"/><path d="M13 7.5a3.5 3.5 0 0 1 0 5M15.2 5.3a6.5 6.5 0 0 1 0 9.4"/></svg>
+        <svg class="when-on" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8v4h3l4 3.5v-11L6 8z"/><path d="M13.5 8l4 4M17.5 8l-4 4"/></svg>
+      </button>
+      <button class="btn icon" id="clear" type="button" aria-label="Clear the page" title="Clear the page">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg>
+      </button>
     </div>
   </header>
 
-  <div class="sheet" id="sheet">
-    <div class="page">
-      <div class="mirror" id="mirror" aria-hidden="true"></div>
-      <textarea id="writer" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="sentences"
-        enterkeyhint="enter"
-        aria-label="Writing space. Each key you type plays a note."
-        placeholder="Start typing. Vowels ring like small bells, consonants pluck, a full stop settles on a chord."></textarea>
+  <div class="stage" id="stage">
+    <div class="sheet" id="sheet">
+      <div class="page" id="page">
+        <div class="mirror" id="mirror" aria-hidden="true"></div>
+        <textarea id="writer" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="sentences"
+          enterkeyhint="enter"
+          aria-label="Writing space. Each key you type plays a note."
+          placeholder="Start typing. Vowels ring like small bells, consonants pluck, a full stop settles on a chord."></textarea>
+      </div>
     </div>
+    <canvas id="fx" aria-hidden="true"></canvas>
   </div>
 
   <footer>
-    <ul class="legend">
-      <li><b>a e i o u</b> bell</li>
-      <li><b>b–z</b> pluck</li>
-      <li><b>space</b> rest</li>
-      <li><b>. , ? !</b> chord</li>
-    </ul>
-    <div class="readout">
-      <span class="scale-label">scale <span class="scale-notes" id="scale">A minor · A B C D E F G</span></span>
-      <span>last <output id="last">—</output></span>
+    <canvas id="staff" aria-hidden="true"></canvas>
+    <div class="footline">
+      <ul class="legend">
+        <li><b>a e i o u</b> bell</li>
+        <li><b>b–z</b> pluck</li>
+        <li><b>space</b> rest</li>
+        <li><b>. , ? !</b> chord</li>
+      </ul>
+      <div class="readout">
+        <span class="scale-label">scale <span class="scale-notes" id="scale">A minor · A B C D E F G</span></span>
+        <span>last <output id="last">—</output></span>
+      </div>
     </div>
   </footer>
 </div>
@@ -364,6 +438,7 @@
   const PUNCT_CHORD = { ".": "home", "…": "home", ",": "lift", ";": "lift", "?": "ask", ":": "ask", "!": "warm" };
 
   let mood = "melancholy";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function degreeToMidi(deg, m = MOODS[mood]) {
     const oct = Math.floor(deg / 7);
@@ -448,6 +523,7 @@
     toneFilter.frequency.setTargetAtTime(m.tone, t, k);
     wetGain.gain.setTargetAtTime(m.wet, t, k);
     dryGain.gain.setTargetAtTime(1 - m.wet * 0.55, t, k);
+    retuneDrone();
   }
 
   function envOsc(type, freq, start, peak, attack, decay, dest, detune = 0) {
@@ -457,7 +533,7 @@
     o.frequency.value = freq;
     o.detune.value = detune;
     g.gain.setValueAtTime(0.0001, start);
-    g.gain.exponentialRampToValueAtTime(peak, start + attack);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), start + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, start + attack + decay);
     o.connect(g).connect(dest);
     o.start(start);
@@ -465,33 +541,50 @@
     return o;
   }
 
-  function playBell(midi, loud) {
-    const t = ctx.currentTime + 0.005, f = midiToHz(midi);
-    const v = (loud ? 0.2 : 0.14) * (0.9 + Math.random() * 0.2);
-    envOsc("sine", f, t, v, 0.006, 2.2, bus);
-    envOsc("sine", f * 2.76, t, v * 0.22, 0.004, 0.9, bus);   // inharmonic partials give the bell its glass
-    envOsc("sine", f * 5.4, t, v * 0.08, 0.003, 0.4, bus);
-    if (MOODS[mood].shimmer) envOsc("sine", f * 2, t, v * 0.12, 0.08, 2.6, bus, 7);
+  // Each note gets its own place in the stereo field: left edge of the line pans left, right edge pans right.
+  function voiceOut(pan, lifeSeconds) {
+    if (!ctx.createStereoPanner) return bus;
+    const p = ctx.createStereoPanner();
+    p.pan.value = Math.max(-1, Math.min(1, pan));
+    p.connect(bus);
+    setTimeout(() => p.disconnect(), lifeSeconds * 1000 + 300);
+    return p;
   }
 
-  function playPluck(midi, loud) {
+  // expr: { pan, vel, sustain } — vel and sustain follow typing speed.
+  function playBell(midi, loud, expr) {
     const t = ctx.currentTime + 0.005, f = midiToHz(midi);
-    const v = (loud ? 0.26 : 0.2) * (0.85 + Math.random() * 0.3);
+    const v = (loud ? 0.2 : 0.14) * expr.vel * (0.9 + Math.random() * 0.2);
+    const len = 2.2 * expr.sustain;
+    const out = voiceOut(expr.pan, len + 0.3);
+    envOsc("sine", f, t, v, 0.006, len, out);
+    envOsc("sine", f * 2.76, t, v * 0.22, 0.004, 0.9 * expr.sustain, out);   // inharmonic partials give the bell its glass
+    envOsc("sine", f * 5.4, t, v * 0.08, 0.003, 0.4, out);
+    if (MOODS[mood].shimmer) envOsc("sine", f * 2, t, v * 0.12, 0.08, len + 0.4, out, 7);
+  }
+
+  function playPluck(midi, loud, expr) {
+    const t = ctx.currentTime + 0.005, f = midiToHz(midi);
+    const v = (loud ? 0.26 : 0.2) * expr.vel * (0.85 + Math.random() * 0.3);
+    const out = voiceOut(expr.pan, 0.8);
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
     lp.Q.value = 2;
-    lp.frequency.setValueAtTime(Math.min(f * 9, 9000), t);
+    lp.frequency.setValueAtTime(Math.min(f * (6 + 4 * expr.vel), 9000), t);
     lp.frequency.exponentialRampToValueAtTime(f * 1.3, t + 0.18);
-    lp.connect(bus);
-    envOsc("triangle", f, t, v, 0.003, 0.32, lp);
+    lp.connect(out);
+    envOsc("triangle", f, t, v, 0.003, 0.32 * expr.sustain, lp);
     envOsc("sawtooth", f, t, v * 0.18, 0.002, 0.14, lp, 4);
-    setTimeout(() => lp.disconnect(), 700);
+    setTimeout(() => lp.disconnect(), 800);
   }
 
-  function playChord(fn) {
-    const m = MOODS[mood];
-    const d = m.chords[fn];
-    const notes = [d - 7, d, d + 2, d + 4].map((x) => degreeToMidi(x));   // low root + triad
+  function chordNotes(fn) {
+    const d = MOODS[mood].chords[fn];
+    return [d - 7, d, d + 2, d + 4].map((x) => degreeToMidi(x));   // low root + triad
+  }
+
+  function playChord(fn, expr = { vel: 1, sustain: 1 }) {
+    const notes = chordNotes(fn);
     const t0 = ctx.currentTime + 0.005;
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
@@ -500,44 +593,291 @@
     notes.forEach((n, i) => {
       const t = t0 + i * 0.028;   // a soft strum
       const f = midiToHz(n);
-      const v = i === 0 ? 0.07 : 0.06;
-      envOsc("sine", f, t, v, 0.05, 1.9, lp);
-      envOsc("triangle", f, t, v * 0.35, 0.07, 1.4, lp, i % 2 ? 5 : -5);
+      const v = (i === 0 ? 0.07 : 0.06) * expr.vel;
+      envOsc("sine", f, t, v, 0.05, 1.9 * expr.sustain, lp);
+      envOsc("triangle", f, t, v * 0.35, 0.07, 1.4 * expr.sustain, lp, i % 2 ? 5 : -5);
     });
-    setTimeout(() => lp.disconnect(), 2600);
+    setTimeout(() => lp.disconnect(), 2800);
     return notes;
   }
 
-  // Returns the label for the readout, or null if silent.
-  function sing(ch) {
-    const c = classify(ch);
-    if (!c) return null;
+  // ---------- Drone: a held root and fifth that breathe under the typing ----------
+  let drone = null;
+  function droneFreqs() {
+    const r = MOODS[mood].root - 12;
+    return [r, r, r + 7].map(midiToHz);
+  }
+  function startDrone() {
+    if (!ensureAudio() || drone) return;
+    const t = ctx.currentTime;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.setTargetAtTime(0.055, t, 0.9);
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 650;
+    const lfo = ctx.createOscillator();
+    const lfoDepth = ctx.createGain();
+    lfo.frequency.value = 0.07;
+    lfoDepth.gain.value = 260;
+    lfo.connect(lfoDepth).connect(lp.frequency);
+    lfo.start();
+    lp.connect(g).connect(bus);
+    const types = ["sine", "triangle", "sine"], detunes = [0, 7, -4], levels = [1, 0.45, 0.6];
+    const oscs = droneFreqs().map((f, i) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = types[i];
+      o.frequency.value = f;
+      o.detune.value = detunes[i];
+      og.gain.value = levels[i];
+      o.connect(og).connect(lp);
+      o.start();
+      return o;
+    });
+    drone = { g, oscs, lfo };
+  }
+  function stopDrone() {
+    if (!drone) return;
+    const d = drone, t = ctx.currentTime;
+    drone = null;
+    d.g.gain.cancelScheduledValues(t);
+    d.g.gain.setTargetAtTime(0.0001, t, 0.5);
+    setTimeout(() => { d.oscs.forEach((o) => o.stop()); d.lfo.stop(); d.g.disconnect(); }, 3500);
+  }
+  function retuneDrone() {
+    if (!drone) return;
+    const t = ctx.currentTime;
+    droneFreqs().forEach((f, i) => drone.oscs[i].frequency.setTargetAtTime(f, t, 0.6));   // a slow glide into the new key
+  }
+
+  // Plays a classified character. Returns readout info plus the pitches for the staff.
+  function voice(c, expr) {
     if (!ensureAudio()) return null;
     if (c.kind === "bell") {
       const n = degreeToMidi(c.degree);
-      playBell(n, c.loud);
-      return { kind: "bell", label: midiName(n) + " bell" };
+      playBell(n, c.loud, expr);
+      return { label: midiName(n) + " bell", midis: [n] };
     }
     if (c.kind === "pluck") {
       const n = degreeToMidi(c.degree);
-      playPluck(n, c.loud);
-      return { kind: "pluck", label: midiName(n) + " pluck" };
+      playPluck(n, c.loud, expr);
+      return { label: midiName(n) + " pluck", midis: [n] };
     }
-    const notes = playChord(c.fn);
-    const root = NOTE_NAMES[notes[1] % 12];
-    return { kind: "chord", label: root + " chord" };
+    const notes = playChord(c.fn, expr);
+    return { label: NOTE_NAMES[notes[1] % 12] + " chord", midis: notes.slice(1) };
+  }
+
+  // Typing speed shapes the phrasing: quick runs are lighter and shorter, slow keys ring out.
+  let lastNoteAt = 0;
+  function expression(pan) {
+    const now = performance.now();
+    const gap = now - lastNoteAt;
+    lastNoteAt = now;
+    const k = Math.max(0, Math.min(1, (gap - 70) / 450));   // 0 = racing, 1 = unhurried
+    return { pan, vel: 0.72 + 0.38 * k, sustain: 0.65 + 0.55 * k };
+  }
+
+  // ---------- Colour helpers (read from the live theme so canvases match it) ----------
+  let palette = null;
+  function readPalette() {
+    const cs = getComputedStyle(document.body);
+    palette = {
+      accent: cs.getPropertyValue("--accent").trim() || "#3d5a9f",
+      rule: cs.getPropertyValue("--rule").trim() || "#dde1e9",
+      muted: cs.getPropertyValue("--muted").trim() || "#646b7e"
+    };
+  }
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readPalette(); drawStaff(); });
+
+  // A fully transparent version of a colour, so gradients fade out without a grey fringe.
+  function clearOf(c) {
+    const m = /^#([0-9a-f]{6})$/i.exec(c);
+    if (!m) return "rgba(0,0,0,0)";
+    const n = parseInt(m[1], 16);
+    return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + ",0)";
+  }
+
+  // ---------- Particles: rings for bells, sparks for plucks, a wide bloom for chords ----------
+  const stage = document.getElementById("stage");
+  const fxCanvas = document.getElementById("fx");
+  const fx = fxCanvas.getContext("2d");
+  const particles = [];
+  let fxRunning = false, fxLast = 0;
+
+  function fitCanvas(c, g) {
+    const r = c.getBoundingClientRect();
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(r.width * d), h = Math.round(r.height * d);
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    g.setTransform(d, 0, 0, d, 0, 0);
+    return r;
+  }
+
+  function emit(kind, x, y, vel) {
+    if (reduceMotion) return;
+    const now = performance.now();
+    const color = palette.accent;
+    if (kind === "bell") {
+      particles.push({ type: "ring", x, y, r0: 4, r1: 34 + 14 * vel, life: 1100, t0: now, color, w: 1.4 });
+      particles.push({ type: "ring", x, y, r0: 2, r1: 20, life: 800, t0: now + 90, color, w: 1 });
+      for (let i = 0; i < 5; i++) {
+        particles.push({ type: "mote", x: x + (Math.random() - 0.5) * 10, y, vx: (Math.random() - 0.5) * 18,
+          vy: -18 - Math.random() * 26, size: 1.2 + Math.random() * 1.4, life: 1300 + Math.random() * 700, t0: now, color, g: -4 });
+      }
+    } else if (kind === "pluck") {
+      const n = 5 + Math.round(3 * vel);
+      for (let i = 0; i < n; i++) {
+        const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4;
+        const s = 60 + Math.random() * 90;
+        particles.push({ type: "spark", x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, size: 1.1 + Math.random(),
+          life: 380 + Math.random() * 220, t0: now, color, g: 260 });
+      }
+    } else {
+      const w = fxCanvas.getBoundingClientRect().width;
+      particles.push({ type: "bloom", x, y, r1: Math.max(140, w * 0.55), life: 1500, t0: now, color });
+      particles.push({ type: "ring", x, y, r0: 6, r1: 70, life: 1300, t0: now, color, w: 1.6 });
+      for (let i = 0; i < 12; i++) {
+        particles.push({ type: "mote", x: x + (Math.random() - 0.5) * 120, y: y + (Math.random() - 0.5) * 20,
+          vx: (Math.random() - 0.5) * 14, vy: -14 - Math.random() * 30, size: 1 + Math.random() * 1.8,
+          life: 1600 + Math.random() * 900, t0: now, color, g: -2 });
+      }
+    }
+    if (particles.length > 260) particles.splice(0, particles.length - 260);
+    if (!fxRunning) { fxRunning = true; fxLast = now; requestAnimationFrame(fxTick); }
+  }
+
+  function fxTick(now) {
+    const r = fitCanvas(fxCanvas, fx);
+    fx.clearRect(0, 0, r.width, r.height);
+    const dt = Math.min(0.05, (now - fxLast) / 1000);
+    fxLast = now;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      const age = (now - p.t0) / p.life;
+      if (age >= 1) { particles.splice(i, 1); continue; }
+      if (age < 0) continue;
+      const fade = 1 - age;
+      fx.fillStyle = fx.strokeStyle = p.color;
+      if (p.type === "ring") {
+        const e = 1 - Math.pow(1 - age, 3);
+        fx.globalAlpha = 0.55 * fade * fade;
+        fx.lineWidth = p.w;
+        fx.beginPath();
+        fx.arc(p.x, p.y, p.r0 + (p.r1 - p.r0) * e, 0, Math.PI * 2);
+        fx.stroke();
+      } else if (p.type === "bloom") {
+        const e = 1 - Math.pow(1 - age, 2);
+        const rad = 20 + p.r1 * e;
+        const grad = fx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
+        grad.addColorStop(0, p.color);
+        grad.addColorStop(1, clearOf(p.color));
+        fx.globalAlpha = 0.16 * Math.sin(Math.PI * Math.min(1, age * 1.4));
+        fx.fillStyle = grad;
+        fx.beginPath();
+        fx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+        fx.fill();
+      } else {
+        p.vy += p.g * dt;
+        p.vx *= 1 - 1.8 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        fx.globalAlpha = (p.type === "spark" ? 0.9 : 0.6) * fade;
+        fx.beginPath();
+        fx.arc(p.x, p.y, p.size * (p.type === "spark" ? fade + 0.3 : 1), 0, Math.PI * 2);
+        fx.fill();
+      }
+    }
+    fx.globalAlpha = 1;
+    if (particles.length) requestAnimationFrame(fxTick);
+    else { fx.clearRect(0, 0, r.width, r.height); fxRunning = false; }
+  }
+
+  // The haze behind everything swells a little with each note.
+  const aura = document.getElementById("aura");
+  function pulse(kind) {
+    if (reduceMotion || !aura.animate) return;
+    const peak = kind === "chord" ? 1 : kind === "bell" ? 0.8 : 0.66;
+    aura.animate([{ opacity: peak }, { opacity: 0.55 }], { duration: kind === "chord" ? 1800 : 900, easing: "ease-out" });
+    if (kind === "chord") {
+      stage.animate([
+        { boxShadow: "0 0 0 1px " + palette.accent + ", 0 0 34px -6px " + palette.accent },
+        { boxShadow: "0 0 0 1px transparent, 0 0 0 0 transparent" }
+      ], { duration: 1400, easing: "ease-out" });
+    }
+  }
+
+  // ---------- Melody staff: the last few seconds of notes on five lines ----------
+  const staffCanvas = document.getElementById("staff");
+  const sg = staffCanvas.getContext("2d");
+  const staffNotes = [];   // { midis, kind, t }
+  const STAFF_WINDOW = 9000;
+  let staffRunning = false;
+
+  function addToStaff(midis, kind) {
+    staffNotes.push({ midis, kind, t: performance.now() });
+    if (staffNotes.length > 400) staffNotes.shift();
+    if (!staffRunning) { staffRunning = true; requestAnimationFrame(staffTick); }
+  }
+
+  function drawStaff(now = performance.now()) {
+    const r = fitCanvas(staffCanvas, sg);
+    const W = r.width, H = r.height;
+    sg.clearRect(0, 0, W, H);
+    const top = 4, bottom = H - 4, gap = (bottom - top) / 4;
+    sg.strokeStyle = palette.rule;
+    sg.lineWidth = 1;
+    sg.globalAlpha = 1;
+    for (let i = 0; i < 5; i++) {
+      const y = Math.round(top + i * gap) + 0.5;
+      sg.beginPath(); sg.moveTo(0, y); sg.lineTo(W, y); sg.stroke();
+    }
+    // Pitch range spans just over three octaves around the mood's root.
+    const lo = MOODS[mood].root - 14, hi = MOODS[mood].root + 26;
+    const yOf = (m) => bottom - ((Math.max(lo, Math.min(hi, m)) - lo) / (hi - lo)) * (bottom - top);
+    const xOf = (t) => W - 10 - ((now - t) / STAFF_WINDOW) * (W - 10);
+    sg.fillStyle = sg.strokeStyle = palette.accent;
+    for (const n of staffNotes) {
+      const x = xOf(n.t);
+      if (x < -10) continue;
+      const age = (now - n.t) / STAFF_WINDOW;
+      const fresh = Math.max(0, 1 - (now - n.t) / 500);
+      sg.globalAlpha = Math.max(0, 1 - age * 0.85);
+      if (n.kind === "chord") {
+        const ys = n.midis.map(yOf);
+        sg.lineWidth = 1;
+        sg.beginPath(); sg.moveTo(x, Math.min(...ys)); sg.lineTo(x, Math.max(...ys)); sg.stroke();
+        ys.forEach((y) => { sg.beginPath(); sg.arc(x, y, 2.4 + fresh * 1.5, 0, Math.PI * 2); sg.fill(); });
+      } else if (n.kind === "bell") {
+        const y = yOf(n.midis[0]);
+        sg.beginPath(); sg.arc(x, y, 3 + fresh * 2, 0, Math.PI * 2); sg.fill();
+      } else {
+        const y = yOf(n.midis[0]);
+        sg.fillRect(x - 3, y - 1, 6 + fresh * 3, 2);
+      }
+    }
+    sg.globalAlpha = 1;
+    while (staffNotes.length && xOf(staffNotes[0].t) < -10) staffNotes.shift();
+  }
+
+  function staffTick(now) {
+    drawStaff(now);
+    if (staffNotes.length) requestAnimationFrame(staffTick);
+    else staffRunning = false;
   }
 
   // ---------- Writing surface ----------
   const ta = document.getElementById("writer");
   const mirror = document.getElementById("mirror");
   const sheet = document.getElementById("sheet");
+  const page = document.getElementById("page");
   const lastOut = document.getElementById("last");
   const scaleOut = document.getElementById("scale");
   const GLOW_MS = { bell: 1500, pluck: 600, chord: 1300 };
   const coarse = window.matchMedia("(pointer: coarse)").matches;
 
   const glows = new Map();   // character index -> { t, kind }
+  const spanAt = new Map();  // character index -> its glowing span, after each render
   let prev = "";
   let cleanupTimer = 0;
   let caretMark = null;
@@ -551,8 +891,8 @@
     const caret = Math.min(ta.selectionEnd, text.length);
     const frag = document.createDocumentFragment();
     let last = 0;
+    spanAt.clear();
     caretMark = document.createElement("span");
-    caretMark.className = "caret-mark";
     const stops = [...glows.keys(), caret].sort((a, b) => a - b);
     let markPlaced = false;
     for (const i of stops) {
@@ -566,6 +906,7 @@
         s.style.animationDelay = -(now - g.t) + "ms";   // keeps mid-flight glows continuous across redraws
         s.textContent = text[i];
         frag.append(s);
+        spanAt.set(i, s);
         last = i + 1;
       }
     }
@@ -588,17 +929,43 @@
     for (const [i, g] of next) glows.set(i, g);
   }
 
-  // Keep the line being written in view, with a line of breathing room, wherever the caret is.
-  function keepCaretVisible() {
-    if (!caretMark || !caretMark.isConnected) return;
+  // Keep an element (the caret, or the letter being played back) in view with a line of breathing room.
+  function reveal(el) {
+    if (!el || !el.isConnected) return;
     const s = sheet.getBoundingClientRect();
-    const c = caretMark.getBoundingClientRect();
+    const c = el.getBoundingClientRect();
     const pad = c.height || 32;
     if (c.bottom + pad > s.bottom) sheet.scrollTop += c.bottom + pad - s.bottom;
     else if (c.top - pad / 2 < s.top) sheet.scrollTop -= s.top - (c.top - pad / 2);
   }
+  const keepCaretVisible = () => reveal(caretMark);
+
+  // Light up one character: glow, sound, particles, haze and staff.
+  function sound(idx, c) {
+    glows.set(idx, { t: performance.now(), kind: c.kind });
+    render();
+    const span = spanAt.get(idx);
+    const sr = stage.getBoundingClientRect();
+    const pr = page.getBoundingClientRect();
+    let x = sr.width / 2, y = sr.height / 2, pan = 0;
+    if (span) {
+      const r = span.getBoundingClientRect();
+      x = r.left + r.width / 2 - sr.left;
+      y = r.top + r.height / 2 - sr.top;
+      pan = c.kind === "chord" ? 0 : ((r.left - pr.left) / Math.max(1, pr.width) * 2 - 1) * 0.7;
+    }
+    const expr = expression(pan);
+    const sung = voice(c, expr);
+    if (!sung) return span;
+    lastOut.textContent = sung.label;
+    emit(c.kind, x, y, expr.vel);
+    pulse(c.kind);
+    addToStaff(sung.midis, c.kind);
+    return span;
+  }
 
   ta.addEventListener("input", () => {
+    stopPlayback();
     const text = ta.value;
     const delta = text.length - prev.length;
     const caret = ta.selectionStart;
@@ -607,11 +974,10 @@
       // A single typed character: give it a voice and a glow.
       const idx = caret - 1;
       shiftGlows(idx, 0, 1);
-      const sung = sing(text[idx]);
-      if (sung) {
-        glows.set(idx, { t: performance.now(), kind: sung.kind });
-        lastOut.textContent = sung.label;
-      }
+      prev = text;
+      const c = classify(text[idx]);
+      if (c) sound(idx, c);
+      else render();
     } else {
       // Deletes, pastes, autocorrect: find the changed region and keep other glows aligned.
       let p = 0;
@@ -620,48 +986,101 @@
       let s = 0;
       while (s < min - p && prev[prev.length - 1 - s] === text[text.length - 1 - s]) s++;
       shiftGlows(p, prev.length - p - s, text.length - p - s);
+      prev = text;
+      render();
     }
-    prev = text;
-    render();
     keepCaretVisible();
     saveDraft();
   });
 
   // Moving the caret by tap or arrow keys also needs the marker to follow.
   document.addEventListener("selectionchange", () => {
-    if (document.activeElement !== ta || ta.value !== prev) return;
+    if (document.activeElement !== ta || ta.value !== prev || playing) return;
     render();
   });
   ta.addEventListener("focus", () => setTimeout(keepCaretVisible, 300));
 
   sheet.addEventListener("pointerdown", (e) => {
-    if (e.target === sheet || e.target.classList.contains("page")) {
+    if (e.target === sheet || e.target === page) {
       e.preventDefault();
       ta.focus();
       ta.setSelectionRange(ta.value.length, ta.value.length);
     }
   });
 
+  // ---------- Playback: sing back the whole page, letter by letter ----------
+  const listenBtn = document.getElementById("listen");
+  let playing = false, playTimer = 0;
+
+  function stopPlayback() {
+    if (!playing) return;
+    playing = false;
+    clearTimeout(playTimer);
+    document.body.classList.remove("playing");
+    listenBtn.setAttribute("aria-pressed", "false");
+    listenBtn.setAttribute("aria-label", "Play back what you wrote");
+    listenBtn.title = "Play back what you wrote";
+    render();
+  }
+
+  function startPlayback() {
+    const text = ta.value;
+    if (!text.trim() || !ensureAudio()) return;
+    playing = true;
+    document.body.classList.add("playing");
+    listenBtn.setAttribute("aria-pressed", "true");
+    listenBtn.setAttribute("aria-label", "Stop playback");
+    listenBtn.title = "Stop playback";
+    lastNoteAt = performance.now() - 200;   // play back at an even, unhurried touch
+    let i = 0;
+    const step = () => {
+      if (!playing) return;
+      if (i >= text.length) { stopPlayback(); return; }
+      const ch = text[i];
+      const c = classify(ch);
+      let wait = 125;
+      if (c) {
+        const span = sound(i, c);
+        reveal(span);
+        if (c.kind === "chord") wait = ch === "," || ch === ";" ? 300 : 520;
+      } else {
+        wait = ch === "\n" ? 480 : 170;
+      }
+      i++;
+      playTimer = setTimeout(step, wait);
+    };
+    sheet.scrollTop = 0;
+    step();
+  }
+
+  listenBtn.addEventListener("click", () => {
+    if (playing) stopPlayback(); else startPlayback();
+  });
+
   // ---------- Fit to the visible screen (phone keyboards) ----------
   const vv = window.visualViewport;
   const root = document.documentElement;
   function fitViewport() {
-    if (!vv) return;
-    root.style.setProperty("--vv-height", vv.height + "px");
-    root.style.setProperty("--vv-top", vv.offsetTop + "px");
-    const keyboardOpen = coarse && window.innerHeight - vv.height > 120;
-    document.body.classList.toggle("keyboard", keyboardOpen);
-    if (document.activeElement === ta) requestAnimationFrame(keepCaretVisible);
+    if (vv) {
+      root.style.setProperty("--vv-height", vv.height + "px");
+      root.style.setProperty("--vv-top", vv.offsetTop + "px");
+      const keyboardOpen = coarse && window.innerHeight - vv.height > 120;
+      document.body.classList.toggle("keyboard", keyboardOpen);
+    }
+    requestAnimationFrame(() => {
+      drawStaff();
+      if (document.activeElement === ta) keepCaretVisible();
+    });
   }
   if (vv) {
     vv.addEventListener("resize", fitViewport);
     vv.addEventListener("scroll", fitViewport);
-    fitViewport();
   }
+  window.addEventListener("resize", fitViewport);
   // iOS sometimes scrolls the page itself when the keyboard opens; the app is pinned, so undo it.
   window.addEventListener("scroll", () => { if (window.scrollY) window.scrollTo(0, 0); });
 
-  // ---------- Mood, mute, clear ----------
+  // ---------- Mood, drone, mute, clear ----------
   // Tapping a control shouldn't close a phone keyboard that's open, or open one that isn't.
   let wasWriting = false;
   document.querySelector("header").addEventListener("pointerdown", () => {
@@ -677,13 +1096,19 @@
     mood = next;
     document.body.dataset.mood = next;
     document.getElementById("mood-" + next).checked = true;
+    readPalette();
     const m = MOODS[next];
     scaleOut.textContent = m.name + " · " + m.scale.map((x) => NOTE_NAMES[(m.root + x) % 12]).join(" ");
     applyMoodToAudio(false);
     if (announce && ensureAudio()) {
-      playChord("home");
+      const notes = playChord("home");
       lastOut.textContent = NOTE_NAMES[m.root % 12] + " chord";
+      const r = stage.getBoundingClientRect();
+      emit("chord", r.width / 2, r.height / 2, 1);
+      pulse("chord");
+      addToStaff(notes.slice(1), "chord");
     }
+    drawStaff();
     store("keys-that-sing:mood", next);
   }
 
@@ -692,16 +1117,26 @@
     returnToWriting();
   });
 
+  const droneBtn = document.getElementById("drone");
+  droneBtn.addEventListener("click", () => {
+    const on = droneBtn.getAttribute("aria-pressed") !== "true";
+    droneBtn.setAttribute("aria-pressed", String(on));
+    if (on) startDrone(); else stopDrone();
+    returnToWriting();
+  });
+
   const muteBtn = document.getElementById("mute");
   muteBtn.addEventListener("click", () => {
     muted = !muted;
     muteBtn.setAttribute("aria-pressed", String(muted));
-    muteBtn.textContent = muted ? "muted" : "sound on";
+    muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
+    muteBtn.title = muted ? "Unmute" : "Mute";
     if (ctx) master.gain.setTargetAtTime(muted ? 0 : 0.85, ctx.currentTime, 0.05);
     returnToWriting();
   });
 
   document.getElementById("clear").addEventListener("click", () => {
+    stopPlayback();
     ta.value = "";
     prev = "";
     glows.clear();
@@ -719,11 +1154,13 @@
     saveTimer = setTimeout(() => store("keys-that-sing:draft", ta.value), 400);
   }
 
+  readPalette();
   const savedMood = load("keys-that-sing:mood");
   setMood(MOODS[savedMood] ? savedMood : "melancholy", false);
   ta.value = load("keys-that-sing:draft") || "";
   prev = ta.value;
   render();
+  fitViewport();
   // On desktop, be ready to type at once. On phones, wait for a tap rather than throwing up the keyboard.
   if (!coarse) ta.focus({ preventScroll: true });
 })();
