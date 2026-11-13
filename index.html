@@ -217,70 +217,88 @@
 </section>
 
 <main>
-  <!-- ================= WORK ================= -->
-  <section class="wrap reveal" id="work" aria-labelledby="workTitle">
-    <div class="sec-head">
-      <div>
-        <p class="mono eyebrow">Selected work</p>
-        <h2 id="workTitle">Tangles I've untangled.</h2>
+  <!-- ================= WORK =================
+       Four case study cards. Each card's colour comes from --c on the .cs button.
+       Card text lives here; the full story for the pop-up lives in assets/js/cases.js
+       under the same key as data-case. -->
+  <section class="work-sec" id="work" aria-labelledby="workTitle">
+    <div class="wrap wide reveal">
+      <div class="sec-head">
+        <div>
+          <p class="mono eyebrow">Selected work · 04</p>
+          <h2 id="workTitle">Tangles I've <em>untangled.</em></h2>
+        </div>
+        <p>Four projects, from shipped products to work under NDA. Hover to peek, click for the full story.</p>
       </div>
-      <p>Three shipped projects and one experiment. Click any card for the full story.</p>
-    </div>
-    <div class="work">
-      <button class="wcard feature" data-case="checkout" type="button">
-        <span class="viz"><span class="mono stamp">E-commerce · 2025</span>
-          <span class="phone" aria-hidden="true"><span class="scr">
-            <span class="steps"><i class="on"></i><i class="on"></i><i></i></span>
-            <span class="bar m"></span><span class="bar s"></span>
-            <span class="row sel"><i></i><span><span class="bar m"></span><span class="bar s"></span></span></span>
-            <span class="row"><i></i><span><span class="bar m"></span><span class="bar s"></span></span></span>
-            <span class="pay"></span>
-          </span></span>
-        </span>
-        <span class="wbody">
-          <span class="mono">Grocery delivery app</span>
-          <h3>Cut checkout drop-off by 18%</h3>
-          <span class="desc">Rebuilt a five-step checkout into three, with saved addresses and one-tap payment.</span>
-          <span class="metrics"><span><b>−18%</b>checkout drop-off</span><span><b>5 → 3</b>steps to pay</span><span><b>6 wks</b>research to launch</span></span>
-          <span class="read">Read case study</span>
-        </span>
-      </button>
-      <button class="wcard" data-case="kyc" type="button">
-        <span class="viz"><span class="mono stamp">Fintech · 2024</span>
-          <span class="phone" aria-hidden="true"><span class="scr"><span class="bar m"></span><span class="ring"></span><span class="field ok"></span><span class="field ok"></span><span class="field"></span><span class="pay"></span></span></span>
-        </span>
-        <span class="wbody">
-          <span class="mono">Lending app</span>
-          <h3>KYC in 4 minutes, down from 11</h3>
-          <span class="desc">Reordered onboarding around what users have in hand, with live document checks.</span>
-          <span class="metrics"><span><b>11 → 4</b>minutes</span><span><b>+22%</b>completion</span><span><b>−30%</b>tickets</span></span>
-          <span class="read">Read case study</span>
-        </span>
-      </button>
-      <button class="wcard" data-case="system" type="button">
-        <span class="viz"><span class="mono stamp">Design systems · 2024</span>
-          <span class="sheet" aria-hidden="true"><i class="a">Btn</i><i class="p">Chip</i><i>Input</i><i>Card</i><i class="a p">Tag</i><i>Tab</i><i>Nav</i><i>Toast</i><i class="a">Icon</i></span>
-        </span>
-        <span class="wbody">
-          <span class="mono">Internal platform</span>
-          <h3>A design system four squads actually use</h3>
-          <span class="desc">Merged 41 button styles into 6 and shipped a Figma library with matching code tokens.</span>
-          <span class="metrics"><span><b>41 → 6</b>variants</span><span><b>120</b>components</span><span><b>−35%</b>handoff Qs</span></span>
-          <span class="read">Read case study</span>
-        </span>
-      </button>
-      <button class="wcard" data-case="plugin" type="button">
-        <span class="viz"><span class="mono stamp">Side project · 2026</span>
-          <span class="plugin" aria-hidden="true"><span class="top"><i></i><i></i><i></i></span><span class="inner"><b>Spacing Linter</b><code>Found 14 values off the 8pt grid</code><code>13px → 12px · 22px → 24px</code><span class="go">Fix all</span></span></span>
-        </span>
-        <span class="wbody">
-          <span class="mono">Experiment</span>
-          <h3>A Figma plugin that snaps spacing to the grid</h3>
-          <span class="desc">Built with Claude in a weekend to catch the off-grid values I kept fixing by hand.</span>
-          <span class="metrics"><span><b>2 days</b>idea to plugin</span><span><b>8pt</b>grid</span><span><b>9</b>teammates use it</span></span>
-          <span class="read">Read the write-up</span>
-        </span>
-      </button>
+
+      <div class="cases">
+        <!-- 01 -->
+        <button class="cs" type="button" data-case="checkout" style="--c:#2F8F4E">
+          <span class="cs-back" aria-hidden="true"></span>
+          <span class="cs-front">
+            <span class="cs-top"><span class="kind"><i></i>Case study</span><span class="num">01</span></span>
+            <h3>Checkout, rebuilt</h3>
+            <span class="desc">Cut drop-off by 18% by turning a five-step grocery checkout into three.</span>
+            <span class="client"><b>[Client]</b><span>E-commerce</span></span>
+            <span class="mock m-phone" aria-hidden="true">
+              <span class="notch"></span><span class="blk tall"></span><span class="ln w70"></span><span class="ln w45"></span>
+              <span class="row3"><i></i><i></i><i></i></span><span class="cta"></span>
+            </span>
+            <span class="tags"><span>Mobile</span><span>Conversion</span><span>UX research</span><span>Prototyping</span></span>
+            <span class="cs-foot"><span>Read case study</span><span class="arrow">→</span></span>
+          </span>
+        </button>
+
+        <!-- 02 -->
+        <button class="cs" type="button" data-case="kyc" style="--c:#D9482F">
+          <span class="cs-back" aria-hidden="true"></span>
+          <span class="cs-front">
+            <span class="cs-top"><span class="kind"><i></i>NDA project</span><span class="num">02</span></span>
+            <h3>Operations dashboard</h3>
+            <span class="desc">A confidential internal dashboard for complex operations and large-scale data.</span>
+            <span class="client"><b>[Client]</b><span>Enterprise</span></span>
+            <span class="mock m-dash" aria-hidden="true">
+              <span class="side"><i></i><i></i><i></i><i></i></span>
+              <span class="main"><span class="kpis"><i></i><i></i><i></i></span><span class="chart"><i style="--h:40%"></i><i style="--h:65%"></i><i style="--h:50%"></i><i style="--h:85%"></i><i style="--h:60%"></i><i style="--h:95%"></i></span></span>
+            </span>
+            <span class="tags"><span class="hot">NDA</span><span>Enterprise</span><span>Dashboard</span><span>Data</span></span>
+            <span class="cs-foot"><span>Under NDA · ask me</span><span class="arrow">🔒</span></span>
+          </span>
+        </button>
+
+        <!-- 03 -->
+        <button class="cs" type="button" data-case="system" style="--c:#2D7FC1">
+          <span class="cs-back" aria-hidden="true"></span>
+          <span class="cs-front">
+            <span class="cs-top"><span class="kind"><i></i>NDA project</span><span class="num">03</span></span>
+            <h3>Gen-AI platform</h3>
+            <span class="desc">An enterprise AI product designed under strict regulatory and NDA constraints.</span>
+            <span class="client"><b>[Client]</b><span>Healthcare</span></span>
+            <span class="mock m-ai" aria-hidden="true">
+              <span class="bubble me"></span><span class="bubble bot"><i></i><i></i><i></i></span>
+              <span class="prompt"><span class="spark">✦</span><span class="ln"></span></span>
+            </span>
+            <span class="tags"><span class="hot">NDA</span><span>Gen-AI</span><span>Healthcare</span><span>Components</span></span>
+            <span class="cs-foot"><span>Under NDA · ask me</span><span class="arrow">🔒</span></span>
+          </span>
+        </button>
+
+        <!-- 04 -->
+        <button class="cs" type="button" data-case="plugin" style="--c:#7A54D8">
+          <span class="cs-back" aria-hidden="true"></span>
+          <span class="cs-front">
+            <span class="cs-top"><span class="kind"><i></i>Side project</span><span class="num">04</span></span>
+            <h3>Design system</h3>
+            <span class="desc">Merged 41 button styles into 6 and shipped a library four squads actually use.</span>
+            <span class="client"><b>[Client]</b><span>Platform</span></span>
+            <span class="mock m-sys" aria-hidden="true">
+              <i class="pill"></i><i class="sq"></i><i class="ci"></i><i class="sq"></i><i class="pill on"></i><i class="ci on"></i><i class="sq on"></i><i class="pill"></i>
+            </span>
+            <span class="tags"><span>Design systems</span><span>Figma</span><span>Tokens</span></span>
+            <span class="cs-foot"><span>Read case study</span><span class="arrow">→</span></span>
+          </span>
+        </button>
+      </div>
     </div>
   </section>
 

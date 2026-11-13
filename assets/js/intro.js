@@ -20,19 +20,7 @@
     })(t0);
   }
   function ease(k){ return k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k + 2, 3) / 2; }
-  function rand(a, b){ return a + Math.random() * (b - a); }
 
-  /* Catmull-Rom spline through points, as a smooth SVG path */
-  function spline(p){
-    var d = 'M' + p[0][0].toFixed(1) + ' ' + p[0][1].toFixed(1);
-    for(var i = 0; i < p.length - 1; i++){
-      var p0 = p[i-1] || p[i], p1 = p[i], p2 = p[i+1], p3 = p[i+2] || p2;
-      d += ' C' + (p1[0] + (p2[0]-p0[0])/6).toFixed(1) + ' ' + (p1[1] + (p2[1]-p0[1])/6).toFixed(1) + ' ' +
-                  (p2[0] - (p3[0]-p1[0])/6).toFixed(1) + ' ' + (p2[1] - (p3[1]-p1[1])/6).toFixed(1) + ' ' +
-                  p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
-    }
-    return d;
-  }
 
   function reveal(){
     desk.classList.remove('ready'); void desk.offsetWidth; desk.classList.add('ready');
@@ -40,7 +28,7 @@
   }
 
   function finish(){
-    if(done) return; done = true; clearAll();
+    if(done) return; done = true; started = true; clearAll();
     intro.classList.add('open');
     body.classList.remove('intro-on');
     reveal();
@@ -55,7 +43,11 @@
     intro.hidden = false; intro.classList.remove('open');
     pen.style.opacity = 0; path.setAttribute('d', ''); iscript.style.clipPath = '';
     var W = innerWidth, H = innerHeight;
-    var nr = deskName.getBoundingClientRect(), cx = nr.left + nr.width/2, cy = nr.top + nr.height/2;
+    var r0 = deskName.getBoundingClientRect();
+    /* on phones the desk name sits near the top; play the intro centred and let the split hide the jump */
+    var shift = (r0.top + r0.height/2 < H * .3) ? Math.round(H * .46 - (r0.top + r0.height/2)) : 0;
+    var nr = {left:r0.left, right:r0.right, width:r0.width, height:r0.height, top:r0.top + shift};
+    var cx = nr.left + nr.width/2, cy = nr.top + nr.height/2;
 
     /* the bold name, laid out once to find where each letter ends up */
     iname.innerHTML = ''; iname.style.fontSize = '';
@@ -72,84 +64,85 @@
     iscript.style.fontSize = cs.fontSize; iscript.style.padding = cs.padding; iscript.style.lineHeight = cs.lineHeight;
     intro.style.setProperty('--cut', lineY + 'px');
 
-    /* scatter the letters and run a tangled thread through them */
-    var pts = [[-30, lineY]], letters = [];
+    /* the letters wait just below their final spots */
+    var letters = [];
     spans.forEach(function(s, i){
       if(NAME[i] === ' ') return;
-      var fx = left + s.offsetLeft + s.offsetWidth/2, fy = top + s.offsetHeight/2;
-      var sx = rand(W*.1, W*.9), sy = rand(H*.16, H*.84);
-      s.style.transition = 'none'; s.style.opacity = 0;
-      s.style.transform = 'translate(' + (sx-fx).toFixed(1) + 'px,' + (sy-fy).toFixed(1) + 'px) rotate(' + rand(-45,45).toFixed(0) + 'deg) scale(' + rand(.55,1.25).toFixed(2) + ')';
-      letters.push({s:s, x:sx, y:sy, fx:fx});
+      s.style.transition = 'none'; s.className = 'wait';
+      letters.push({s:s, fx: left + s.offsetLeft + s.offsetWidth/2});
     });
-    letters.sort(function(a,b){ return a.x - b.x; });
-    letters.forEach(function(l, i){
-      var prev = pts[pts.length-1], r = rand(28, 70), dir = Math.random() < .5 ? -1 : 1;
-      pts.push([(prev[0]+l.x)/2 + rand(-40,40), (prev[1]+l.y)/2 + dir*r]);       // a loop between letters
-      pts.push([(prev[0]+l.x)/2 + dir*r*.8, (prev[1]+l.y)/2 - dir*r*.4]);
-      pts.push([l.x, l.y]); l.at = pts.length - 1;
-    });
-    pts.push([W*.5 + rand(-80,80), lineY + rand(-90,90)]);
-    pts.push([W + 30, lineY]);
-    path.setAttribute('d', spline(pts));
-    var L = path.getTotalLength();
-    path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
     void iname.offsetWidth;
     spans.forEach(function(s){ s.style.transition = ''; });
 
-    /* where along the thread each letter sits, so it appears as the dot passes */
-    var samples = [];
-    for(var t = 0; t <= L; t += 16){ var q = path.getPointAtLength(t); samples.push([t, q.x, q.y]); }
-    letters.forEach(function(l){
-      var best = 0, bd = 1e9;
-      samples.forEach(function(q){ var d = (q[1]-l.x)*(q[1]-l.x) + (q[2]-l.y)*(q[2]-l.y); if(d < bd){ bd = d; best = q[0]; } });
-      l.t = best / L;
-    });
+    /* the thread: a straight lead-in, an even coil of loops under the name, a straight lead-out */
+    var x0 = left - 30, x1 = left + bw + 30, loops = Math.max(7, Math.round(bw / 62));
+    var R = Math.max(9, Math.min(17, bh * .17)), pts = [], base = [];
+    function add(x, y, bx){ pts.push([x, y]); base.push(bx); }
+    for(var i = 0; i <= 24; i++){ var x = -20 + (x0 + 20) * i / 24; add(x, lineY, x); }
+    var C = loops * 26;
+    for(var j = 1; j <= C; j++){
+      var u = j / C, th = u * Math.PI * 2 * loops, bx = x0 + (x1 - x0) * u;
+      add(bx - R * 1.15 * Math.sin(th), lineY + R * (1 - Math.cos(th)), bx);
+    }
+    for(var k2 = 1; k2 <= 24; k2++){ var xx = x1 + (W + 20 - x1) * k2 / 24; add(xx, lineY, xx); }
+    var N = pts.length, cum = [0];
+    for(var c = 1; c < N; c++) cum.push(cum[c-1] + Math.hypot(pts[c][0]-pts[c-1][0], pts[c][1]-pts[c-1][1]));
+    var L = cum[N-1];
+    function line(p){ var d = 'M' + p[0][0].toFixed(1) + ' ' + p[0][1].toFixed(1); for(var i = 1; i < p.length; i++) d += 'L' + p[i][0].toFixed(1) + ' ' + p[i][1].toFixed(1); return d; }
+    path.setAttribute('d', line(pts));
+    path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
+    function at(len){ var lo = 0, hi = N - 1; while(lo < hi){ var m = (lo + hi) >> 1; if(cum[m] < len) lo = m + 1; else hi = m; } return lo; }
 
     later(function(){
-      // 1. the dot draws the tangle
+      // 1. the dot draws the coil; each letter rises into place as the dot passes it
       pen.style.opacity = 1;
-      var lastTick = 0;
-      animate(1500, function(k){
-        var e = 1 - Math.pow(1-k, 2), p = path.getPointAtLength(L*e);
-        path.style.strokeDashoffset = L * (1-e);
-        pen.setAttribute('cx', p.x); pen.setAttribute('cy', p.y);
-        letters.forEach(function(l){ if(!l.shown && e >= l.t){ l.shown = true; l.s.style.opacity = 1; snd.tone(330 + Math.random()*500, .06, 'triangle', .04); } });
-        if(k - lastTick > .08){ lastTick = k; snd.noise(.05, 'bandpass', 2600, .025, 0, null, 3); }
+      var lastLoop = -1;
+      animate(1700, function(k){
+        var e = ease(k) * .15 + k * .85, len = L * e, idx = at(len), p = pts[idx];
+        path.style.strokeDashoffset = L - len;
+        pen.setAttribute('cx', p[0]); pen.setAttribute('cy', p[1]);
+        letters.forEach(function(l){ if(!l.shown && base[idx] >= l.fx - 14){ l.shown = true; l.s.className = ''; snd.tone(420 + l.fx % 300, .06, 'triangle', .035); } });
+        var loopNo = Math.floor((base[idx] - x0) / (x1 - x0) * loops);
+        if(loopNo !== lastLoop && base[idx] > x0 && base[idx] < x1){ lastLoop = loopNo; snd.noise(.05, 'bandpass', 2600, .02, 0, null, 3); }
       }, function(){
-        letters.forEach(function(l){ l.s.style.opacity = 1; });
-        later(straighten, 260);
+        letters.forEach(function(l){ l.s.className = ''; });
+        later(straighten, 280);
       });
-    }, 450);
+    }, 500);
 
-    // 2. pull the thread straight; the letters snap into the name
+    // 2. the coil pulls taut, in place
     function straighten(){
-      var N = 160, from = [], to = [];
-      for(var i = 0; i < N; i++){ var q = path.getPointAtLength(L*i/(N-1)); from.push([q.x, q.y]); to.push([-30 + (W+60)*i/(N-1), lineY]); }
       path.style.strokeDasharray = 'none'; path.style.strokeDashoffset = 0;
-      letters.forEach(function(l, i){ setTimeout(function(){ l.s.style.transform = 'none'; }, i * 22); });
       snd.whoosh();
-      var penFrom = [parseFloat(pen.getAttribute('cx')), parseFloat(pen.getAttribute('cy'))], penTo = [left - 26, lineY];
-      animate(950, function(k){
+      animate(800, function(k){
         var e = ease(k), p = [];
-        for(var i = 0; i < N; i++) p.push([from[i][0] + (to[i][0]-from[i][0])*e, from[i][1] + (to[i][1]-from[i][1])*e]);
-        path.setAttribute('d', spline(p));
-        pen.setAttribute('cx', penFrom[0] + (penTo[0]-penFrom[0])*e); pen.setAttribute('cy', penFrom[1] + (penTo[1]-penFrom[1])*e);
-      }, function(){ snd.chime(); later(rewrite, 450); });
+        for(var i = 0; i < N; i++) p.push([pts[i][0] + (base[i] - pts[i][0]) * e, pts[i][1] + (lineY - pts[i][1]) * e]);
+        path.setAttribute('d', line(p));
+        pen.setAttribute('cx', W + 20); pen.style.opacity = 0;
+      }, function(){ snd.chime(); later(lift, 380); });
     }
 
-    // 3. the dot runs along the line like a pen and rewrites the name in script
+    // 3. the bold name lifts away while the pen comes back to the start of the line
+    function lift(){
+      letters.forEach(function(l, i){ setTimeout(function(){ l.s.className = 'out'; }, i * 28); });
+      var from = W * .5, to = nr.left - 18;
+      pen.setAttribute('cx', from); pen.setAttribute('cy', lineY);
+      animate(560, function(k){ var e = ease(k); pen.style.opacity = Math.min(1, k * 3); pen.setAttribute('cx', from + (to - from) * e); },
+        function(){ later(rewrite, 120); });
+    }
+
+    // 4. the pen writes the name in script, left to right
     function rewrite(){
-      var x0 = Math.min(left, nr.left) - 26, x1 = Math.max(left + bw, nr.right) + 26;
-      animate(1150, function(k){
-        var e = ease(k), x = x0 + (x1 - x0)*e;
+      var a = nr.left - 18, b = nr.right + 18;
+      animate(1050, function(k){
+        var e = ease(k), x = a + (b - a) * e;
         pen.setAttribute('cx', x);
         var pct = Math.max(0, Math.min(100, (x - nr.left) / nr.width * 100));
         iscript.style.clipPath = 'inset(-20% ' + (100 - pct).toFixed(2) + '% -20% 0)';
-        letters.forEach(function(l){ if(!l.gone && x > l.fx){ l.gone = true; l.s.style.opacity = 0; l.s.classList.add('gone'); snd.tick(k); } });
+        if(Math.random() < .3) snd.noise(.04, 'bandpass', 3400, .02, 0, null, 2);
       }, function(){
         iscript.style.clipPath = 'inset(-20% 0 -20% 0)';
-        later(split, 350);
+        later(split, 380);
       });
     }
 

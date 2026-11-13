@@ -1,11 +1,12 @@
 /* Case studies shown in the pop-up when a work card is clicked.
    Each key matches a card's data-case attribute in index.html.
    A section body can be a paragraph (string) or a bullet list (array).
-   Sample content: replace it with your own projects. */
+   Sample content: replace it with your own projects.
+   nda: true shows a note in the pop-up that the details are under NDA. */
 window.CASES = {
   checkout: {
     eyebrow: 'Case study · E-commerce · 2025',
-    title: 'Cut checkout drop-off by 18%',
+    title: 'Checkout, rebuilt',
     sub: 'Rebuilt a five-step checkout into three for a grocery delivery app.',
     meta: [['Role', 'Lead designer'], ['Team', '1 PM, 4 engineers'], ['Timeline', '6 weeks'], ['Platform', 'Android, iOS']],
     secs: [
@@ -18,23 +19,35 @@ window.CASES = {
     ]
   },
   kyc: {
-    eyebrow: 'Case study · Fintech · 2024',
-    title: 'KYC in 4 minutes, down from 11',
-    sub: 'Reordered onboarding around what users have in hand.',
-    meta: [['Role', 'Product designer'], ['Team', '2 PMs, compliance, 5 engineers'], ['Timeline', '10 weeks'], ['Platform', 'Android']],
+    eyebrow: 'NDA project · Enterprise · 2024',
+    title: 'Operations dashboard',
+    sub: 'A confidential internal dashboard for complex operations and large-scale data.',
+    nda: true,
+    meta: [['Role', 'Product designer'], ['Team', 'PM, data, 6 engineers'], ['Timeline', '5 months'], ['Platform', 'Web']],
     secs: [
-      ['Context', 'A lending app where every new user must complete KYC before seeing an offer.'],
-      ['Problem', 'Users were asked for PAN, then a selfie, then Aadhaar, then income proof, often leaving to find documents and never coming back.'],
-      ['Approach', ['Asked users upfront what they had on them', 'Ran document checks live instead of via a 24-hour review', 'Worked with compliance to drop one redundant step']],
-      ['Solution', 'A checklist-first flow with live validation and a visible progress ring.'],
-      ['Impact', ['Median time from 11 to 4 minutes', 'Completion up 22%', 'KYC support tickets down 30%']],
-      ['Learnings', 'Compliance became an ally once they saw the drop-off data. I bring them in on day one now.']
+      ['Context', 'Operations teams tracked thousands of daily orders across five tools and a lot of spreadsheets.'],
+      ['Problem', 'People spent the first hour of every shift stitching data together before they could act on any of it.'],
+      ['Approach', ['Shadowed three shifts to map what people checked first', 'Grouped metrics by the decision they support, not by data source', 'Designed dense tables that still scan in five seconds']],
+      ['Impact', ['Morning triage cut from about an hour to 15 minutes', 'Five tools replaced by one']]
     ]
   },
   system: {
+    eyebrow: 'NDA project · Healthcare · 2025',
+    title: 'Gen-AI platform',
+    sub: 'An enterprise AI product designed under strict regulatory and NDA constraints.',
+    nda: true,
+    meta: [['Role', 'Product designer'], ['Team', '2 designers, ML, compliance'], ['Timeline', '6 months'], ['Platform', 'Web']],
+    secs: [
+      ['Context', 'A regulated healthcare team wanted AI help with document-heavy work, without losing trust or traceability.'],
+      ['Problem', 'Early prototypes gave answers people could not check, so nobody used them for real decisions.'],
+      ['Approach', ['Showed the source behind every AI answer, inline', 'Designed clear states for "not sure" and "can\'t answer"', 'Built a component set the team could reuse across AI features']],
+      ['Impact', ['Pilot users relied on it for daily work within weeks', 'Component set reused in three later features']]
+    ]
+  },
+  plugin: {
     eyebrow: 'Case study · Design systems · 2024',
-    title: 'A design system four squads actually use',
-    sub: 'From 41 button styles to 6, with matching code tokens.',
+    title: 'Design system',
+    sub: 'From 41 button styles to 6, with a library four squads actually use.',
     meta: [['Role', 'Design system owner'], ['Team', '2 designers, 2 front-end'], ['Timeline', '4 months'], ['Platform', 'Web, mobile']],
     secs: [
       ['Context', 'Four squads shipped features independently, each with its own Figma file.'],
@@ -43,18 +56,6 @@ window.CASES = {
       ['Solution', 'A Figma library of 120 components with usage notes, plus a token package engineers install.'],
       ['Impact', ['All 4 squads on the library within a quarter', 'Handoff questions down 35%', 'New screens built roughly twice as fast']],
       ['Learnings', 'Adoption came from office hours, not documentation. I\'d start those on week one.']
-    ]
-  },
-  plugin: {
-    eyebrow: 'Experiment · AI · 2026',
-    title: 'A Figma plugin that snaps spacing to the grid',
-    sub: 'Built with Claude in a weekend.',
-    meta: [['Role', 'Designer and builder'], ['Team', 'Just me (and Claude)'], ['Timeline', '2 days'], ['Tools', 'Figma API, Claude']],
-    secs: [
-      ['Why', 'In reviews I kept fixing 13px and 22px gaps by hand. I wanted a button that did it.'],
-      ['How', 'I described the behaviour to Claude, tested each version on real files, and iterated on edge cases like auto-layout and nested frames.'],
-      ['Result', 'A plugin that finds off-grid spacing and fixes it in one click. Nine teammates use it weekly.'],
-      ['Learnings', 'Building it taught me more about auto-layout than three years of using it.']
     ]
   }
 };

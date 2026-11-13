@@ -39,9 +39,10 @@ button{font:inherit; color:inherit}
 .ithread path{fill:none; stroke:var(--accent); stroke-width:3; stroke-linecap:round; stroke-linejoin:round}
 .ithread circle{fill:var(--accent); filter:drop-shadow(0 0 10px rgba(255,110,80,.9))}
 .intro.open .ithread{opacity:0; transition:opacity .5s}
-.iname{position:absolute; left:0; top:0; display:flex; white-space:pre; font:800 clamp(44px,7.4vw,108px)/1 var(--display); letter-spacing:-.04em; color:#F4F2EC}
-.iname span{display:inline-block; will-change:transform,opacity; transition:transform .95s cubic-bezier(.3,1.35,.45,1), opacity .35s, filter .35s}
-.iname span.gone{opacity:0; filter:blur(6px)}
+.iname{position:absolute; left:0; top:0; display:flex; white-space:pre; font:700 clamp(44px,7vw,100px)/1 var(--display); letter-spacing:-.03em; color:#F4F2EC}
+.iname span{display:inline-block; will-change:transform,opacity; transition:transform .55s cubic-bezier(.2,.9,.25,1), opacity .45s ease}
+.iname span.wait{opacity:0; transform:translateY(22px)}
+.iname span.out{opacity:0; transform:translateY(-16px); transition-duration:.4s}
 .iscript{position:absolute; white-space:nowrap; color:#F4F2EC; font-family:var(--script); line-height:1; clip-path:inset(-20% 100% -20% 0); text-align:center}
 .intro.open .iscript{opacity:0; transition:opacity .9s .15s}
 .skip{position:absolute; right:20px; bottom:calc(20px + env(safe-area-inset-bottom,0px)); background:none; border:1px solid rgba(244,242,236,.25); color:rgba(244,242,236,.75); border-radius:999px; padding:7px 14px; font-size:13px; cursor:pointer}
@@ -246,48 +247,92 @@ button{font:inherit; color:inherit}
 @keyframes fall{to{transform:translate(var(--fx),980px) rotate(var(--fr)); opacity:.2}}
 
 /* ---------- sections ---------- */
-main{padding-top:110px}
+main{padding-top:0}
 main > section{margin-bottom:130px}
 .sec-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:16px 32px; margin-bottom:34px}
 .sec-head h2{font-size:clamp(36px,5vw,58px); font-weight:700; letter-spacing:-.03em}
 .sec-head > p{color:var(--muted); max-width:44ch}
 .eyebrow{color:var(--muted); margin-bottom:10px}
 
-.work{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px}
-.wcard{background:var(--card); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; display:flex; flex-direction:column; cursor:pointer; text-align:left; padding:0; transition:transform .2s, box-shadow .2s, border-color .2s}
-.wcard:hover{transform:translateY(-4px); box-shadow:0 16px 32px var(--shadow); border-color:color-mix(in oklab, var(--accent) 40%, var(--line))}
-.wcard.feature{grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
-.viz{background:var(--accent-soft); min-height:250px; display:grid; place-items:center; position:relative; padding:28px}
-.viz .stamp{position:absolute; top:14px; left:14px; color:var(--muted)}
-.wbody{padding:24px 26px 26px; display:flex; flex-direction:column; gap:14px; min-width:0}
-.wbody > .mono{color:var(--muted)}
-.wbody h3{font-size:clamp(24px,2.6vw,32px); font-weight:700; letter-spacing:-.025em}
-.wbody .desc{color:var(--muted)}
-.metrics{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; border-block:1px dashed var(--line); padding-block:12px; font-size:12px; color:var(--muted); line-height:1.3}
-.metrics b{display:block; font:700 23px/1.2 var(--display); color:var(--ink)}
-.read{margin-top:auto; font-weight:600}
-.read::after{content:" →"; display:inline-block; transition:transform .2s}
-.wcard:hover .read::after{transform:translateX(4px)}
-.phone{width:160px; aspect-ratio:9/18.5; background:#111; border-radius:26px; padding:7px; box-shadow:0 20px 40px rgba(0,0,0,.18); transform:rotate(-3deg); display:block}
-.scr{background:#FCFCFB; border-radius:20px; height:100%; padding:16px 12px; display:flex; flex-direction:column; gap:8px; overflow:hidden}
-.bar{height:8px; border-radius:4px; background:#E7E6E3; display:block}
-.bar.s{width:45%} .bar.m{width:70%}
-.steps{display:flex; gap:5px} .steps i{flex:1; height:4px; border-radius:3px; background:#E7E6E3} .steps i.on{background:#D9482F}
-.row{display:flex; gap:8px; align-items:center; padding:7px; border:1px solid #EEEDEA; border-radius:8px}
-.row i{width:22px; height:22px; border-radius:6px; background:#EFEEEB; flex:none}
-.row > span{flex:1; display:grid; gap:4px}
-.row.sel{border-color:#D9482F} .row.sel i{background:#D9482F}
-.pay{margin-top:auto; height:30px; border-radius:9px; background:#D9482F; display:block}
-.ring{width:72px; height:72px; border-radius:50%; margin:6px auto; background:conic-gradient(#D9482F 0 72%, #EDECE9 72% 100%); display:grid; place-items:center}
-.ring::after{content:"4 min"; width:54px; height:54px; border-radius:50%; background:#FCFCFB; display:grid; place-items:center; font:600 11px var(--body); color:#222}
-.field{height:26px; border-radius:7px; border:1px solid #E3E2DE; display:block} .field.ok{border-color:#3BB273}
-.sheet{display:grid; grid-template-columns:repeat(3,52px); gap:10px; transform:rotate(-2deg)}
-.sheet i{height:52px; border-radius:10px; background:var(--card); border:1px solid var(--line); display:grid; place-items:center; font:600 11px var(--mono); color:var(--muted); font-style:normal}
-.sheet i.a{background:var(--accent); border-color:var(--accent); color:#fff} .sheet i.p{border-radius:99px}
-.plugin{width:220px; background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:0 14px 30px rgba(0,0,0,.10); overflow:hidden; font-size:12px; display:block}
-.plugin .top{display:flex; gap:5px; padding:8px 10px; border-bottom:1px solid var(--line)} .plugin .top i{width:8px; height:8px; border-radius:50%; background:var(--line)}
-.plugin .inner{padding:12px; display:grid; gap:8px} .plugin code{font:11px var(--mono); color:var(--muted)}
-.plugin .go{background:var(--accent); color:#fff; border-radius:6px; padding:6px; text-align:center; font-weight:600}
+/* ---------- case studies: tinted cards on a tilted colour card ---------- */
+.work-sec{background:var(--night); color:#F4F2EC; padding:110px 0 120px; margin-bottom:120px; overflow:hidden;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size:32px 32px}
+.wrap.wide{max-width:1360px}
+.work-sec .sec-head > p, .work-sec .eyebrow{color:#A9A6A0}
+.work-sec h2 em{font-style:normal; font-family:var(--script); font-weight:400; color:var(--accent); font-size:1.3em; letter-spacing:0; line-height:.8}
+.cases{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(30px,3.6vw,56px); padding-top:24px}
+.cs{--c:#2F8F4E; --tint:color-mix(in oklab, var(--c) 7%, #F2F3EF); --soft:color-mix(in oklab, var(--c) 16%, #F2F3EF); --mid:color-mix(in oklab, var(--c) 32%, #F2F3EF);
+  --rx:0deg; --ry:0deg; --gx:50%; --gy:30%;
+  position:relative; display:block; padding:0; border:0; background:none; text-align:left; cursor:pointer; perspective:900px; color:#1E1F1C}
+.cs-back{position:absolute; inset:0; border-radius:16px; background:var(--c); transform:translate(8px,-10px) rotate(2.4deg); transform-origin:30% 80%; transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.cs:nth-child(even) .cs-back{transform:translate(-8px,-10px) rotate(-2.4deg); transform-origin:70% 80%}
+.cs-front{position:relative; display:flex; flex-direction:column; gap:14px; height:100%; padding:24px 22px 20px; border-radius:16px; background:var(--tint);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 18px 40px rgba(0,0,0,.35); transform:rotateX(var(--rx)) rotateY(var(--ry)); transform-style:preserve-3d; transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s}
+.cs-front::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0; transition:opacity .4s;
+  background:radial-gradient(circle at var(--gx) var(--gy), rgba(255,255,255,.65), transparent 55%); mix-blend-mode:soft-light}
+.cs:hover .cs-front, .cs:focus-visible .cs-front{box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 34px 60px rgba(0,0,0,.45)}
+.cs:hover .cs-front::after{opacity:1}
+.cs:hover .cs-back, .cs:focus-visible .cs-back{transform:translate(12px,-16px) rotate(4.5deg)}
+.cs:nth-child(even):hover .cs-back, .cs:nth-child(even):focus-visible .cs-back{transform:translate(-12px,-16px) rotate(-4.5deg)}
+.cs:hover, .cs:focus-visible{z-index:2}
+.cs:focus-visible{outline:none} .cs:focus-visible .cs-front{outline:2px solid var(--c); outline-offset:4px}
+.cs-top{display:flex; justify-content:space-between; align-items:center}
+.kind{display:inline-flex; align-items:center; gap:8px; font:600 10.5px var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--c)}
+.kind i{width:7px; height:7px; border-radius:50%; background:var(--c); box-shadow:0 0 0 3px color-mix(in oklab, var(--c) 18%, transparent)}
+.num{font:500 11px var(--mono); color:color-mix(in oklab, var(--c) 45%, #8A8C86)}
+.cs h3{font-size:clamp(23px,1.9vw,27px); font-weight:700; letter-spacing:-.02em; line-height:1.1}
+.cs .desc{font-size:14px; line-height:1.55; color:#5F625C}
+.client{align-self:flex-start; display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; border:1px solid var(--mid); background:color-mix(in oklab, var(--c) 4%, #fff)}
+.client b{font:700 14px var(--display); color:var(--c)}
+.client span{padding-left:10px; border-left:1px solid var(--mid); font:600 9.5px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--c)}
+.mock{display:block; position:relative; border-radius:12px; border:1.5px solid var(--mid); background:color-mix(in oklab, var(--c) 4%, #fff); padding:14px; margin-top:auto; min-height:150px; overflow:hidden}
+.mock i, .mock .ln, .mock .blk{display:block; background:var(--soft); border-radius:5px}
+.tags{display:flex; flex-wrap:wrap; gap:6px}
+.tags span{font-size:11.5px; padding:3px 10px; border-radius:999px; background:#fff; border:1px solid #E1E3DD; color:#5F625C}
+.tags span.hot{border-color:var(--mid); color:var(--c); background:var(--tint)}
+.cs-foot{display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1px dashed var(--mid); font-weight:600; font-size:14px; color:var(--c)}
+.cs-foot .arrow{display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--c); color:#fff; font-size:14px; transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
+.cs:hover .cs-foot .arrow{transform:translateX(4px) rotate(-8deg)}
+
+/* mock 1: a phone checkout */
+.m-phone{display:flex; flex-direction:column; gap:8px; align-items:stretch}
+.m-phone .notch{width:34%; height:6px; margin:0 auto 2px}
+.m-phone .tall{height:44px}
+.m-phone .ln{height:7px; transition:width .6s cubic-bezier(.3,1.3,.5,1)}
+.w70{width:70%} .w45{width:45%}
+.cs:hover .m-phone .w45{width:80%}
+.m-phone .row3{display:grid; grid-template-columns:repeat(3,1fr); gap:6px} .m-phone .row3 i{height:22px}
+.m-phone .cta{display:block; height:22px; width:40%; border-radius:999px; background:var(--mid); margin-top:2px; transition:width .6s cubic-bezier(.3,1.3,.5,1), background .4s}
+.cs:hover .m-phone .cta{width:100%; background:var(--c)}
+/* mock 2: a dashboard */
+.m-dash{display:grid; grid-template-columns:22% 1fr; gap:10px}
+.m-dash .side{display:grid; gap:6px; align-content:start} .m-dash .side i{height:8px} .m-dash .side i:first-child{height:18px; margin-bottom:4px}
+.m-dash .main{display:grid; gap:10px}
+.m-dash .kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:6px} .m-dash .kpis i{height:26px}
+.m-dash .chart{display:flex; align-items:flex-end; gap:6px; height:70px; padding:6px; border-radius:6px; background:var(--tint)}
+.m-dash .chart i{flex:1; height:30%; background:var(--mid); border-radius:3px 3px 1px 1px; transition:height .6s cubic-bezier(.3,1.4,.5,1)}
+.cs:hover .m-dash .chart i{height:var(--h)} .cs:hover .m-dash .chart i:nth-child(6){background:var(--c)}
+.m-dash .chart i:nth-child(2){transition-delay:.04s} .m-dash .chart i:nth-child(3){transition-delay:.08s} .m-dash .chart i:nth-child(4){transition-delay:.12s} .m-dash .chart i:nth-child(5){transition-delay:.16s} .m-dash .chart i:nth-child(6){transition-delay:.2s}
+/* mock 3: an AI chat */
+.m-ai{display:flex; flex-direction:column; gap:8px}
+.m-ai .bubble{display:flex; gap:5px; align-items:center; border-radius:10px; height:24px; background:var(--soft)}
+.m-ai .me{align-self:flex-end; width:55%; border-bottom-right-radius:3px}
+.m-ai .bot{width:42%; padding:0 10px; background:#fff; border:1px solid var(--mid); border-bottom-left-radius:3px}
+.m-ai .bot i{width:6px; height:6px; border-radius:50%; background:var(--c); opacity:.35}
+.cs:hover .m-ai .bot i{animation:typing 1s ease-in-out infinite} .m-ai .bot i:nth-child(2){animation-delay:.15s!important} .m-ai .bot i:nth-child(3){animation-delay:.3s!important}
+@keyframes typing{0%,100%{opacity:.3; transform:translateY(0)} 50%{opacity:1; transform:translateY(-3px)}}
+.m-ai .prompt{display:flex; align-items:center; gap:8px; margin-top:auto; padding:8px 10px; border-radius:8px; border:1px solid var(--mid); background:#fff}
+.m-ai .spark{color:var(--c); font-size:13px; line-height:1}
+.m-ai .prompt .ln{flex:1; height:7px; transform-origin:left; transform:scaleX(.35); transition:transform .8s cubic-bezier(.3,1.2,.5,1)}
+.cs:hover .m-ai .prompt .ln{transform:scaleX(1)}
+/* mock 4: a component sheet */
+.m-sys{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-content:center; justify-items:center}
+.m-sys i{width:100%; height:34px; transition:transform .5s cubic-bezier(.3,1.6,.5,1), background .4s}
+.m-sys .pill{border-radius:999px; height:22px} .m-sys .ci{width:34px; border-radius:50%} .m-sys .sq{border-radius:8px}
+.m-sys .on{background:var(--mid)}
+.cs:hover .m-sys i:nth-child(odd){transform:translateY(-4px) rotate(-6deg)}
+.cs:hover .m-sys i:nth-child(even){transform:translateY(4px) rotate(6deg)}
+.cs:hover .m-sys .on{background:var(--c)}
 
 .principles{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-bottom:56px}
 .pr{border-top:2px solid var(--ink); padding-top:18px; display:grid; gap:10px; align-content:start}
@@ -315,7 +360,8 @@ footer.site a{text-decoration:none}
 
 dialog{border:0; padding:0; border-radius:20px; width:min(760px, calc(100vw - 32px)); max-height:calc(100dvh - 48px); background:var(--card); color:var(--ink); box-shadow:0 30px 80px rgba(0,0,0,.3)}
 dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
-.cs-head{background:var(--accent-soft); padding:32px clamp(20px,4vw,40px) 26px; display:grid; gap:12px; position:relative}
+.cs-head{background:color-mix(in oklab, var(--cc, var(--accent)) 12%, #fff); padding:32px clamp(20px,4vw,40px) 26px; display:grid; gap:12px; position:relative}
+.cs-nda{margin:20px clamp(20px,4vw,40px) 0; padding:12px 16px; border-radius:10px; background:color-mix(in oklab, var(--cc, var(--accent)) 9%, #fff); border:1px dashed color-mix(in oklab, var(--cc, var(--accent)) 40%, #fff); font-size:14px; color:#4A4C47}
 .cs-head h2{font-size:clamp(28px,4vw,42px); font-weight:700; letter-spacing:-.025em; padding-right:40px}
 .cs-close{position:absolute; top:16px; right:16px; width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--card); font-size:20px; cursor:pointer; line-height:1}
 .cs-meta{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; padding:20px clamp(20px,4vw,40px); border-bottom:1px solid var(--line)}
@@ -342,13 +388,16 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
   #pPencil{grid-column:1 / -1; --w:150px; --r:-8deg}
   .counter{left:50%; transform:translateX(-50%); bottom:24px; white-space:nowrap}
   .replay{display:none}
-  .wcard.feature{grid-template-columns:1fr}
+  .cases{grid-template-columns:repeat(2,minmax(0,1fr)); gap:48px 36px}
   .principles{grid-template-columns:1fr}
+}
+@media (max-width:1180px) and (min-width:981px){
+  .cases{grid-template-columns:repeat(2,minmax(0,1fr)); gap:48px 40px; max-width:880px; margin:0 auto}
 }
 @media (max-width:640px){
   .nav{display:none}
   .sound{margin-left:auto}
-  .work{grid-template-columns:1fr}
+  .cases{grid-template-columns:1fr; max-width:400px; margin:0 auto}
   .cs-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
   .cs-sec, .timeline li{grid-template-columns:1fr; gap:4px}
   .tagline{letter-spacing:.2em}

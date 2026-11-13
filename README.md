@@ -2,7 +2,7 @@
 
 A static portfolio site (no build step).
 
-**The intro:** a red dot draws a tangled thread with the letters of the name caught in it. The thread pulls straight and the letters snap into "Aakansha Singh". The dot then runs along the line like a pen, rewriting the name in script, and the dark screen splits open along the thread. Click, scroll or press Escape to skip. It is skipped automatically for people who prefer reduced motion.
+**The intro:** a red dot draws a coiled thread under the name, and each letter of "Aakansha Singh" rises into place as the dot passes it. The coil pulls straight, the bold name lifts away and the dot runs along the line like a pen, writing the name in script, and the dark screen splits open along the thread. Click, scroll or press Escape to skip. It is skipped automatically for people who prefer reduced motion.
 
 **The desk:** eleven objects you can drag anywhere. Each one does something when clicked:
 
@@ -48,7 +48,11 @@ Some content is still sample text. Replace:
 - **Email and links** in the contact section of `index.html`
 - **Postcard back** (`[your city]`) and the badge text
 - **Photos**: the three polaroids in `#photoStack` use drawn placeholders; swap in `<img>` tags
-- **Projects**: the `.wcard` cards in `index.html` and their entries in `assets/js/cases.js`
+- **Case studies** (4 cards in the dark Work section):
+  - Card text is in `index.html`: label (Case study / NDA project / Side project), title, one-line description, the `[Client]` pill, tags and footer.
+  - Each card's colour is the `--c` value on its `<button class="cs" ...>`.
+  - The full story for the pop-up is in `assets/js/cases.js`, under the same key as the card's `data-case`. Add `nda: true` to show the NDA note.
+  - The little screen mockups (phone, dashboard, AI chat, components) are drawn in CSS; keep one or swap a card to a different style.
 - **Experience**: the `[Company]` / `[Studio]` placeholders
 - **about.md pages**: the `pages` list in `assets/js/desk.js`
 - **Resume**: point the "Resume (PDF)" link at your file
