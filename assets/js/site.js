@@ -87,7 +87,7 @@
     var spy = new IntersectionObserver(function(entries){
       entries.forEach(function(en){ if(en.isIntersecting) links.forEach(function(a){ a.classList.toggle('active', a.dataset.sec === en.target.id); }); });
     }, {rootMargin:'-45% 0px -50% 0px'});
-    ['top','work','about','playground','contact'].forEach(function(id){ var el = $(id); if(el) spy.observe(el); });
+    ['top','work','process','about','experiments','contact'].forEach(function(id){ var el = $(id); if(el) spy.observe(el); });
   }
 
   /* reveal sections as they scroll in */

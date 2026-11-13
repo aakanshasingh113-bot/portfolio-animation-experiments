@@ -35,7 +35,7 @@
   <nav class="nav" aria-label="Sections">
     <a href="#work" data-sec="work"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg><span>Work</span></a>
     <a href="#about" data-sec="about"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14.2a4.2 4.2 0 0 0 6.4 0M9.5 10h.01M14.5 10h.01"/></svg><span>About</span></a>
-    <a href="#playground" data-sec="playground"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M20.5 15.5 16 11l-9 8.5"/></svg><span>Playground</span></a>
+    <a href="#experiments" data-sec="experiments"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span>AI experiments</span></a>
     <!-- Point this at your resume PDF, e.g. href="assets/resume.pdf" target="_blank" -->
     <a href="#contact" data-sec="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4.5 4.5v11A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5z"/><path d="M14 3.5V8h4.5M9 12.5h6M9 16h6"/></svg><span>Resume</span></a>
   </nav>
@@ -456,44 +456,154 @@
     </div>
   </section>
 
-  <!-- ================= PLAYGROUND ================= -->
-  <section class="wrap reveal" id="playground" aria-labelledby="playTitle">
+  <!-- ================= AI EXPERIMENTS =================
+       Three tabs: Images, Videos, Games.
+       Images: put files in assets/ai/images and add a .pin button (data-i is its order).
+       Videos: put files in assets/ai/videos and set data-src on a .vid figure,
+               e.g. <figure class="vid" data-src="assets/ai/videos/loop.mp4">.
+       Games: single HTML files in assets/ai/games, with a screenshot in thumbs/. -->
+  <section class="wrap reveal" id="experiments" aria-labelledby="expTitle">
     <div class="sec-head">
       <div>
-        <p class="mono eyebrow">Playground</p>
-        <h2 id="playTitle">Off the clock.</h2>
+        <p class="mono eyebrow">AI experiments</p>
+        <h2 id="expTitle">Things I made with AI.</h2>
+        <p class="hand-note">prompted, picked, and polished by me</p>
       </div>
-      <p>Visual explorations, motion tests and things I made for fun. Each one names the tool. Swap these placeholders for your own.</p>
+      <div class="exp-tabs" id="expTabs" role="tablist" aria-label="Experiment type">
+        <span class="thumb" aria-hidden="true"></span>
+        <button type="button" role="tab" id="tabImages" aria-controls="panelImages" aria-selected="true">Images <i>4</i></button>
+        <button type="button" role="tab" id="tabVideos" aria-controls="panelVideos" aria-selected="false">Videos <i>3</i></button>
+        <button type="button" role="tab" id="tabGames" aria-controls="panelGames" aria-selected="false">Games <i>3</i></button>
+      </div>
     </div>
-    <div class="play">
-      <div class="tile"><div class="art a1">Aa<small>type study</small></div><div class="cap">Type specimen<span class="mono">Figma</span></div></div>
-      <div class="tile"><div class="art a2"><div class="g" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="cap">Icon set, 24px grid<span class="mono">Figma</span></div></div>
-      <div class="tile"><div class="art a3"><div class="ball" aria-hidden="true"></div></div><div class="cap">Bounce timing study<span class="mono">Rive</span></div></div>
-      <div class="tile"><div class="art a4"><div class="sun"></div><div class="hill"></div></div><div class="cap">Through my lens<span class="mono">Photography</span></div></div>
+
+    <div class="exp-panel on" id="panelImages" role="tabpanel" aria-labelledby="tabImages">
+      <div class="pins">
+          <button class="pin" type="button" data-i="0" style="--rot:-2.2deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/butterday.webp" alt="butterday: Meet your sunny side. A warm breakfast brand poster." loading="lazy" style="aspect-ratio:4/5">
+            <span class="pin-cap"><b>butterday</b><span>Meet your sunny side</span></span>
+          </button>
+          <button class="pin" type="button" data-i="1" style="--rot:1.6deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/slowleaf.webp" alt="slowleaf: Nature, by the spoonful. A plant-bowl poster for a slow-food brand." loading="lazy" style="aspect-ratio:4/5">
+            <span class="pin-cap"><b>slowleaf</b><span>Nature, by the spoonful</span></span>
+          </button>
+          <button class="pin" type="button" data-i="2" style="--rot:-1deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/bun-club.webp" alt="Bun Club: Big Crunch. Bold type for a crispy chicken burger." loading="lazy" style="aspect-ratio:4/5">
+            <span class="pin-cap"><b>Bun Club</b><span>Big Crunch</span></span>
+          </button>
+          <button class="pin" type="button" data-i="3" style="--rot:2.4deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/vada-pav.webp" alt="Vada Pav: The Great Mumbai Escape. A retro travel poster for a street-food icon." loading="lazy" style="aspect-ratio:2/3">
+            <span class="pin-cap"><b>Vada Pav</b><span>The Great Mumbai Escape</span></span>
+          </button>
+      </div>
+    </div>
+    <div class="exp-panel" id="panelVideos" role="tabpanel" aria-labelledby="tabVideos" hidden>
+      <div class="vids">
+          <figure class="vid" data-src="">
+            <div class="vid-frame"><span class="vid-empty"><span class="play-btn" aria-hidden="true">▶</span>Motion study #1<small>coming soon</small></span></div>
+            <figcaption><b>Motion study #1</b>Add an AI video here</figcaption>
+          </figure>
+          <figure class="vid" data-src="">
+            <div class="vid-frame"><span class="vid-empty"><span class="play-btn" aria-hidden="true">▶</span>Product teaser<small>coming soon</small></span></div>
+            <figcaption><b>Product teaser</b>Add an AI video here</figcaption>
+          </figure>
+          <figure class="vid" data-src="">
+            <div class="vid-frame"><span class="vid-empty"><span class="play-btn" aria-hidden="true">▶</span>Brand loop<small>coming soon</small></span></div>
+            <figcaption><b>Brand loop</b>Add an AI video here</figcaption>
+          </figure>
+      </div>
+    </div>
+    <div class="exp-panel" id="panelGames" role="tabpanel" aria-labelledby="tabGames" hidden>
+      <div class="games">
+          <article class="game">
+            <button class="game-shot" type="button" data-game="snakes-and-ladders" data-title="Snakes &amp; Ladders" aria-label="Play Snakes &amp; Ladders">
+              <img src="assets/ai/games/thumbs/snakes-and-ladders.webp" alt="" loading="lazy">
+              <span class="play-btn" aria-hidden="true">▶</span>
+            </button>
+            <div class="game-body">
+              <h3>Snakes &amp; Ladders</h3>
+              <p>A wooden-board classic with hand-drawn snakes. Play the computer or a friend.</p>
+              <p class="chips"><span>1–2 players</span><span>Dice</span><span>Sound</span></p>
+              <button class="game-cta" type="button" data-game="snakes-and-ladders" data-title="Snakes &amp; Ladders">Play now <span aria-hidden="true">→</span></button>
+            </div>
+          </article>
+          <article class="game">
+            <button class="game-shot" type="button" data-game="pen-fight" data-title="Pen Fight" aria-label="Play Pen Fight">
+              <img src="assets/ai/games/thumbs/pen-fight.webp" alt="" loading="lazy">
+              <span class="play-btn" aria-hidden="true">▶</span>
+            </button>
+            <div class="game-body">
+              <h3>Pen Fight</h3>
+              <p>The school-desk game: flick your pen, knock theirs off the desk. Report cards included.</p>
+              <p class="chips"><span>1–2 players</span><span>Physics</span><span>Unlockables</span></p>
+              <button class="game-cta" type="button" data-game="pen-fight" data-title="Pen Fight">Play now <span aria-hidden="true">→</span></button>
+            </div>
+          </article>
+          <article class="game">
+            <button class="game-shot" type="button" data-game="keys-that-sing" data-title="Keys That Sing" aria-label="Play Keys That Sing">
+              <img src="assets/ai/games/thumbs/keys-that-sing.webp" alt="" loading="lazy">
+              <span class="play-btn" aria-hidden="true">▶</span>
+            </button>
+            <div class="game-body">
+              <h3>Keys That Sing</h3>
+              <p>A writing pad where every key plays a note. Vowels ring, full stops land on chords.</p>
+              <p class="chips"><span>Type to play</span><span>Music</span><span>Calm</span></p>
+              <button class="game-cta" type="button" data-game="keys-that-sing" data-title="Keys That Sing">Play now <span aria-hidden="true">→</span></button>
+            </div>
+          </article>
+      </div>
     </div>
   </section>
 
-  <!-- ================= CONTACT ================= -->
-  <section class="wrap reveal" id="contact" aria-labelledby="contactTitle">
-    <div class="contact">
-      <p class="mono">Let's talk</p>
-      <h2 id="contactTitle">Got a flow that's a bit <em>tangled?</em></h2>
-      <p class="contact-sub">I'm open to product design roles and the occasional freelance project.</p>
-      <div class="mail"><code id="email">you@youremail.com</code><button class="copy" id="copyBtn" type="button">Copy email</button></div>
-      <div class="socials">
-        <a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn ↗</a>
-        <a href="https://dribbble.com/" target="_blank" rel="noopener">Dribbble ↗</a>
-        <a href="https://medium.com/" target="_blank" rel="noopener">Medium ↗</a>
-        <a href="#contact">Resume (PDF) ↗</a>
-      </div>
-    </div>
-  </section>
-
-  <footer class="wrap site">
-    <span>© <span id="year">2026</span> Aakansha Singh</span>
-    <a href="#top">Back to the desk ↑</a>
-  </footer>
 </main>
+
+  <!-- ================= FOOTER: contact + a little game ================= -->
+  <footer class="site-foot" id="contact" aria-labelledby="contactTitle">
+    <div class="wrap foot-grid reveal">
+      <div class="foot-talk">
+        <p class="mono eyebrow">Let's talk</p>
+        <h2 id="contactTitle">Got a flow that's a bit <em>tangled?</em></h2>
+        <p class="contact-sub">I'm open to product design roles and the occasional freelance project. I reply within a day.</p>
+        <div class="mail"><code id="email">you@youremail.com</code><button class="copy" id="copyBtn" type="button">Copy email</button></div>
+        <ul class="stamps">
+          <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="https://dribbble.com/" target="_blank" rel="noopener">Dribbble</a></li>
+          <li><a href="https://medium.com/" target="_blank" rel="noopener">Medium</a></li>
+          <li><a href="#contact">Resume</a></li>
+        </ul>
+      </div>
+
+      <div class="toss" id="toss">
+        <div class="toss-head">
+          <div><b>Before you go…</b><span>flick the paper ball into the bin</span></div>
+          <div class="toss-score"><span>score <b id="tossScore">0</b></span><span>best <b id="tossBest">0</b></span></div>
+        </div>
+        <canvas id="tossCanvas" aria-label="Paper toss game. Drag the paper ball back and let go to throw it into the bin."></canvas>
+        <p class="toss-msg" id="tossMsg" aria-live="polite">drag the ball back, then let go</p>
+      </div>
+    </div>
+    <div class="wrap foot-bar">
+      <span>© <span id="year">2026</span> Aakansha Singh</span>
+      <span class="hand">designed with too much coffee ☕</span>
+      <a href="#top">Back to the desk ↑</a>
+    </div>
+  </footer>
+
+<dialog id="lightbox" class="lightbox" aria-label="Image viewer">
+  <button class="lb-close" type="button" data-close aria-label="Close">×</button>
+  <button class="lb-nav prev" type="button" id="lbPrev" aria-label="Previous image">←</button>
+  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <button class="lb-nav next" type="button" id="lbNext" aria-label="Next image">→</button>
+</dialog>
+
+<dialog id="gameDlg" class="game-dlg" aria-labelledby="gameTitle">
+  <div class="gd-bar"><b id="gameTitle"></b><span><a id="gameNewTab" href="#" target="_blank" rel="noopener">open in new tab ↗</a><button type="button" data-close aria-label="Close game">×</button></span></div>
+  <iframe id="gameFrame" title="Game" allow="autoplay; fullscreen"></iframe>
+</dialog>
 
 <dialog id="case" aria-labelledby="csTitle">
   <div class="cs-head">
@@ -512,5 +622,7 @@
 <script src="assets/js/cases.js"></script>
 <script src="assets/js/site.js"></script>
 <script src="assets/js/process.js"></script>
+<script src="assets/js/experiments.js"></script>
+<script src="assets/js/toss.js"></script>
 </body>
 </html>

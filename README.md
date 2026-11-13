@@ -26,6 +26,8 @@ A static portfolio site (no build step).
 
 **Type:** the whole site uses two fonts. Bricolage Grotesque for everything, Caveat for the name and handwritten notes.
 
+**Footer:** contact details next to a paper-toss game. Drag the ball back, let go, land it in the bin. Wind changes after every basket and the best streak is remembered.
+
 Every sound is synthesized in the browser; the speaker button turns them off.
 
 ## Run it locally
@@ -46,6 +48,9 @@ assets/js/desk.js     dragging and the click action of every desk object
 assets/js/cases.js    case study text for the work pop-ups
 assets/js/site.js     featured work, case study dialog, copy email, header highlight, scroll reveals
 assets/js/process.js  the flip-through design process book
+assets/js/experiments.js  AI experiments tabs, image viewer, videos, game player
+assets/js/toss.js     the paper-toss game in the footer
+assets/ai/            AI images, videos and games
 ```
 
 ## Make it yours
@@ -63,7 +68,10 @@ Some content is still sample text. Replace:
 - **about.md pages**: the `pages` list in `assets/js/desk.js`
 - **Process book**: the pages inside `<template id="bookPages">` in `index.html`, in reading order
 - **Resume**: point the header's Resume link and the "Resume (PDF)" link at your file
-- **Playground**: the four placeholder tiles
+- **AI experiments** (Images / Videos / Games tabs):
+  - Images: add files to `assets/ai/images/` and a `.pin` button in `index.html`
+  - Videos: add files to `assets/ai/videos/` and set `data-src` on a `.vid` figure, e.g. `data-src="assets/ai/videos/loop.mp4"`; it plays on hover and goes full screen on click
+  - Games: single HTML files in `assets/ai/games/` with a screenshot in `assets/ai/games/thumbs/`; they open in a player inside the site
 
 ## Deploy
 
