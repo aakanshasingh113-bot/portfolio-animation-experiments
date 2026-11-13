@@ -26,6 +26,8 @@ A static portfolio site (no build step).
 
 **Type:** the whole site uses two fonts. Bricolage Grotesque for everything, Caveat for the name and handwritten notes.
 
+**Side B (off the clock):** what I do when I'm not designing, as tracks on a record. Pick a track and the arm drops, the record spins, the label changes colour and a little tune plays.
+
 **Footer:** contact details next to a paper-toss game. Drag the ball back, let go, land it in the bin. Wind changes after every basket and the best streak is remembered.
 
 Every sound is synthesized in the browser; the speaker button turns them off.
@@ -50,6 +52,7 @@ assets/js/site.js     featured work, case study dialog, copy email, header highl
 assets/js/process.js  the flip-through design process book
 assets/js/experiments.js  AI experiments tabs, image viewer, videos, game player
 assets/js/toss.js     the paper-toss game in the footer
+assets/js/sideb.js    the Side B record player
 assets/ai/            AI images, videos and games
 ```
 
@@ -66,6 +69,7 @@ Some content is still sample text. Replace:
   - The full story for the pop-up is in `assets/js/cases.js`, under the key in `data-open-case`. Add `nda: true` to show the NDA note.
 - **Experience**: the `[Company]` / `[Studio]` placeholders
 - **about.md pages**: the `pages` list in `assets/js/desk.js`
+- **Side B hobbies**: each `.trk` button in the `#offclock` section (name in `.trk-t`, label colour in `--lc`) and its matching `<template data-track>` with the description, fun stat and doodle
 - **Process book**: the pages inside `<template id="bookPages">` in `index.html`, in reading order
 - **Resume**: point the header's Resume link and the "Resume (PDF)" link at your file
 - **AI experiments** (Images / Videos / Games tabs):

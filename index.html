@@ -456,6 +456,57 @@
     </div>
   </section>
 
+  <!-- ================= OFF THE CLOCK: Side B =================
+       What I do when I'm not designing. Each hobby is a track on the B-side.
+       Edit the list below: the track name in .trk-t, and its details in the
+       matching <template data-track>. --lc is the record label colour. -->
+  <section class="wrap reveal" id="offclock" aria-labelledby="offTitle">
+    <div class="sec-head">
+      <div>
+        <p class="mono eyebrow">Off the clock</p>
+        <h2 id="offTitle">Side B: when I'm not designing.</h2>
+        <p class="hand-note">pick a track ↓</p>
+      </div>
+      <p>The stuff that keeps me curious, and quietly makes me a better designer.</p>
+    </div>
+    <div class="sideb" id="sideb">
+      <div class="player">
+        <div class="tt" aria-hidden="true">
+          <div class="platter"><div class="vinyl" id="vinyl"><div class="label" id="vLabel"><span id="vLabelT">Side B</span><i></i></div></div></div>
+          <svg class="arm" id="arm" viewBox="0 0 120 220"><circle cx="90" cy="26" r="16" fill="#D8D0C0"/><circle cx="90" cy="26" r="7" fill="#9C9384"/><path d="M90 26 L84 150 L58 192" fill="none" stroke="#B9B0A0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="44" y="184" width="26" height="16" rx="3" transform="rotate(-38 57 192)" fill="#3B3631"/></svg>
+          <span class="knob"></span>
+        </div>
+        <div class="now" id="now" aria-live="polite">
+          <span class="now-k" id="nowK">Side B · track 1</span>
+          <div class="now-body" id="nowBody"></div>
+          <button class="now-play" id="nowPlay" type="button" aria-label="Play">▶ <span>Play</span></button>
+        </div>
+      </div>
+      <ol class="tracks">
+          <li><button class="trk on" type="button" data-i="0" style="--lc:#D9482F" aria-pressed="false">
+            <span class="trk-no">B1</span><span class="trk-t">Croissant hunting</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="1" style="--lc:#2D74B5" aria-pressed="false">
+            <span class="trk-no">B2</span><span class="trk-t">Photo walks</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="2" style="--lc:#2F8F4E" aria-pressed="false">
+            <span class="trk-no">B3</span><span class="trk-t">Café sketching</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="3" style="--lc:#E0A92A" aria-pressed="false">
+            <span class="trk-no">B4</span><span class="trk-t">Street-food trails</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="4" style="--lc:#7A54D8" aria-pressed="false">
+            <span class="trk-no">B5</span><span class="trk-t">Lo-fi & long walks</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+      </ol>
+        <template data-track="0"><b>Croissant hunting</b><p>Rating every bakery in the city on one strict metric: flakiness.</p><span class="stat">23 bakeries rated · 4 worth a second visit</span><svg viewBox="0 0 80 70"><path d="M8 40 C10 22 26 14 40 18 C54 14 70 22 72 40 C60 46 48 44 40 40 C32 44 20 46 8 40Z"/><path d="M26 22 C28 30 28 36 26 42 M40 18 C42 28 42 36 40 40 M54 22 C52 30 52 36 54 42"/></svg></template>
+        <template data-track="1"><b>Photo walks</b><p>Phone in hand, looking for good light, odd shadows and other people's dogs.</p><span class="stat">1,200+ photos · 9 actually good</span><svg viewBox="0 0 80 70"><rect x="10" y="18" width="60" height="38" rx="6"/><circle cx="40" cy="37" r="11"/><path d="M28 18 l4-7 h16 l4 7"/></svg></template>
+        <template data-track="2"><b>Café sketching</b><p>A pocket sketchbook, a pen I'm scared to lose, and whoever sits by the window.</p><span class="stat">sketchbook no. 6 · half full</span><svg viewBox="0 0 80 70"><rect x="14" y="10" width="44" height="56" rx="3"/><path d="M14 18 h-4 M14 30 h-4 M14 42 h-4 M14 54 h-4"/><path d="M26 44 C30 30 40 30 44 40 S54 46 50 30"/><path d="M62 14 L72 60" /><path d="M70 54 l2 6 l-5 -3"/></svg></template>
+        <template data-track="3"><b>Street-food trails</b><p>Vada pav is a personality trait. I will walk 40 minutes for the right chutney.</p><span class="stat">favourite stall: still a secret</span><svg viewBox="0 0 80 70"><path d="M14 36 C14 22 66 22 66 36 Z"/><path d="M12 40 h56"/><path d="M14 44 C14 56 66 56 66 44"/><path d="M20 40 c6 -4 10 4 16 0 s10 4 16 0 s8 4 12 0"/></svg></template>
+        <template data-track="4"><b>Lo-fi & long walks</b><p>Headphones on, no destination. This is where most of my best ideas show up.</p><span class="stat">avg. walk: 6,000 steps · 3 ideas</span><svg viewBox="0 0 80 70"><path d="M16 44 V36 a24 24 0 0 1 48 0 V44"/><rect x="10" y="42" width="12" height="18" rx="4"/><rect x="58" y="42" width="12" height="18" rx="4"/></svg></template>
+    </div>
+  </section>
+
   <!-- ================= AI EXPERIMENTS =================
        Three tabs: Images, Videos, Games.
        Images: put files in assets/ai/images and add a .pin button (data-i is its order).
@@ -624,5 +675,6 @@
 <script src="assets/js/process.js"></script>
 <script src="assets/js/experiments.js"></script>
 <script src="assets/js/toss.js"></script>
+<script src="assets/js/sideb.js"></script>
 </body>
 </html>

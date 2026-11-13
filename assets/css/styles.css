@@ -609,6 +609,53 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
 .foot-bar .hand{font:700 19px var(--hand); color:var(--accent)}
 .foot-bar a{color:var(--ink); text-decoration:none; font-weight:600} .foot-bar a:hover{color:var(--accent)}
 
+
+/* ---------- off the clock: Side B ---------- */
+#offclock{--lc:#D9482F}
+.sideb{--lc:#D9482F; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:clamp(24px,4vw,56px); align-items:center}
+.player{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; align-items:center}
+.tt{position:relative; aspect-ratio:1/.92; border-radius:22px; background:linear-gradient(160deg,#EFE6D4,#E3D7C0); box-shadow:inset 0 2px 0 rgba(255,255,255,.7), 0 26px 40px -24px rgba(60,40,20,.5), 0 0 0 1px rgba(0,0,0,.04)}
+.platter{position:absolute; left:8%; top:9%; width:72%; aspect-ratio:1; border-radius:50%; background:#CFC5B2; box-shadow:inset 0 2px 6px rgba(0,0,0,.18)}
+.vinyl{position:absolute; inset:4%; border-radius:50%;
+  background:radial-gradient(circle, transparent 0 31%, rgba(255,255,255,.05) 31.5%, transparent 32%), repeating-radial-gradient(circle, #1C1A18 0 2px, #26231F 2px 3px);
+  box-shadow:0 6px 14px rgba(0,0,0,.3)}
+.vinyl::after{content:""; position:absolute; inset:0; border-radius:50%; background:conic-gradient(from 30deg, transparent 0 20%, rgba(255,255,255,.1) 25%, transparent 32% 70%, rgba(255,255,255,.07) 76%, transparent 82%)}
+.playing .vinyl{animation:spinrec 1.8s linear infinite}
+@keyframes spinrec{to{transform:rotate(360deg)}}
+.label{position:absolute; inset:33%; border-radius:50%; background:var(--lc); display:grid; place-items:center; text-align:center; padding:8%; transition:background .5s}
+.label span{font:700 clamp(10px,1vw,13px)/1.05 var(--hand); color:#fff; max-width:90%}
+.label i{position:absolute; width:8%; aspect-ratio:1; border-radius:50%; background:#F2EADC; left:46%; top:46%}
+.label span{transform:translateY(-42%); font-size:clamp(9px,.85vw,12px)}
+.arm{position:absolute; right:4%; top:4%; width:34%; transform-origin:75% 12%; transform:rotate(-26deg); transition:transform .9s cubic-bezier(.4,1.3,.5,1); filter:drop-shadow(2px 6px 4px rgba(0,0,0,.25))}
+.playing .arm{transform:rotate(0)}
+.knob{position:absolute; right:9%; bottom:9%; width:9%; aspect-ratio:1; border-radius:50%; background:#D5CAB6; box-shadow:inset 0 -2px 3px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.1)}
+.playing .knob{background:var(--lc)}
+.now{position:relative; display:flex; flex-direction:column; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px 20px 18px; min-height:100%}
+.now-k{font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--lc); transition:color .4s}
+.now-body{display:flex; flex-direction:column; gap:8px; flex:1}
+.now-body.in > *{animation:nowIn .5s cubic-bezier(.2,.8,.2,1) both}
+.now-body.in > *:nth-child(2){animation-delay:.05s} .now-body.in > *:nth-child(3){animation-delay:.1s} .now-body.in > *:nth-child(4){animation-delay:.15s}
+@keyframes nowIn{from{opacity:0; transform:translateY(8px)}}
+.now-body b{font-size:22px; font-weight:700; letter-spacing:-.02em; line-height:1.1}
+.now-body p{color:var(--muted); font-size:15px; line-height:1.5}
+.now-body .stat{font:700 20px/1.15 var(--hand); color:var(--lc)}
+.now-body svg{width:72px; height:auto; margin-top:auto; fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; opacity:.8}
+.now-play{align-self:flex-start; display:inline-flex; gap:8px; align-items:center; border:0; border-radius:999px; padding:9px 16px; background:var(--ink); color:#fff; font-weight:600; font-size:14px; cursor:pointer; transition:background .2s}
+.now-play:hover{background:var(--lc)}
+.tracks{list-style:none; margin:0; padding:0; display:grid}
+.trk{width:100%; display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:12px; padding:16px 6px; border:0; border-bottom:1px solid var(--line); background:none; text-align:left; cursor:pointer; color:var(--muted); transition:color .25s, padding .3s}
+.tracks li:first-child .trk{border-top:1px solid var(--line)}
+.trk:hover{color:var(--ink); padding-left:12px}
+.trk.on{color:var(--ink)}
+.trk-no{font-size:13px; font-weight:700; letter-spacing:.1em; color:var(--lc, var(--muted)); opacity:.55}
+.trk.on .trk-no{opacity:1}
+.trk-t{font-size:clamp(20px,2vw,26px); font-weight:600; letter-spacing:-.02em}
+.trk-eq{display:flex; gap:3px; align-items:flex-end; height:16px; opacity:0}
+.trk-eq i{width:3px; height:4px; border-radius:2px; background:var(--lc)}
+.playing .trk.on .trk-eq{opacity:1}
+.playing .trk.on .trk-eq i{animation:eq .7s ease-in-out infinite alternate}
+.playing .trk.on .trk-eq i:nth-child(2){animation-delay:.2s} .playing .trk.on .trk-eq i:nth-child(3){animation-delay:.4s}
+
 /* ---------- smaller screens: the desk becomes a scattered pile under the name ---------- */
 @media (max-width:980px){
   .stage{height:auto; max-height:none; min-height:0; padding:120px 16px 90px}
@@ -630,6 +677,7 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
   .fw{grid-template-columns:1fr} .fw-stage{position:relative; top:auto; order:-1}
 }
 @media (max-width:900px){
+  .sideb{grid-template-columns:1fr}
   .pins{grid-template-columns:repeat(2,minmax(0,1fr))}
   .vids, .games{grid-template-columns:1fr; max-width:520px}
   .foot-grid{grid-template-columns:1fr}
@@ -644,6 +692,7 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
   .about{grid-template-columns:1fr}
 }
 @media (max-width:640px){
+  .player{grid-template-columns:1fr} .tt{max-width:340px; width:100%; margin:0 auto}
   .exp-tabs{width:100%} .exp-tabs button{flex:1; justify-content:center; padding:10px 8px}
   .pin:nth-child(even){margin-top:24px}
   .game-dlg{width:100vw; height:100dvh; border-radius:0; max-width:none}
