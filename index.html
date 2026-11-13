@@ -63,17 +63,17 @@
       <button class="prop" id="pBadge" data-k="badge" style="--i:0" type="button" aria-label="ID badge. Click to flip it">
         <span class="tag">flip my badge</span>
         <span class="land"><span class="art badge">
-          <span class="strap"><span>AAKANSHA · DESIGN · AAKANSHA · DESIGN ·</span></span>
+          <span class="strap"><span>PRODUCT · DESIGN · PRODUCT · DESIGN ·</span></span>
           <span class="clip"></span>
           <span class="card" id="badgeCard">
             <span class="face front">
-              <span class="dev">Aakansha<br>Singh</span>
+              <span class="dev">Product<br>Designer</span>
               <span class="small">Loves untangling flows, prototyping and a good croissant</span>
               <span class="avatar">AS</span>
               <span class="bc" aria-hidden="true"></span>
             </span>
             <span class="face back">
-              <b>Hi, I'm Aakansha</b>
+              <b>Hello there!</b>
               <span>Product designer who starts where people give up.</span>
               <span class="open"><i></i>Open to roles</span>
             </span>
@@ -113,7 +113,7 @@
       <button class="prop" id="pReceipt" data-k="receipt" style="--i:3" type="button" aria-label="Receipt of skills. Print another line">
         <span class="tag" id="receiptTag">print more</span>
         <span class="land"><span class="art receipt">
-          <b>AAKANSHA &amp; CO.</b>
+          <b>DESIGN SUPPLY CO.</b>
           <small>DESIGN SUPPLIES · EST. 2022</small>
           <hr>
           <ul id="receiptLines">
@@ -159,9 +159,9 @@
         <span class="tag" id="folderTag">open my work</span>
         <span class="land"><span class="art folder" id="folder">
           <span class="fback"></span>
-          <span class="fcard c1"><b>−18%</b>checkout drop-off</span>
-          <span class="fcard c2"><b>11→4</b>min to verify</span>
-          <span class="fcard c3"><b>41→6</b>button styles</span>
+          <span class="fcard c1"><b>Legrand</b>switch configurator</span>
+          <span class="fcard c2"><b>Oman 2040</b>holographic story</span>
+          <span class="fcard c3"><b>+2</b>coming soon</span>
           <span class="ffront"><span>WORK · 2022—26</span></span>
         </span></span>
       </button>
@@ -231,97 +231,72 @@
        Featured work: a list on the left (one project open at a time) and a large
        preview on the right. Each project's colour is --c on its <li> and preview.
        The full story for the pop-up lives in assets/js/cases.js under the key in
-       data-open-case. Replace the drawn previews with screenshots if you like:
-       put an <img> inside .fw-shot in place of the .ui block. -->
+       data-open-case. Preview images live in assets/work/. The two "soon" items are
+       placeholders: copy a real item's markup over them when a case study is ready. -->
   <section class="work-sec" id="work" aria-labelledby="workTitle">
     <div class="wrap wide reveal">
       <h2 class="fw-title" id="workTitle">Featured work</h2>
       <div class="fw" id="fw">
         <ol class="fw-list" role="tablist" aria-label="Projects">
-        <li class="fw-item on" style="--c:#2F8F4E">
+        <li class="fw-item on" style="--c:#D9332B">
           <span class="fw-bar" aria-hidden="true"><i></i></span>
-          <button class="fw-head" type="button" role="tab" id="fwTab0" aria-selected="true" aria-controls="fwShot0" data-i="0"><h3>Rebuilding checkout so more people actually pay</h3></button>
+          <button class="fw-head" type="button" role="tab" id="fwTab0" aria-selected="true" aria-controls="fwShot0" data-i="0"><h3>A guided way to build the right switch plate</h3></button>
           <div class="fw-body"><div>
-            <p class="fw-tags"><span>E-commerce</span><span>Mobile</span><span>Conversion</span></p>
-            <p class="fw-desc">A five-step grocery checkout turned into three, with saved addresses, smart delivery slots and one-tap payment.</p>
-            <p class="fw-metrics"><span><b>−18%</b>Checkout drop-off</span><span><b>41s</b>Time to pay, from 74s</span><span><b>5 → 3</b>Steps to pay</span></p>
-            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="checkout">Read case study <span aria-hidden="true">→</span></button></p>
+            <p class="fw-tags"><span>Legrand · Arteor</span><span>Configurator</span><span>Saudi Arabia</span></p>
+            <p class="fw-desc">Turning a purchase-driven configurator into a specification tool for architects and dealers, in a market with no online checkout.</p>
+            <p class="fw-metrics"><span><b>3 steps</b>Form, function, finish</span><span><b>Live</b>Validation at every action</span><span><b>3 endings</b>Save, bill of materials, image</span></p>
+            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="legrand">Read case study <span aria-hidden="true">→</span></button></p>
           </div></div>
         </li>
-        <li class="fw-item" style="--c:#C2543A">
+        <li class="fw-item" style="--c:#E0566B">
           <span class="fw-bar" aria-hidden="true"><i></i></span>
-          <button class="fw-head" type="button" role="tab" id="fwTab1" aria-selected="false" aria-controls="fwShot1" data-i="1"><h3>An operations dashboard people can act on in minutes</h3></button>
+          <button class="fw-head" type="button" role="tab" id="fwTab1" aria-selected="false" aria-controls="fwShot1" data-i="1"><h3>Oman Vision 2040, felt in under a minute</h3></button>
           <div class="fw-body"><div>
-            <p class="fw-tags"><span>Enterprise</span><span>Dashboard</span><span>Data</span></p>
-            <p class="fw-desc">A confidential internal tool that brought five systems and a pile of spreadsheets into one view for operations teams.</p>
-            <p class="fw-metrics"><span><b>60 → 15</b>Minutes to triage</span><span><b>5 → 1</b>Tools in use</span><span><b>300+</b>Daily users</span></p>
-            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="kyc">Ask me about it <span aria-hidden="true">→</span></button><span class="nda">🔒 Under NDA</span></p>
+            <p class="fw-tags"><span>MTCIT × EvolutionCo</span><span>Holographic touch</span><span>AI media</span></p>
+            <p class="fw-desc">A 200-page national plan turned into a holographic touch story for COMEX Oman 2025: five pillars, fifteen tap-to-watch films.</p>
+            <p class="fw-metrics"><span><b>15</b>Stories, from 200+ pages</span><span><b>60s</b>Booth time we designed for</span><span><b>5 days</b>To make 15 AI films</span></p>
+            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="oman">Read case study <span aria-hidden="true">→</span></button></p>
           </div></div>
         </li>
-        <li class="fw-item" style="--c:#2D74B5">
+        <li class="fw-item soon" style="--c:#2D74B5">
           <span class="fw-bar" aria-hidden="true"><i></i></span>
-          <button class="fw-head" type="button" role="tab" id="fwTab2" aria-selected="false" aria-controls="fwShot2" data-i="2"><h3>Designing a Gen-AI assistant people can trust</h3></button>
+          <button class="fw-head" type="button" role="tab" id="fwTab2" aria-selected="false" aria-controls="fwShot2" data-i="2"><h3>Case study three, being refined</h3></button>
           <div class="fw-body"><div>
-            <p class="fw-tags"><span>Gen-AI</span><span>Healthcare</span><span>Components</span></p>
-            <p class="fw-desc">An enterprise AI product for regulated healthcare work, where every answer shows its source and admits when it is unsure.</p>
-            <p class="fw-metrics"><span><b>3</b>Features reusing the kit</span><span><b>100%</b>Answers with sources</span><span><b>Weeks</b>To daily use in pilot</span></p>
-            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="system">Ask me about it <span aria-hidden="true">→</span></button><span class="nda">🔒 Under NDA</span></p>
+            <p class="fw-tags"><span>Coming soon</span></p>
+            <p class="fw-desc">This one is getting a final polish. Check back soon, or ask me about it.</p>
+            
+            <p class="fw-actions"><a class="fw-cta" href="#contact">Ask me about it <span aria-hidden="true">→</span></a></p>
           </div></div>
         </li>
-        <li class="fw-item" style="--c:#7A54D8">
+        <li class="fw-item soon" style="--c:#7A54D8">
           <span class="fw-bar" aria-hidden="true"><i></i></span>
-          <button class="fw-head" type="button" role="tab" id="fwTab3" aria-selected="false" aria-controls="fwShot3" data-i="3"><h3>A design system four squads actually use</h3></button>
+          <button class="fw-head" type="button" role="tab" id="fwTab3" aria-selected="false" aria-controls="fwShot3" data-i="3"><h3>Case study four, being refined</h3></button>
           <div class="fw-body"><div>
-            <p class="fw-tags"><span>Design systems</span><span>Figma</span><span>Tokens</span></p>
-            <p class="fw-desc">Audited 300+ screens, merged 41 button styles into 6 and shipped a Figma library with matching code tokens.</p>
-            <p class="fw-metrics"><span><b>41 → 6</b>Button variants</span><span><b>120</b>Components</span><span><b>−35%</b>Handoff questions</span></p>
-            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="plugin">Read case study <span aria-hidden="true">→</span></button></p>
+            <p class="fw-tags"><span>Coming soon</span></p>
+            <p class="fw-desc">Another project on the way. Happy to walk you through it on a call.</p>
+            
+            <p class="fw-actions"><a class="fw-cta" href="#contact">Ask me about it <span aria-hidden="true">→</span></a></p>
           </div></div>
         </li>
         </ol>
         <div class="fw-stage">
-          <button class="fw-shot on" type="button" id="fwShot0" role="tabpanel" aria-labelledby="fwTab0" data-open-case="checkout" style="--c:#2F8F4E" tabindex="-1">
-            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+          <button class="fw-shot on" type="button" id="fwShot0" role="tabpanel" aria-labelledby="fwTab0" data-open-case="legrand" style="--c:#D9332B" tabindex="-1">
+            <img class="shot-img" src="assets/work/legrand.webp" alt="" loading="lazy" style="object-fit:contain; background:linear-gradient(#F8E7E8,#F1DDDB)">
             <span class="meta"><span>2025</span><span>Case study</span></span>
-            <span class="ui ui-shop">
-                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Your cart · 6 items</b></span>
-                  <span class="wcols"><span class="list"><span class="it"><i></i><span><b></b><em></em></span><u>₹120</u></span><span class="it"><i></i><span><b></b><em></em></span><u>₹64</u></span><span class="it"><i></i><span><b></b><em></em></span><u>₹210</u></span><span class="it"><i></i><span><b></b><em></em></span><u>₹48</u></span></span>
-                  <span class="sum"><b>Summary</b><span class="kv"><em></em><u>₹442</u></span><span class="kv"><em></em><u>₹25</u></span><span class="kv tot"><em></em><u>₹467</u></span><span class="btn">Pay ₹467</span></span></span></span>
-                <span class="phone"><span class="steps"><i class="on"></i><i class="on"></i><i></i></span><span class="ph-t">Deliver to</span><span class="opt on"><i></i><span><b></b><em></em></span></span><span class="opt"><i></i><span><b></b><em></em></span></span><span class="slot"><i class="on">7–9am</i><i>9–11am</i></span><span class="btn">Pay in one tap</span></span>
-              </span>
           </button>
-          <button class="fw-shot" type="button" id="fwShot1" role="tabpanel" aria-labelledby="fwTab1" data-open-case="kyc" style="--c:#C2543A" tabindex="-1">
-            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
-            <span class="meta"><span>2024</span><span>🔒 NDA project</span></span>
-            <span class="ui ui-dash">
-                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Operations · Today</b></span>
-                  <span class="dash"><span class="side"><i class="on"></i><i></i><i></i><i></i><i></i></span>
-                  <span class="main"><span class="kpis"><span><em>Orders</em><b>12,480</b></span><span><em>Delayed</em><b class="bad">38</b></span><span><em>On time</em><b>97.2%</b></span></span>
-                  <span class="chart"><i style="--h:42%"></i><i style="--h:58%"></i><i style="--h:50%"></i><i style="--h:72%"></i><i style="--h:64%"></i><i style="--h:88%"></i><i style="--h:76%"></i><i style="--h:94%"></i></span>
-                  <span class="rows"><span><i></i><b></b><u class="st">Late</u></span><span><i></i><b></b><u class="st ok">OK</u></span><span><i></i><b></b><u class="st ok">OK</u></span></span></span></span></span>
-              </span>
+          <button class="fw-shot" type="button" id="fwShot1" role="tabpanel" aria-labelledby="fwTab1" data-open-case="oman" style="--c:#E0566B" tabindex="-1">
+            <img class="shot-img" src="assets/work/oman.webp" alt="" loading="lazy" style="object-fit:cover; background:#160E10">
+            <span class="meta"><span>2025</span><span>Case study</span></span>
           </button>
-          <button class="fw-shot" type="button" id="fwShot2" role="tabpanel" aria-labelledby="fwTab2" data-open-case="system" style="--c:#2D74B5" tabindex="-1">
+          <button class="fw-shot soon" type="button" id="fwShot2" role="tabpanel" aria-labelledby="fwTab2" style="--c:#2D74B5" tabindex="-1">
             <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
-            <span class="meta"><span>2025</span><span>🔒 NDA project</span></span>
-            <span class="ui ui-ai">
-                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Assistant</b></span>
-                  <span class="chat"><span class="msg me">Summarise the dosage changes in this report</span>
-                  <span class="msg bot">Two changes since March: the morning dose moved from 10mg to 5mg, and a new evening dose was added.<span class="src"><i>Report p.4</i><i>Note 12 Mar</i></span></span>
-                  <span class="msg bot unsure">I'm not sure about the patient's allergy history. It isn't in these files.</span>
-                  <span class="input"><span class="spark">✦</span><em>Ask about this file…</em><span class="send">↑</span></span></span></span>
-              </span>
+            <span class="soon-card" aria-hidden="true"><b>03</b><span>being polished</span><i></i><i></i><i></i></span>
+            <span class="meta"><span>Soon</span><span>In the works</span></span>
           </button>
-          <button class="fw-shot" type="button" id="fwShot3" role="tabpanel" aria-labelledby="fwTab3" data-open-case="plugin" style="--c:#7A54D8" tabindex="-1">
+          <button class="fw-shot soon" type="button" id="fwShot3" role="tabpanel" aria-labelledby="fwTab3" style="--c:#7A54D8" tabindex="-1">
             <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
-            <span class="meta"><span>2024</span><span>Case study</span></span>
-            <span class="ui ui-sys">
-                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Library · Components</b></span>
-                  <span class="sheet"><span class="sbtn p">Primary</span><span class="sbtn s">Secondary</span><span class="sbtn g">Ghost</span>
-                  <span class="field"><em>Email</em><i>you@mail.com</i></span><span class="field err"><em>Phone</em><i>98…</i></span>
-                  <span class="chips"><i class="on">Design</i><i>Research</i><i>AI</i></span><span class="tog"><i class="on"></i><i></i></span>
-                  <span class="swatch"><i style="background:#7A54D8"></i><i style="background:#A88BEA"></i><i style="background:#D9CCF6"></i><i style="background:#1E1F1C"></i><i style="background:#F2F0EA"></i></span></span></span>
-              </span>
+            <span class="soon-card" aria-hidden="true"><b>04</b><span>being polished</span><i></i><i></i><i></i></span>
+            <span class="meta"><span>Soon</span><span>In the works</span></span>
           </button>
         </div>
       </div>
@@ -445,7 +420,7 @@
         <p class="hand-note">designer · question-asker · croissant enthusiast</p>
       </div>
       <div class="about-copy">
-        <p class="big">I'm a product designer with three years of turning messy flows into ones people finish: checkouts, onboarding and the systems behind them.</p>
+        <p class="big">I'm a product designer with three years of making complex things feel simple, from product configurators to a holographic national story.</p>
         <p>I start where people give up, keep their exact words close, and prototype early so the team argues less and ships more.</p>
         <ol class="timeline">
           <li><span class="mono">2024 — now</span><span><b>Product Designer · [Company]</b>Checkout, payments and the design system</span></li>

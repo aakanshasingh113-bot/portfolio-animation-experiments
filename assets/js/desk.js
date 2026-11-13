@@ -150,7 +150,7 @@
 
   /* about.md: type out a page, click for the next */
   var pages = [
-    ['# aakansha.singh', 'role:    product designer', 'exp:     3 years', 'status:  open to roles', '// click for more'],
+    ['# about.me', 'role:    product designer', 'exp:     3 years', 'status:  open to roles', '// click for more'],
     ['# how I think', '1. find where people give up', '2. keep their exact words', '3. prototype by day three', '// mess in, clarity out'],
     ['# currently', 'designing: checkout flows', 'learning:  Rive + motion', 'drinking:  too much coffee', '// drag me anywhere']
   ], page = 0, typer = null, winBody = $('winBody');
