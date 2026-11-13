@@ -431,6 +431,9 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
 .doodle .ink.hl{stroke:var(--accent); stroke-width:3}
 .pg.show .doodle .ink{transition:stroke-dashoffset 1.6s .5s ease-out; stroke-dashoffset:0}
 .pg-step .pg-scrawl{margin-top:14px}
+.ai-note{display:block; margin-top:12px; padding:8px 11px; border-radius:9px; background:#F3EEFB; border:1px dashed #C9B8EE; font-size:clamp(12.5px,1.05vw,14px); line-height:1.4; color:#4B3F6B; max-width:36ch}
+.ai-note b{font-weight:700; color:#7A54D8; letter-spacing:.04em; margin-right:4px}
+.pg-step .doodle{max-width:190px}
 .pg-cta{align-self:flex-start; margin-top:26px; display:inline-flex; padding:11px 18px; border-radius:999px; background:var(--ink); color:#fff; text-decoration:none; font-weight:600; font-size:14.5px}
 .pg-cta:hover{background:var(--accent)}
 .pg-again{align-self:flex-start; margin-top:12px; background:none; border:0; padding:4px 0; font:700 21px var(--hand); color:var(--accent); cursor:pointer}
@@ -628,6 +631,7 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
   .deck .card{flex:0 0 84%; scroll-snap-align:center; position:relative; aspect-ratio:.72; border-radius:10px; background:var(--card); box-shadow:0 16px 30px -14px rgba(60,40,20,.3), 0 0 0 1px var(--line)}
   .deck .pg{padding:26px 24px}
   .deck .pg p{max-width:none}
+  .deck .card{aspect-ratio:.62} .deck .doodle{max-width:150px; width:60%}
   .about{grid-template-columns:1fr}
 }
 @media (max-width:640px){
