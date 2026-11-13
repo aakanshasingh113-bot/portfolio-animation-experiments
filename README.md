@@ -22,6 +22,10 @@ A static portfolio site (no build step).
 | Postcard | flip it |
 | Pencil | doodle on the desk |
 
+**My design process:** a book you flip through (click a page, the arrows, or ← →). It opens on a framed poster of Dwight Schrute's "Would an idiot do that?" rule, turns to "Kidding.", then walks through the six real steps, each with a doodle that draws itself. On phones it becomes a swipeable stack of pages.
+
+**Type:** the whole site uses two fonts. Bricolage Grotesque for everything, Caveat for the name and handwritten notes.
+
 Every sound is synthesized in the browser; the speaker button turns them off.
 
 ## Run it locally
@@ -40,7 +44,8 @@ assets/js/sound.js    synthesized sounds and the cassette music
 assets/js/intro.js    the thread / name intro
 assets/js/desk.js     dragging and the click action of every desk object
 assets/js/cases.js    case study text for the work pop-ups
-assets/js/site.js     case study dialog, copy email, scroll reveals
+assets/js/site.js     featured work, case study dialog, copy email, header highlight, scroll reveals
+assets/js/process.js  the flip-through design process book
 ```
 
 ## Make it yours
@@ -56,6 +61,7 @@ Some content is still sample text. Replace:
   - The full story for the pop-up is in `assets/js/cases.js`, under the key in `data-open-case`. Add `nda: true` to show the NDA note.
 - **Experience**: the `[Company]` / `[Studio]` placeholders
 - **about.md pages**: the `pages` list in `assets/js/desk.js`
+- **Process book**: the pages inside `<template id="bookPages">` in `index.html`, in reading order
 - **Resume**: point the header's Resume link and the "Resume (PDF)" link at your file
 - **Playground**: the four placeholder tiles
 

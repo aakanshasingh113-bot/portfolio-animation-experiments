@@ -11,7 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%23D9482F'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Caveat:wght@500;700&family=Mrs+Saint+Delafield&family=Hind:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Caveat:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="assets/css/styles.css">
 <noscript><style>.intro{display:none}.desk .land{animation:none;opacity:1}</style></noscript>
 </head>
@@ -67,7 +67,7 @@
           <span class="clip"></span>
           <span class="card" id="badgeCard">
             <span class="face front">
-              <span class="dev">आकांक्षा</span>
+              <span class="dev">Aakansha<br>Singh</span>
               <span class="small">Loves untangling flows, prototyping and a good croissant</span>
               <span class="avatar">AS</span>
               <span class="bc" aria-hidden="true"></span>
@@ -144,7 +144,7 @@
           <rect x="4" y="4" width="192" height="120" rx="10" fill="#2A2927"/>
           <rect x="18" y="16" width="164" height="70" rx="5" fill="#F3EEE4"/>
           <rect x="18" y="16" width="164" height="16" rx="5" fill="#D9482F"/>
-          <text x="26" y="27.5" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#fff" letter-spacing=".6">SIDE A · LO-FI FOR FOCUS</text>
+          <text x="26" y="27.5" font-family="Bricolage Grotesque, sans-serif" font-size="8.5" font-weight="600" fill="#fff" letter-spacing=".6">SIDE A · LO-FI FOR FOCUS</text>
           <text x="26" y="80" font-family="Caveat, cursive" font-size="13" font-weight="700" fill="#5A574F">deep work mix</text>
           <rect x="54" y="40" width="92" height="30" rx="15" fill="#2A2927"/>
           <g class="reel"><circle cx="72" cy="55" r="11" fill="#F3EEE4"/><path d="M72 46v18M63 55h18" stroke="#2A2927" stroke-width="3"/></g>
@@ -328,25 +328,132 @@
     </div>
   </section>
 
+  <!-- ================= PROCESS: a book you flip through =================
+       Edit the pages inside <template id="bookPages">, in reading order.
+       The script lays them out as a two-page book on desktop and a swipeable
+       stack on phones. Page 1 is the left page you open on; the last page is the
+       final right page. Paths with class="ink" draw themselves when shown. -->
+  <section class="process" id="process" aria-labelledby="processTitle">
+    <div class="wrap reveal">
+      <div class="sec-head centered">
+        <p class="mono eyebrow">How I work</p>
+        <h2 id="processTitle">My design process</h2>
+        <p class="hand-note">(the honest edition)</p>
+      </div>
+      <div class="book-stage">
+        <div class="book" id="book" role="group" aria-roledescription="book" aria-label="My design process">
+          <span class="cover" aria-hidden="true"></span>
+          <span class="edge l" aria-hidden="true"></span><span class="edge r" aria-hidden="true"></span>
+          <div class="leaves" id="leaves"></div>
+        </div>
+      </div>
+      <div class="deck" id="deck" aria-label="My design process, swipe through"></div>
+      <div class="book-nav">
+        <button type="button" id="bookPrev" aria-label="Previous page">←</button>
+        <span id="bookCount" aria-live="polite">1 / 5</span>
+        <button type="button" id="bookNext" aria-label="Next page">→</button>
+      </div>
+      <p class="book-hint">click a page, or use ← → to turn</p>
+    </div>
+
+    <template id="bookPages">
+      <article class="pg pg-title">
+        <span class="pg-kicker">Vol. 1</span>
+        <h3>The Design<br>Process</h3>
+        <span class="pg-by">by Aakansha Singh</span>
+        <span class="pg-scrawl">a very serious guide →</span>
+      </article>
+
+      <article class="pg pg-poster">
+        <span class="frame"><span class="mat">
+          <span class="quote">Whenever I'm about to do something, I think, “Would an idiot do that?” And if they would, I do not do that thing.</span>
+          <span class="who">— Dwight Schrute</span>
+        </span></span>
+        <span class="pg-scrawl">step 1. obviously.</span>
+      </article>
+
+      <article class="pg pg-kidding">
+        <span class="big">Kidding.</span>
+        <span class="sub">(mostly. it's still a solid filter.)</span>
+        <span class="pg-scrawl">here's what actually happens →</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M40 90 C70 40, 120 110, 160 50"/><path class="ink" d="M150 44 L162 50 L156 62"/></svg>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">01</span>
+        <h3>Ask “why?” until it gets awkward</h3>
+        <p>The brief says <em>what</em>. I need to know why, for whom, and what happens if we do nothing.</p>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M40 50 C40 25, 80 25, 80 45 C80 60, 60 60, 60 75"/><circle class="ink" cx="60" cy="92" r="2"/><path class="ink" d="M110 45 C110 20, 150 20, 150 40 C150 55, 130 55, 130 70"/><circle class="ink" cx="130" cy="87" r="2"/><path class="ink" d="M168 30 C168 15, 186 15, 186 28 C186 36, 177 37, 177 46"/><circle class="ink" cx="177" cy="56" r="1.5"/></svg>
+        <span class="pg-scrawl">usually 5 whys. sometimes 12.</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">02</span>
+        <h3>Find where people give up</h3>
+        <p>Funnels, support tickets and five user calls. The drop-off is the map; the fix is usually smaller than the brief.</p>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M30 20 H170 L120 70 V105 L80 95 V70 Z"/><path class="ink" d="M60 40 h80 M75 55 h50"/><path class="ink" d="M150 85 l14 14 m0 -14 l-14 14"/></svg>
+        <span class="pg-scrawl">the funnel never lies</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">03</span>
+        <h3>Sketch ugly. Sketch lots.</h3>
+        <p>Ten bad ideas on paper beat one precious Figma file. The good one is usually idea seven.</p>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="20" y="20" width="44" height="34" rx="3"/><rect class="ink" x="78" y="20" width="44" height="34" rx="3"/><rect class="ink" x="136" y="20" width="44" height="34" rx="3"/><rect class="ink" x="20" y="68" width="44" height="34" rx="3"/><rect class="ink" x="78" y="68" width="44" height="34" rx="3"/><rect class="ink" x="136" y="68" width="44" height="34" rx="3"/><path class="ink hl" d="M68 86 C66 60, 132 58, 134 84 C136 110, 70 112, 74 80"/></svg>
+        <span class="pg-scrawl">#7, circled.</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">04</span>
+        <h3>Prototype, then test with five people</h3>
+        <p>A clickable prototype on day three ends debates faster than a deck. If it confuses three out of five, it isn't them.</p>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="70" y="10" width="60" height="100" rx="10"/><path class="ink" d="M82 34 h36 M82 48 h24 M82 86 h36"/><path class="ink" d="M140 70 l16 30 l6 -12 l12 -2 z"/></svg>
+        <span class="pg-scrawl">3 out of 5 got lost → redo</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">05</span>
+        <h3>Sweat the 2px</h3>
+        <p>States, edge cases, empty screens and error messages. Specs that engineers never have to guess at.</p>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="30" y="40" width="140" height="44" rx="6"/><path class="ink" d="M30 24 h140 M30 18 v12 M170 18 v12"/><path class="ink" d="M186 40 v44 M180 40 h12 M180 84 h12"/><path class="ink hl" d="M50 62 h60"/></svg>
+        <span class="pg-scrawl">what happens when it's empty?</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">06</span>
+        <h3>Ship, measure, repeat</h3>
+        <p>Launch isn't the end. It's the first real data, and the start of the next brief.</p>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M100 20 A40 40 0 1 1 62 48"/><path class="ink" d="M54 36 L62 50 L76 44"/><path class="ink" d="M86 64 l10 10 l20 -22"/></svg>
+        <span class="pg-scrawl">v1 → v2 → v5 ✓</span>
+      </article>
+
+      <article class="pg pg-end">
+        <span class="big">The End.</span>
+        <span class="sub">…until v2.</span>
+        <a class="pg-cta" href="#work">See it in real projects →</a>
+        <button class="pg-again" type="button" data-book-restart>read it again ↺</button>
+      </article>
+    </template>
+  </section>
+
   <!-- ================= ABOUT ================= -->
   <section class="wrap reveal" id="about" aria-labelledby="aboutTitle">
-    <div class="sec-head">
+    <div class="about">
       <div>
         <p class="mono eyebrow">About</p>
-        <h2 id="aboutTitle">How I work.</h2>
+        <h2 id="aboutTitle">Hi, I'm Aakansha.</h2>
+        <p class="hand-note">designer · question-asker · croissant enthusiast</p>
       </div>
-      <p>I'm a product designer with three years of turning messy flows into ones people finish: checkouts, onboarding and the systems behind them.</p>
+      <div class="about-copy">
+        <p class="big">I'm a product designer with three years of turning messy flows into ones people finish: checkouts, onboarding and the systems behind them.</p>
+        <p>I start where people give up, keep their exact words close, and prototype early so the team argues less and ships more.</p>
+        <ol class="timeline">
+          <li><span class="mono">2024 — now</span><span><b>Product Designer · [Company]</b>Checkout, payments and the design system</span></li>
+          <li><span class="mono">2023 — 24</span><span><b>UI/UX Designer · [Company]</b>Onboarding and KYC for a lending app</span></li>
+          <li><span class="mono">2022 — 23</span><span><b>Design Intern · [Studio]</b>Websites and brand work for early-stage startups</span></li>
+        </ol>
+      </div>
     </div>
-    <div class="principles">
-      <div class="pr"><h3>I start with the drop-off</h3><p>Before I sketch, I find where people quit and ask why. The fix is usually smaller than the brief.</p><q>"Where do people give up?"</q></div>
-      <div class="pr"><h3>I sweat the 2px</h3><p>Spacing, states and edge cases are where trust is won. I hand off specs engineers don't have to guess at.</p><q>"What happens when it's empty?"</q></div>
-      <div class="pr"><h3>I prototype to argue less</h3><p>A clickable prototype on day three ends debates faster than a deck. I test early with five real users.</p><q>"Let's just try it."</q></div>
-    </div>
-    <ol class="timeline">
-      <li><span class="mono">2024 — now</span><span><b>Product Designer · [Company]</b>Checkout, payments and the design system</span></li>
-      <li><span class="mono">2023 — 24</span><span><b>UI/UX Designer · [Company]</b>Onboarding and KYC for a lending app</span></li>
-      <li><span class="mono">2022 — 23</span><span><b>Design Intern · [Studio]</b>Websites and brand work for early-stage startups</span></li>
-    </ol>
   </section>
 
   <!-- ================= PLAYGROUND ================= -->
@@ -404,5 +511,6 @@
 <script src="assets/js/desk.js"></script>
 <script src="assets/js/cases.js"></script>
 <script src="assets/js/site.js"></script>
+<script src="assets/js/process.js"></script>
 </body>
 </html>
