@@ -309,6 +309,8 @@ main > #contact{margin-bottom:56px}
 .fw-shot.on .shot-img{transform:none}
 .fw-shot:hover .shot-img{transform:scale(1.02)}
 #fwShot1 .meta{color:rgba(255,236,238,.75)}
+#fwShot0{background:radial-gradient(120% 90% at 30% 20%, #FBEDEC, #F1DCDA)}
+.shot-img.framed{object-fit:contain; padding:13% 6% 7%; filter:drop-shadow(0 22px 28px rgba(90,40,30,.22)) drop-shadow(0 2px 3px rgba(90,40,30,.12))}
 .soon-card{position:absolute; z-index:1; left:50%; top:52%; transform:translate(-50%,-50%) rotate(-2deg); width:min(320px,60%); padding:22px 24px; background:#FFFDF8; border-radius:14px; box-shadow:0 24px 50px -16px rgba(30,25,20,.35); display:grid; gap:8px}
 .soon-card b{font:700 54px/1 var(--display); letter-spacing:-.04em; color:var(--c)}
 .soon-card span{font:700 22px var(--hand); color:var(--muted)}
