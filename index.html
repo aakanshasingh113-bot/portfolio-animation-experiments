@@ -18,15 +18,14 @@
 <body class="intro-on">
 
 <!-- ================= INTRO =================
-     A red dot draws a tangled thread, the letters of the name are caught in it,
-     the thread pulls straight and the letters snap into line, a pen-dot rewrites
-     the name in script, then the dark screen splits open along the thread. -->
+     A red dot draws a coiled thread and the name rises into place letter by
+     letter, in its final handwriting. The thread pulls taut, then the dark
+     screen splits open along it and the same name stays on the desk. -->
 <div class="intro" id="intro" aria-hidden="true">
   <div class="half top"></div>
   <div class="half bottom"></div>
   <svg class="ithread" id="ithread"><path id="ipath"/><circle id="ipen" r="7"/></svg>
   <div class="iname" id="iname"></div>
-  <div class="iscript" id="iscript">Aakansha Singh</div>
   <button class="skip" id="skipBtn" type="button">Skip intro →</button>
 </div>
 
@@ -235,7 +234,14 @@
        placeholders: copy a real item's markup over them when a case study is ready. -->
   <section class="work-sec" id="work" aria-labelledby="workTitle">
     <div class="wrap wide reveal">
-      <h2 class="fw-title" id="workTitle">Featured work</h2>
+      <div class="sec-head">
+        <div>
+          <p class="eyebrow-no"><i></i><b>01</b>Selected work</p>
+          <h2 id="workTitle">Featured work.</h2>
+          <p class="hand-note">two shipped, two on the way</p>
+        </div>
+        <p>Real projects, from a switch configurator to a holographic national story. Open any project for the full story.</p>
+      </div>
       <div class="fw" id="fw">
         <ol class="fw-list" role="tablist" aria-label="Projects">
         <li class="fw-item on" style="--c:#D9332B">
@@ -308,12 +314,15 @@
        The script lays them out as a two-page book on desktop and a swipeable
        stack on phones. Page 1 is the left page you open on; the last page is the
        final right page. Paths with class="ink" draw themselves when shown. -->
-  <section class="process" id="process" aria-labelledby="processTitle">
+  <section class="process band" id="process" aria-labelledby="processTitle">
     <div class="wrap reveal">
-      <div class="sec-head centered">
-        <p class="mono eyebrow">How I work</p>
-        <h2 id="processTitle">My design process</h2>
-        <p class="hand-note">(the honest edition)</p>
+      <div class="sec-head">
+        <div>
+          <p class="eyebrow-no"><i></i><b>02</b>How I work</p>
+          <h2 id="processTitle">My design process.</h2>
+          <p class="hand-note">(the honest edition)</p>
+        </div>
+        <p>Less of a pipeline, more of a loop, with AI as a teammate at every step. Turn the pages.</p>
       </div>
       <div class="book-stage">
         <div class="book" id="book" role="group" aria-roledescription="book" aria-label="My design process">
@@ -421,7 +430,7 @@
   <section class="wrap reveal" id="about" aria-labelledby="aboutTitle">
     <div class="about">
       <div>
-        <p class="mono eyebrow">About</p>
+        <p class="eyebrow-no"><i></i><b>03</b>About</p>
         <h2 id="aboutTitle">Hi, I'm Aakansha.</h2>
         <p class="hand-note">designer · question-asker · croissant enthusiast</p>
       </div>
@@ -441,10 +450,10 @@
        What I do when I'm not designing. Each hobby is a track on the B-side.
        Edit the list below: the track name in .trk-t, and its details in the
        matching <template data-track>. --lc is the record label colour. -->
-  <section class="wrap reveal" id="offclock" aria-labelledby="offTitle">
+  <section class="wrap reveal band" id="offclock" aria-labelledby="offTitle">
     <div class="sec-head">
       <div>
-        <p class="mono eyebrow">Off the clock</p>
+        <p class="eyebrow-no"><i></i><b>04</b>Off the clock</p>
         <h2 id="offTitle">Side B: when I'm not designing.</h2>
         <p class="hand-note">pick a track ↓</p>
       </div>
@@ -497,7 +506,7 @@
   <section class="wrap reveal" id="experiments" aria-labelledby="expTitle">
     <div class="sec-head">
       <div>
-        <p class="mono eyebrow">AI experiments</p>
+        <p class="eyebrow-no"><i></i><b>05</b>AI experiments</p>
         <h2 id="expTitle">Things I made with AI.</h2>
         <p class="hand-note">prompted, picked, and polished by me</p>
       </div>
@@ -597,7 +606,7 @@
   <footer class="site-foot" id="contact" aria-labelledby="contactTitle">
     <div class="wrap foot-grid reveal">
       <div class="foot-talk">
-        <p class="mono eyebrow">Let's talk</p>
+        <p class="eyebrow-no"><i></i><b>06</b>Let's talk</p>
         <h2 id="contactTitle">Got a flow that's a bit <em>tangled?</em></h2>
         <p class="contact-sub">I'm open to product design roles and the occasional freelance project. I reply within a day.</p>
         <div class="mail"><code id="email">you@youremail.com</code><button class="copy" id="copyBtn" type="button">Copy email</button></div>

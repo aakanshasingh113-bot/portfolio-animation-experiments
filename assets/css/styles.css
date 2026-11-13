@@ -43,10 +43,8 @@ button{font:inherit; color:inherit}
 .iname{position:absolute; left:0; top:0; display:flex; white-space:pre; font:700 clamp(44px,7vw,100px)/1 var(--display); letter-spacing:-.03em; color:#F4F2EC}
 .iname span{display:inline-block; will-change:transform,opacity; transition:transform .55s cubic-bezier(.2,.9,.25,1), opacity .45s ease}
 .iname span.wait{opacity:0; transform:translateY(22px)}
-.iname span.out{opacity:0; transform:translateY(-16px); transition-duration:.4s}
-.iscript{position:absolute; white-space:nowrap; color:#F4F2EC; font-family:var(--hand); font-weight:700; line-height:1; clip-path:inset(-20% 100% -20% 0); text-align:center}
-.intro.open .iscript{opacity:0; transition:opacity .9s .15s}
-.skip{position:absolute; right:20px; bottom:calc(20px + env(safe-area-inset-bottom,0px)); background:none; border:1px solid rgba(244,242,236,.25); color:rgba(244,242,236,.75); border-radius:999px; padding:7px 14px; font-size:13px; cursor:pointer}
+.intro.open .iname{opacity:0; transition:opacity .8s .2s}
+.intro.open .skip{position:absolute; right:20px; bottom:calc(20px + env(safe-area-inset-bottom,0px)); background:none; border:1px solid rgba(244,242,236,.25); color:rgba(244,242,236,.75); border-radius:999px; padding:7px 14px; font-size:13px; cursor:pointer}
 .skip:hover{color:#fff; border-color:rgba(244,242,236,.6)}
 .intro.open .skip{opacity:0}
 
@@ -553,7 +551,8 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
 
 
 /* ---------- off the clock: Side B ---------- */
-#offclock{--lc:#D9482F; overflow-x:clip}
+#offclock{--lc:#D9482F}
+.sideb{overflow-x:clip}
 .sideb{--lc:#D9482F; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:clamp(24px,4vw,56px); align-items:center}
 .player{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; align-items:center}
 .tt{position:relative; aspect-ratio:1/.92; border-radius:22px; background:linear-gradient(160deg,#EFE6D4,#E3D7C0); box-shadow:inset 0 2px 0 rgba(255,255,255,.7), 0 26px 40px -24px rgba(60,40,20,.5), 0 0 0 1px rgba(0,0,0,.04)}
@@ -598,6 +597,21 @@ dialog::backdrop{background:rgba(15,15,20,.5); backdrop-filter:blur(3px)}
 .playing .trk.on .trk-eq i{animation:eq .7s ease-in-out infinite alternate}
 .playing .trk.on .trk-eq i:nth-child(2){animation-delay:.2s} .playing .trk.on .trk-eq i:nth-child(3){animation-delay:.4s}
 
+
+/* ---------- one header system + chapter bands ---------- */
+.eyebrow-no{display:flex; align-items:center; gap:10px; margin:0 0 14px; font:600 12px var(--display); letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+.eyebrow-no i{width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)}
+.eyebrow-no b{color:var(--accent); font-weight:700}
+.sec-head h2, .about h2, .foot-talk h2{font-size:clamp(40px,5vw,62px); font-weight:700; letter-spacing:-.035em; line-height:1.02}
+.sec-head{margin-bottom:clamp(36px,4.5vw,56px); align-items:end}
+.sec-head > p{font-size:16.5px; line-height:1.55; max-width:40ch; padding-bottom:6px}
+.sec-head .hand-note{margin-top:8px}
+main{overflow-x:clip}
+.band{position:relative; padding-block:clamp(84px,9vw,124px)}
+.band::before{content:""; position:absolute; z-index:-1; top:0; bottom:0; left:50%; width:100vw; transform:translateX(-50%);
+  background-color:#EFE7D7; background-image:linear-gradient(#E6DCC9 1px, transparent 1px), linear-gradient(90deg, #E6DCC9 1px, transparent 1px); background-size:32px 32px;
+  border-block:1px solid #E2D7C3}
+.work-sec{padding-top:clamp(96px,10vw,130px)}
 /* ---------- smaller screens: the desk becomes a scattered pile under the name ---------- */
 @media (max-width:980px){
   .stage{height:auto; max-height:none; min-height:0; padding:120px 16px 90px}

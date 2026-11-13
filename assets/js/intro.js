@@ -1,11 +1,11 @@
-/* Intro — a red dot draws a tangled thread with the letters caught in it,
-   the thread pulls straight and the letters snap into the name, the dot runs
-   along the line like a pen and rewrites the name in script, then the dark
-   screen splits open along the thread to reveal the desk.
+/* Intro — a red dot draws a coiled thread and each letter of the name rises
+   into place, in its final handwriting, as the dot passes. The thread pulls
+   taut, then the dark screen splits open along it and the same name stays
+   put on the desk. The name is written once.
    Click, Escape or scroll skips it. Reduced motion skips it entirely. */
 (function(){
   var S = window.Site, $ = S.$, snd = S.snd;
-  var intro = $('intro'), path = $('ipath'), pen = $('ipen'), iname = $('iname'), iscript = $('iscript');
+  var intro = $('intro'), path = $('ipath'), pen = $('ipen'), iname = $('iname');
   var desk = $('top'), deskName = $('deskName'), body = document.body;
   var NAME = 'Aakansha Singh';
   var timers = [], raf = null, done = false;
@@ -41,7 +41,7 @@
     body.classList.add('intro-on');
     desk.classList.remove('ready');
     intro.hidden = false; intro.classList.remove('open');
-    pen.style.opacity = 0; path.setAttribute('d', ''); iscript.style.clipPath = '';
+    pen.style.opacity = 0; path.setAttribute('d', '');
     var W = innerWidth, H = innerHeight;
     var r0 = deskName.getBoundingClientRect();
     /* on phones the desk name sits near the top; play the intro centred and let the split hide the jump */
@@ -49,19 +49,14 @@
     var nr = {left:r0.left, right:r0.right, width:r0.width, height:r0.height, top:r0.top + shift};
     var cx = nr.left + nr.width/2, cy = nr.top + nr.height/2;
 
-    /* the bold name, laid out once to find where each letter ends up */
-    iname.innerHTML = ''; iname.style.fontSize = '';
-    var spans = NAME.split('').map(function(ch){ var s = document.createElement('span'); s.textContent = ch; iname.appendChild(s); return s; });
-    var bw = iname.offsetWidth;
-    if(bw > W * .9){ iname.style.fontSize = (parseFloat(getComputedStyle(iname).fontSize) * W * .9 / bw) + 'px'; bw = iname.offsetWidth; }
-    var bh = iname.offsetHeight, left = cx - bw/2, top = cy - bh/2;
-    iname.style.left = left + 'px'; iname.style.top = top + 'px';
-    var lineY = Math.round(cy + bh * .44);
-
-    /* the script name sits exactly where the desk's name is */
+    /* the name is laid out exactly like the desk's name, so it appears once and simply stays */
     var cs = getComputedStyle(deskName);
-    iscript.style.left = nr.left + 'px'; iscript.style.top = nr.top + 'px'; iscript.style.width = nr.width + 'px'; iscript.style.height = nr.height + 'px';
-    iscript.style.fontSize = cs.fontSize; iscript.style.padding = cs.padding; iscript.style.lineHeight = cs.lineHeight;
+    iname.innerHTML = ''; iname.style.transition = ''; iname.style.transform = '';
+    ['fontFamily','fontWeight','fontSize','letterSpacing','lineHeight','padding'].forEach(function(k){ iname.style[k] = cs[k]; });
+    var spans = NAME.split('').map(function(ch){ var s = document.createElement('span'); s.textContent = ch; iname.appendChild(s); return s; });
+    var bw = iname.offsetWidth, bh = iname.offsetHeight, left = nr.left + (nr.width - bw) / 2, top = nr.top + (nr.height - bh) / 2;
+    iname.style.left = left + 'px'; iname.style.top = top + 'px';
+    var lineY = Math.round(top + bh * .8);
     intro.style.setProperty('--cut', lineY + 'px');
 
     /* the letters wait just below their final spots */
@@ -75,8 +70,8 @@
     spans.forEach(function(s){ s.style.transition = ''; });
 
     /* the thread: a straight lead-in, an even coil of loops under the name, a straight lead-out */
-    var x0 = left - 30, x1 = left + bw + 30, loops = Math.max(7, Math.round(bw / 62));
-    var R = Math.max(9, Math.min(17, bh * .17)), pts = [], base = [];
+    var pl = parseFloat(cs.paddingLeft) || 0, x0 = left + pl - 20, x1 = left + bw - pl + 20, loops = Math.max(7, Math.round((x1 - x0) / 62));
+    var R = Math.max(9, Math.min(16, bh * .12)), pts = [], base = [];
     function add(x, y, bx){ pts.push([x, y]); base.push(bx); }
     for(var i = 0; i <= 24; i++){ var x = -20 + (x0 + 20) * i / 24; add(x, lineY, x); }
     var C = loops * 26;
@@ -119,36 +114,16 @@
         for(var i = 0; i < N; i++) p.push([pts[i][0] + (base[i] - pts[i][0]) * e, pts[i][1] + (lineY - pts[i][1]) * e]);
         path.setAttribute('d', line(p));
         pen.setAttribute('cx', W + 20); pen.style.opacity = 0;
-      }, function(){ snd.chime(); later(lift, 380); });
-    }
-
-    // 3. the bold name lifts away while the pen comes back to the start of the line
-    function lift(){
-      letters.forEach(function(l, i){ setTimeout(function(){ l.s.className = 'out'; }, i * 28); });
-      var from = W * .5, to = nr.left - 18;
-      pen.setAttribute('cx', from); pen.setAttribute('cy', lineY);
-      animate(560, function(k){ var e = ease(k); pen.style.opacity = Math.min(1, k * 3); pen.setAttribute('cx', from + (to - from) * e); },
-        function(){ later(rewrite, 120); });
-    }
-
-    // 4. the pen writes the name in script, left to right
-    function rewrite(){
-      var a = nr.left - 18, b = nr.right + 18;
-      animate(1050, function(k){
-        var e = ease(k), x = a + (b - a) * e;
-        pen.setAttribute('cx', x);
-        var pct = Math.max(0, Math.min(100, (x - nr.left) / nr.width * 100));
-        iscript.style.clipPath = 'inset(-20% ' + (100 - pct).toFixed(2) + '% -20% 0)';
-        if(Math.random() < .3) snd.noise(.04, 'bandpass', 3400, .02, 0, null, 2);
-      }, function(){
-        iscript.style.clipPath = 'inset(-20% 0 -20% 0)';
-        later(split, 380);
-      });
+      }, function(){ snd.chime(); later(split, 520); });
     }
 
     // 4. the screen splits along the thread and the desk appears
     function split(){
       snd.noise(.9, 'bandpass', 300, .2, 0, 2400, .7);
+      if(shift){   // phones: glide the name up to where it sits on the desk, then hand over
+        iname.style.transition = 'transform .9s cubic-bezier(.65,0,.25,1), opacity .4s .75s';
+        iname.style.transform = 'translateY(' + (-shift) + 'px)';
+      }
       done = true;
       intro.classList.add('open');
       body.classList.remove('intro-on');
