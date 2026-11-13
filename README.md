@@ -47,7 +47,8 @@ assets/css/styles.css all styles (desk prop positions are near the "props" comme
 assets/js/sound.js    synthesized sounds and the cassette music
 assets/js/intro.js    the thread / name intro
 assets/js/desk.js     dragging and the click action of every desk object
-assets/js/cases.js    case study text for the work pop-ups
+assets/js/cases.js    case study content for the detail pages
+assets/js/case.js     renders a case study page
 assets/js/site.js     featured work, case study dialog, copy email, header highlight, scroll reveals
 assets/js/process.js  the flip-through design process book
 assets/js/experiments.js  AI experiments tabs, image viewer, videos, game player
@@ -67,7 +68,7 @@ Some content is still sample text. Replace:
   Featured work details: a list on the left, one project open at a time, and a large preview on the right. It auto-advances until a visitor picks a project.
   - Each project's text (tags, title, description, 3 metrics, button) is in its `<li class="fw-item">` in `index.html`; its colour is the `--c` value.
   - The preview for each project is the matching `<button class="fw-shot">`. The drawn UI mockups are placeholders: replace the `.ui` block with an `<img>` of your real screens.
-  - The full story for the pop-up is in `assets/js/cases.js`, under the key in `data-open-case`. Add `nda: true` to show the NDA note.
+  - Each project opens its own page: `case-legrand.html` and `case-oman.html`. Their content (sections, bullet lists, images and captions, next project) lives in `assets/js/cases.js`; `assets/js/case.js` lays it out. To add a case study, add an entry to `cases.js`, copy one of the `case-*.html` files and change its `data-case`.
 - **Experience**: the `[Company]` / `[Studio]` placeholders
 - **about.md pages**: the `pages` list in `assets/js/desk.js`
 - **Side B hobbies**: each `.trk` button in the `#offclock` section (name in `.trk-t`, label colour in `--lc`) and its matching `<template data-track>` with the description, fun stat and doodle

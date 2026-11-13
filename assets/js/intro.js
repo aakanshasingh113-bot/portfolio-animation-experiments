@@ -136,7 +136,17 @@
   window.addEventListener('keydown', function(e){ if(!done && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) finish(); });
   window.addEventListener('wheel', function(){ if(!done) finish(); }, {passive:true});
 
-  function start(){ if(S.reduce){ done = true; intro.hidden = true; body.classList.remove('intro-on'); reveal(); } else play(); }
+  function seen(v){ try{ if(v) sessionStorage.setItem('introSeen', '1'); return sessionStorage.getItem('introSeen') === '1'; }catch(e){ return false; } }
+  function start(){
+    /* skip it when motion is reduced, when it has already played this visit, or when arriving on a section link */
+    var target = location.hash && document.getElementById(location.hash.slice(1));
+    if(S.reduce || seen() || target){
+      done = true; intro.hidden = true; body.classList.remove('intro-on'); reveal();
+      if(target) requestAnimationFrame(function(){ target.scrollIntoView({behavior:'auto'}); });
+      seen(true); return;
+    }
+    seen(true); play();
+  }
   /* wait for the fonts so the name measures correctly (but never more than 1.5s) */
   var started = false;
   function go(){ if(!started){ started = true; start(); } }

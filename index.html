@@ -230,7 +230,7 @@
        Featured work: a list on the left (one project open at a time) and a large
        preview on the right. Each project's colour is --c on its <li> and preview.
        The full story for the pop-up lives in assets/js/cases.js under the key in
-       data-open-case. Preview images live in assets/work/. The two "soon" items are
+       data-open-case; each opens its own page (case-<key>.html). Preview images live in assets/work/. The two "soon" items are
        placeholders: copy a real item's markup over them when a case study is ready. -->
   <section class="work-sec" id="work" aria-labelledby="workTitle">
     <div class="wrap wide reveal">
@@ -251,7 +251,7 @@
             <p class="fw-tags"><span>Legrand · Arteor</span><span>Configurator</span><span>Saudi Arabia</span></p>
             <p class="fw-desc">Turning a purchase-driven configurator into a specification tool for architects and dealers, in a market with no online checkout.</p>
             <p class="fw-metrics"><span><b>3 steps</b>Form, function, finish</span><span><b>Live</b>Validation at every action</span><span><b>3 endings</b>Save, bill of materials, image</span></p>
-            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="legrand">Read case study <span aria-hidden="true">→</span></button></p>
+            <p class="fw-actions"><a class="fw-cta" href="case-legrand.html" data-open-case="legrand">Read case study <span aria-hidden="true">→</span></a></p>
           </div></div>
         </li>
         <li class="fw-item" style="--c:#E0566B">
@@ -261,7 +261,7 @@
             <p class="fw-tags"><span>MTCIT × EvolutionCo</span><span>Holographic touch</span><span>AI media</span></p>
             <p class="fw-desc">A 200-page national plan turned into a holographic touch story for COMEX Oman 2025: five pillars, fifteen tap-to-watch films.</p>
             <p class="fw-metrics"><span><b>15</b>Stories, from 200+ pages</span><span><b>60s</b>Booth time we designed for</span><span><b>5 days</b>To make 15 AI films</span></p>
-            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="oman">Read case study <span aria-hidden="true">→</span></button></p>
+            <p class="fw-actions"><a class="fw-cta" href="case-oman.html" data-open-case="oman">Read case study <span aria-hidden="true">→</span></a></p>
           </div></div>
         </li>
         <li class="fw-item soon" style="--c:#2D74B5">
@@ -644,17 +644,6 @@
 <dialog id="gameDlg" class="game-dlg" aria-labelledby="gameTitle">
   <div class="gd-bar"><b id="gameTitle"></b><span><a id="gameNewTab" href="#" target="_blank" rel="noopener">open in new tab ↗</a><button type="button" data-close aria-label="Close game">×</button></span></div>
   <iframe id="gameFrame" title="Game" allow="autoplay; fullscreen"></iframe>
-</dialog>
-
-<dialog id="case" aria-labelledby="csTitle">
-  <div class="cs-head">
-    <button class="cs-close" id="csClose" type="button" aria-label="Close case study">×</button>
-    <span class="mono" id="csEyebrow"></span>
-    <h2 id="csTitle"></h2>
-    <p id="csSub"></p>
-  </div>
-  <div class="cs-meta" id="csMeta"></div>
-  <div class="cs-body" id="csBody"></div>
 </dialog>
 
 <script src="assets/js/sound.js"></script>

@@ -2,32 +2,17 @@
 (function(){
   var S = window.Site, $ = S.$, snd = S.snd;
 
-  /* case studies */
-  var cases = window.CASES || {}, dlg = $('case');
-  function el(tag, cls, txt){ var e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
-  function openCase(key, color){
-    var c = cases[key]; if(!c) return;
-    dlg.style.setProperty('--cc', color || '');
-    var old = dlg.querySelector('.cs-nda'); if(old) old.remove();
-    if(c.nda){ var n = el('p', 'cs-nda', '🔒 This work is under NDA, so names and screens are left out. Happy to walk you through it on a call.'); $('csMeta').after(n); }
-    $('csEyebrow').textContent = c.eyebrow; $('csTitle').textContent = c.title; $('csSub').textContent = c.sub;
-    var meta = $('csMeta'); meta.innerHTML = '';
-    c.meta.forEach(function(m){ var d = el('div'); d.appendChild(el('span','mono',m[0])); d.appendChild(el('span',null,m[1])); meta.appendChild(d); });
-    var body = $('csBody'); body.innerHTML = '';
-    c.secs.forEach(function(s){
-      var sec = el('div','cs-sec'); sec.appendChild(el('span','mono',s[0])); var right = el('div');
-      if(Array.isArray(s[1])){ var ul = el('ul'); s[1].forEach(function(li){ ul.appendChild(el('li',null,li)); }); right.appendChild(ul); }
-      else right.appendChild(el('p',null,s[1]));
-      sec.appendChild(right); body.appendChild(sec);
-    });
-    snd.whoosh();
-    if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
-    dlg.scrollTop = 0;
+  /* case studies open as their own pages, with a short fade on the way out */
+  function goTo(url){
+    if(!url) return;
+    if(S.reduce){ location.href = url; return; }
+    snd.whoosh(); document.body.classList.add('leaving');
+    setTimeout(function(){ location.href = url; }, 230);
   }
-  document.querySelectorAll('[data-open-case]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var host = btn.closest('[style*="--c"]');
-      openCase(btn.dataset.openCase, host ? host.style.getPropertyValue('--c') : '');
+  document.querySelectorAll('[data-open-case]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      var c = (window.CASES || {})[el.dataset.openCase]; if(!c) return;
+      e.preventDefault(); goTo(c.page);
     });
   });
 
@@ -65,8 +50,6 @@
     if('IntersectionObserver' in window) new IntersectionObserver(function(en){ inView = en[0].isIntersecting; }, {threshold:.35}).observe(fw); else inView = true;
     if(!auto) items[cur].style.setProperty('--p', '100%');
   }
-  $('csClose').addEventListener('click', function(){ dlg.close ? dlg.close() : dlg.removeAttribute('open'); });
-  dlg.addEventListener('click', function(e){ if(e.target === dlg && dlg.close) dlg.close(); });
 
   /* copy email */
   var copyBtn = $('copyBtn'), email = $('email');
