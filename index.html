@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Aakansha Singh · Product Designer</title>
+<meta name="description" content="Aakansha Singh is a product designer who takes tangled problems and leaves them simple.">
+<meta property="og:title" content="Aakansha Singh · Product Designer">
+<meta property="og:description" content="Tangled in, simple out.">
+<meta name="theme-color" content="#F4F2EC">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%23D9482F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Caveat:wght@500;700&family=Mrs+Saint+Delafield&family=Hind:wght@500&display=swap">
+<link rel="stylesheet" href="assets/css/styles.css">
+<noscript><style>.intro{display:none}.desk .land{animation:none;opacity:1}</style></noscript>
+</head>
+<body class="intro-on">
+
+<!-- ================= INTRO =================
+     A red dot draws a tangled thread, the letters of the name are caught in it,
+     the thread pulls straight and the letters snap into line, a pen-dot rewrites
+     the name in script, then the dark screen splits open along the thread. -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="half top"></div>
+  <div class="half bottom"></div>
+  <svg class="ithread" id="ithread"><path id="ipath"/><circle id="ipen" r="7"/></svg>
+  <div class="iname" id="iname"></div>
+  <div class="iscript" id="iscript">Aakansha Singh</div>
+  <button class="skip" id="skipBtn" type="button">Skip intro →</button>
+</div>
+
+<header class="topbar" id="topbar">
+  <a class="logo" href="#top"><i aria-hidden="true"></i>Aakansha Singh</a>
+  <nav class="nav" aria-label="Sections">
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <button class="sound" id="soundBtn" type="button" aria-pressed="true" aria-label="Sound on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="w" d="M17 9a4 4 0 0 1 0 6M19.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+  </button>
+</header>
+
+<!-- ================= HERO: THE DESK ================= -->
+<section class="desk" id="top" aria-label="Introduction">
+  <div class="stage" id="stage">
+    <canvas id="draw" aria-hidden="true"></canvas>
+
+    <div class="center">
+      <h1 class="name" id="deskName">Aakansha Singh</h1>
+      <svg class="swash" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16 C80 6, 160 20, 230 12 S350 4, 396 10"/></svg>
+      <p class="tagline">Tangled in · Simple out</p>
+      <p class="role">Product designer · 3 years · <span class="open"><i></i>open to roles</span></p>
+    </div>
+
+    <div class="props" id="props">
+
+      <!-- ID badge on a lanyard -->
+      <button class="prop" id="pBadge" data-k="badge" style="--i:0" type="button" aria-label="ID badge. Click to flip it">
+        <span class="tag">flip my badge</span>
+        <span class="land"><span class="art badge">
+          <span class="strap"><span>AAKANSHA · DESIGN · AAKANSHA · DESIGN ·</span></span>
+          <span class="clip"></span>
+          <span class="card" id="badgeCard">
+            <span class="face front">
+              <span class="dev">आकांक्षा</span>
+              <span class="small">Loves untangling flows, prototyping and a good croissant</span>
+              <span class="avatar">AS</span>
+              <span class="bc" aria-hidden="true"></span>
+            </span>
+            <span class="face back">
+              <b>Hi, I'm Aakansha</b>
+              <span>Product designer who starts where people give up.</span>
+              <span class="open"><i></i>Open to roles</span>
+            </span>
+          </span>
+        </span></span>
+      </button>
+
+      <!-- Coffee, top-down -->
+      <button class="prop" id="pCoffee" data-k="coffee" style="--i:1" type="button" aria-label="Coffee. Take a sip">
+        <span class="tag" id="coffeeTag">take a sip</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 140 130">
+          <ellipse cx="66" cy="68" rx="60" ry="58" fill="#FFFFFF" stroke="#E3DFD6" stroke-width="2"/>
+          <ellipse cx="66" cy="68" rx="46" ry="44" fill="#F1EEE7"/>
+          <path d="M108 52c22-6 30 24 6 28" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+          <path d="M108 52c22-6 30 24 6 28" fill="none" stroke="#E3DFD6" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+          <circle cx="66" cy="66" r="38" fill="#FFFFFF" stroke="#E3DFD6" stroke-width="2"/>
+          <circle id="coffeeLevel" cx="66" cy="66" r="31" fill="#7A4A2A"/>
+          <g id="latte"><path d="M66 82c-14-9-20-16-20-23a8 8 0 0 1 20-4 8 8 0 0 1 20 4c0 7-6 14-20 23z" fill="#E9D3B6"/><path d="M66 74c-7-5-10-9-10-12" stroke="#7A4A2A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/></g>
+        </svg></span></span>
+      </button>
+
+      <!-- Sticky notes -->
+      <button class="prop" id="pNotes" data-k="notes" style="--i:2" type="button" aria-label="Sticky notes of user quotes. Peel one off">
+        <span class="tag">peel one off</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 150 150">
+          <rect x="18" y="22" width="120" height="120" rx="3" fill="#E7C24A"/>
+          <rect x="14" y="16" width="120" height="120" rx="3" fill="#F2D35E"/>
+          <rect x="10" y="10" width="120" height="120" rx="3" fill="#FBE07A"/>
+          <path d="M10 10h120v14H10z" fill="#F4D865"/>
+          <text x="22" y="62" font-family="Caveat, cursive" font-size="22" font-weight="700" fill="#5A4A06">what users</text>
+          <text x="22" y="86" font-family="Caveat, cursive" font-size="22" font-weight="700" fill="#5A4A06">actually said</text>
+          <path d="M22 100c20-4 50 4 80-2" stroke="#C9A62A" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg></span></span>
+      </button>
+
+      <!-- Receipt of skills -->
+      <button class="prop" id="pReceipt" data-k="receipt" style="--i:3" type="button" aria-label="Receipt of skills. Print another line">
+        <span class="tag" id="receiptTag">print more</span>
+        <span class="land"><span class="art receipt">
+          <b>AAKANSHA &amp; CO.</b>
+          <small>DESIGN SUPPLIES · EST. 2022</small>
+          <hr>
+          <ul id="receiptLines">
+            <li><span>User research</span><span>x1</span></li>
+            <li><span>Wireframes</span><span>x24</span></li>
+            <li><span>Prototypes</span><span>∞</span></li>
+          </ul>
+          <hr>
+          <li class="total"><span>TOTAL</span><span>clarity</span></li>
+          <small class="thx">thank you, come again</small>
+        </span></span>
+      </button>
+
+      <!-- Moodboard: stack of photos -->
+      <button class="prop" id="pPhotos" data-k="photos" style="--i:4" type="button" aria-label="Photos. Shuffle the stack">
+        <span class="tag">shuffle</span>
+        <span class="land"><span class="art photos" id="photoStack">
+          <span class="pol" style="--pr:-7deg"><span class="img s3"></span><span class="cap">sketchbook days</span></span>
+          <span class="pol" style="--pr:5deg"><span class="img s2"></span><span class="cap">sea, always</span></span>
+          <span class="pol" style="--pr:-2deg"><span class="img s1"></span><span class="cap">weekend light</span></span>
+        </span></span>
+      </button>
+
+      <!-- Cassette -->
+      <button class="prop" id="pTape" data-k="tape" style="--i:5" type="button" aria-label="Cassette. Press play" aria-pressed="false">
+        <span class="tag" id="tapeTag">press play</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 200 128">
+          <rect x="4" y="4" width="192" height="120" rx="10" fill="#2A2927"/>
+          <rect x="18" y="16" width="164" height="70" rx="5" fill="#F3EEE4"/>
+          <rect x="18" y="16" width="164" height="16" rx="5" fill="#D9482F"/>
+          <text x="26" y="27.5" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#fff" letter-spacing=".6">SIDE A · LO-FI FOR FOCUS</text>
+          <text x="26" y="80" font-family="Caveat, cursive" font-size="13" font-weight="700" fill="#5A574F">deep work mix</text>
+          <rect x="54" y="40" width="92" height="30" rx="15" fill="#2A2927"/>
+          <g class="reel"><circle cx="72" cy="55" r="11" fill="#F3EEE4"/><path d="M72 46v18M63 55h18" stroke="#2A2927" stroke-width="3"/></g>
+          <g class="reel"><circle cx="128" cy="55" r="11" fill="#F3EEE4"/><path d="M128 46v18M119 55h18" stroke="#2A2927" stroke-width="3"/></g>
+          <path d="M44 124l10-24h92l10 24" fill="#3A3936"/>
+          <circle cx="76" cy="112" r="4" fill="#2A2927"/><circle cx="124" cy="112" r="4" fill="#2A2927"/>
+        </svg><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span></span>
+      </button>
+
+      <!-- Work folder -->
+      <button class="prop" id="pFolder" data-k="folder" style="--i:6" type="button" aria-label="Folder of work. Open it">
+        <span class="tag" id="folderTag">open my work</span>
+        <span class="land"><span class="art folder" id="folder">
+          <span class="fback"></span>
+          <span class="fcard c1"><b>−18%</b>checkout drop-off</span>
+          <span class="fcard c2"><b>11→4</b>min to verify</span>
+          <span class="fcard c3"><b>41→6</b>button styles</span>
+          <span class="ffront"><span>WORK · 2022—26</span></span>
+        </span></span>
+      </button>
+
+      <!-- Plant -->
+      <button class="prop" id="pPlant" data-k="plant" style="--i:7" type="button" aria-label="Plant. Water it">
+        <span class="tag">water it</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 124 170">
+          <g class="leaves">
+            <path d="M62 120C62 90 60 70 64 40" stroke="#5E8A4E" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path class="leaf on" d="M62 104c-18-2-30-12-30-24 14 0 28 8 30 24z" fill="#76AE63"/>
+            <path class="leaf on" d="M62 92c16-2 28-14 26-28-14 2-26 12-26 28z" fill="#5E9C4F"/>
+            <path class="leaf" d="M62 76c-16-4-24-16-22-28 12 2 22 12 22 28z" fill="#76AE63"/>
+            <path class="leaf" d="M63 64c14-4 22-16 20-28-12 2-20 14-20 28z" fill="#5E9C4F"/>
+            <path class="leaf" d="M64 46c-8-8-8-20 0-28 8 8 8 20 0 28z" fill="#86BD71"/>
+          </g>
+          <path d="M30 118h64l-8 46H38z" fill="#D9775A"/>
+          <path d="M26 112h72v12H26z" fill="#C4624A"/>
+          <ellipse cx="62" cy="114" rx="30" ry="4" fill="#6B4A36"/>
+        </svg><span class="ver" id="ver">v2</span></span></span>
+      </button>
+
+      <!-- about.md window -->
+      <button class="prop" id="pWindow" data-k="window" style="--i:8" type="button" aria-label="About file. Click for the next page">
+        <span class="tag">next page</span>
+        <span class="land"><span class="art win">
+          <span class="bar"><i></i><i></i><i></i><span>about.md</span></span>
+          <span class="body" id="winBody"></span>
+        </span></span>
+      </button>
+
+      <!-- Postcard -->
+      <button class="prop" id="pPost" data-k="post" style="--i:9" type="button" aria-label="Postcard. Flip it">
+        <span class="tag">flip it</span>
+        <span class="land"><span class="art post" id="post">
+          <span class="face front"><span class="greet">greetings<br>from my desk</span><span class="stamp">✳</span><span class="pm"></span></span>
+          <span class="face back"><span>Based in [your city], India.</span><span>Open to remote &amp; relocation.</span><span class="sig">— A.</span></span>
+        </span></span>
+      </button>
+
+      <!-- Pencil -->
+      <button class="prop" id="pPencil" data-k="pencil" style="--i:10" type="button" aria-label="Pencil. Pick it up to doodle" aria-pressed="false">
+        <span class="tag">doodle with me</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 200 28">
+          <rect x="22" y="4" width="146" height="20" fill="#F5C33B"/><rect x="22" y="4" width="146" height="7" fill="#F9D867"/>
+          <rect x="168" y="4" width="10" height="20" fill="#B9B4AD"/><rect x="178" y="4" width="16" height="20" rx="4" fill="#E58C7A"/>
+          <path d="M22 4L2 14l20 10z" fill="#F0D2A8"/><path d="M8 11L2 14l6 3z" fill="#2A2927"/>
+        </svg></span></span>
+      </button>
+    </div>
+
+    <div class="counter" aria-live="polite"><span id="countTxt">drag &amp; click anything · 0/11</span><span class="pips" id="pips" aria-hidden="true"></span></div>
+    <button class="replay" id="replayBtn" type="button">↺ replay intro</button>
+    <div class="drawbar" id="drawbar" hidden><span>Doodle away</span><button class="ghost" id="clearBtn" type="button">Clear</button><button id="dropBtn" type="button">Put pencil down</button></div>
+  </div>
+</section>
+
+<main>
+  <!-- ================= WORK ================= -->
+  <section class="wrap reveal" id="work" aria-labelledby="workTitle">
+    <div class="sec-head">
+      <div>
+        <p class="mono eyebrow">Selected work</p>
+        <h2 id="workTitle">Tangles I've untangled.</h2>
+      </div>
+      <p>Three shipped projects and one experiment. Click any card for the full story.</p>
+    </div>
+    <div class="work">
+      <button class="wcard feature" data-case="checkout" type="button">
+        <span class="viz"><span class="mono stamp">E-commerce · 2025</span>
+          <span class="phone" aria-hidden="true"><span class="scr">
+            <span class="steps"><i class="on"></i><i class="on"></i><i></i></span>
+            <span class="bar m"></span><span class="bar s"></span>
+            <span class="row sel"><i></i><span><span class="bar m"></span><span class="bar s"></span></span></span>
+            <span class="row"><i></i><span><span class="bar m"></span><span class="bar s"></span></span></span>
+            <span class="pay"></span>
+          </span></span>
+        </span>
+        <span class="wbody">
+          <span class="mono">Grocery delivery app</span>
+          <h3>Cut checkout drop-off by 18%</h3>
+          <span class="desc">Rebuilt a five-step checkout into three, with saved addresses and one-tap payment.</span>
+          <span class="metrics"><span><b>−18%</b>checkout drop-off</span><span><b>5 → 3</b>steps to pay</span><span><b>6 wks</b>research to launch</span></span>
+          <span class="read">Read case study</span>
+        </span>
+      </button>
+      <button class="wcard" data-case="kyc" type="button">
+        <span class="viz"><span class="mono stamp">Fintech · 2024</span>
+          <span class="phone" aria-hidden="true"><span class="scr"><span class="bar m"></span><span class="ring"></span><span class="field ok"></span><span class="field ok"></span><span class="field"></span><span class="pay"></span></span></span>
+        </span>
+        <span class="wbody">
+          <span class="mono">Lending app</span>
+          <h3>KYC in 4 minutes, down from 11</h3>
+          <span class="desc">Reordered onboarding around what users have in hand, with live document checks.</span>
+          <span class="metrics"><span><b>11 → 4</b>minutes</span><span><b>+22%</b>completion</span><span><b>−30%</b>tickets</span></span>
+          <span class="read">Read case study</span>
+        </span>
+      </button>
+      <button class="wcard" data-case="system" type="button">
+        <span class="viz"><span class="mono stamp">Design systems · 2024</span>
+          <span class="sheet" aria-hidden="true"><i class="a">Btn</i><i class="p">Chip</i><i>Input</i><i>Card</i><i class="a p">Tag</i><i>Tab</i><i>Nav</i><i>Toast</i><i class="a">Icon</i></span>
+        </span>
+        <span class="wbody">
+          <span class="mono">Internal platform</span>
+          <h3>A design system four squads actually use</h3>
+          <span class="desc">Merged 41 button styles into 6 and shipped a Figma library with matching code tokens.</span>
+          <span class="metrics"><span><b>41 → 6</b>variants</span><span><b>120</b>components</span><span><b>−35%</b>handoff Qs</span></span>
+          <span class="read">Read case study</span>
+        </span>
+      </button>
+      <button class="wcard" data-case="plugin" type="button">
+        <span class="viz"><span class="mono stamp">Side project · 2026</span>
+          <span class="plugin" aria-hidden="true"><span class="top"><i></i><i></i><i></i></span><span class="inner"><b>Spacing Linter</b><code>Found 14 values off the 8pt grid</code><code>13px → 12px · 22px → 24px</code><span class="go">Fix all</span></span></span>
+        </span>
+        <span class="wbody">
+          <span class="mono">Experiment</span>
+          <h3>A Figma plugin that snaps spacing to the grid</h3>
+          <span class="desc">Built with Claude in a weekend to catch the off-grid values I kept fixing by hand.</span>
+          <span class="metrics"><span><b>2 days</b>idea to plugin</span><span><b>8pt</b>grid</span><span><b>9</b>teammates use it</span></span>
+          <span class="read">Read the write-up</span>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section class="wrap reveal" id="about" aria-labelledby="aboutTitle">
+    <div class="sec-head">
+      <div>
+        <p class="mono eyebrow">About</p>
+        <h2 id="aboutTitle">How I work.</h2>
+      </div>
+      <p>I'm a product designer with three years of turning messy flows into ones people finish: checkouts, onboarding and the systems behind them.</p>
+    </div>
+    <div class="principles">
+      <div class="pr"><h3>I start with the drop-off</h3><p>Before I sketch, I find where people quit and ask why. The fix is usually smaller than the brief.</p><q>"Where do people give up?"</q></div>
+      <div class="pr"><h3>I sweat the 2px</h3><p>Spacing, states and edge cases are where trust is won. I hand off specs engineers don't have to guess at.</p><q>"What happens when it's empty?"</q></div>
+      <div class="pr"><h3>I prototype to argue less</h3><p>A clickable prototype on day three ends debates faster than a deck. I test early with five real users.</p><q>"Let's just try it."</q></div>
+    </div>
+    <ol class="timeline">
+      <li><span class="mono">2024 — now</span><span><b>Product Designer · [Company]</b>Checkout, payments and the design system</span></li>
+      <li><span class="mono">2023 — 24</span><span><b>UI/UX Designer · [Company]</b>Onboarding and KYC for a lending app</span></li>
+      <li><span class="mono">2022 — 23</span><span><b>Design Intern · [Studio]</b>Websites and brand work for early-stage startups</span></li>
+    </ol>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section class="wrap reveal" id="contact" aria-labelledby="contactTitle">
+    <div class="contact">
+      <p class="mono">Let's talk</p>
+      <h2 id="contactTitle">Got a flow that's a bit <em>tangled?</em></h2>
+      <p class="contact-sub">I'm open to product design roles and the occasional freelance project.</p>
+      <div class="mail"><code id="email">you@youremail.com</code><button class="copy" id="copyBtn" type="button">Copy email</button></div>
+      <div class="socials">
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn ↗</a>
+        <a href="https://dribbble.com/" target="_blank" rel="noopener">Dribbble ↗</a>
+        <a href="https://medium.com/" target="_blank" rel="noopener">Medium ↗</a>
+        <a href="#contact">Resume (PDF) ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="wrap site">
+    <span>© <span id="year">2026</span> Aakansha Singh</span>
+    <a href="#top">Back to the desk ↑</a>
+  </footer>
+</main>
+
+<dialog id="case" aria-labelledby="csTitle">
+  <div class="cs-head">
+    <button class="cs-close" id="csClose" type="button" aria-label="Close case study">×</button>
+    <span class="mono" id="csEyebrow"></span>
+    <h2 id="csTitle"></h2>
+    <p id="csSub"></p>
+  </div>
+  <div class="cs-meta" id="csMeta"></div>
+  <div class="cs-body" id="csBody"></div>
+</dialog>
+
+<script src="assets/js/sound.js"></script>
+<script src="assets/js/intro.js"></script>
+<script src="assets/js/desk.js"></script>
+<script src="assets/js/cases.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
