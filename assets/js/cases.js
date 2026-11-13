@@ -6,7 +6,7 @@
 window.CASES = {
   checkout: {
     eyebrow: 'Case study · E-commerce · 2025',
-    title: 'Checkout, rebuilt',
+    title: 'Rebuilding checkout so more people actually pay',
     sub: 'Rebuilt a five-step checkout into three for a grocery delivery app.',
     meta: [['Role', 'Lead designer'], ['Team', '1 PM, 4 engineers'], ['Timeline', '6 weeks'], ['Platform', 'Android, iOS']],
     secs: [
@@ -20,7 +20,7 @@ window.CASES = {
   },
   kyc: {
     eyebrow: 'NDA project · Enterprise · 2024',
-    title: 'Operations dashboard',
+    title: 'An operations dashboard people can act on in minutes',
     sub: 'A confidential internal dashboard for complex operations and large-scale data.',
     nda: true,
     meta: [['Role', 'Product designer'], ['Team', 'PM, data, 6 engineers'], ['Timeline', '5 months'], ['Platform', 'Web']],
@@ -33,7 +33,7 @@ window.CASES = {
   },
   system: {
     eyebrow: 'NDA project · Healthcare · 2025',
-    title: 'Gen-AI platform',
+    title: 'Designing a Gen-AI assistant people can trust',
     sub: 'An enterprise AI product designed under strict regulatory and NDA constraints.',
     nda: true,
     meta: [['Role', 'Product designer'], ['Team', '2 designers, ML, compliance'], ['Timeline', '6 months'], ['Platform', 'Web']],
@@ -46,7 +46,7 @@ window.CASES = {
   },
   plugin: {
     eyebrow: 'Case study · Design systems · 2024',
-    title: 'Design system',
+    title: 'A design system four squads actually use',
     sub: 'From 41 button styles to 6, with a library four squads actually use.',
     meta: [['Role', 'Design system owner'], ['Team', '2 designers, 2 front-end'], ['Timeline', '4 months'], ['Platform', 'Web, mobile']],
     secs: [

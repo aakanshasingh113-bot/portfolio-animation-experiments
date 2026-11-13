@@ -31,11 +31,13 @@
 </div>
 
 <header class="topbar" id="topbar">
-  <a class="logo" href="#top"><i aria-hidden="true"></i>Aakansha Singh</a>
+  <a class="mono-mark" href="#top" aria-label="Aakansha Singh, back to the desk">AS</a>
   <nav class="nav" aria-label="Sections">
-    <a href="#work">Work</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
+    <a href="#work" data-sec="work"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg><span>Work</span></a>
+    <a href="#about" data-sec="about"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14.2a4.2 4.2 0 0 0 6.4 0M9.5 10h.01M14.5 10h.01"/></svg><span>About</span></a>
+    <a href="#playground" data-sec="playground"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M20.5 15.5 16 11l-9 8.5"/></svg><span>Playground</span></a>
+    <!-- Point this at your resume PDF, e.g. href="assets/resume.pdf" target="_blank" -->
+    <a href="#contact" data-sec="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4.5 4.5v11A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5z"/><path d="M14 3.5V8h4.5M9 12.5h6M9 16h6"/></svg><span>Resume</span></a>
   </nav>
   <button class="sound" id="soundBtn" type="button" aria-pressed="true" aria-label="Sound on">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="w" d="M17 9a4 4 0 0 1 0 6M19.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
@@ -52,6 +54,7 @@
       <svg class="swash" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16 C80 6, 160 20, 230 12 S350 4, 396 10"/></svg>
       <p class="tagline">Tangled in · Simple out</p>
       <p class="role">Product designer · 3 years · <span class="open"><i></i>open to roles</span></p>
+      <p class="lede">Three years of finding where people give up,<br>and making that part simple.</p>
     </div>
 
     <div class="props" id="props">
@@ -212,92 +215,115 @@
 
     <div class="counter" aria-live="polite"><span id="countTxt">drag &amp; click anything · 0/11</span><span class="pips" id="pips" aria-hidden="true"></span></div>
     <button class="replay" id="replayBtn" type="button">↺ replay intro</button>
+
+    <!-- Play: the full desk. Tidy: everything is swept to the edges for a calm, focused intro. -->
+    <div class="modes" id="modes" role="group" aria-label="Desk mode">
+      <span class="thumb" aria-hidden="true"></span>
+      <button type="button" data-mode="play" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5a2 2 0 1 1 4 0V6h3.5A1.5 1.5 0 0 1 18 7.5V11h-1.5a2 2 0 1 0 0 4H18v3.5a1.5 1.5 0 0 1-1.5 1.5H13v-1.5a2 2 0 1 0-4 0V20H5.5A1.5 1.5 0 0 1 4 18.5V15h1.5a2 2 0 1 0 0-4H4V7.5A1.5 1.5 0 0 1 5.5 6H9z"/></svg><span>Play</span></button>
+      <button type="button" data-mode="tidy" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M8.5 11h7l1.5 4H7z"/><path d="M7 15l-1.5 6M10 15l-.5 6M14 15l.5 6M17 15l1.5 6"/></svg><span>Tidy up</span></button>
+    </div>
     <div class="drawbar" id="drawbar" hidden><span>Doodle away</span><button class="ghost" id="clearBtn" type="button">Clear</button><button id="dropBtn" type="button">Put pencil down</button></div>
   </div>
 </section>
 
 <main>
   <!-- ================= WORK =================
-       Four case study cards. Each card's colour comes from --c on the .cs button.
-       Card text lives here; the full story for the pop-up lives in assets/js/cases.js
-       under the same key as data-case. -->
+       Featured work: a list on the left (one project open at a time) and a large
+       preview on the right. Each project's colour is --c on its <li> and preview.
+       The full story for the pop-up lives in assets/js/cases.js under the key in
+       data-open-case. Replace the drawn previews with screenshots if you like:
+       put an <img> inside .fw-shot in place of the .ui block. -->
   <section class="work-sec" id="work" aria-labelledby="workTitle">
     <div class="wrap wide reveal">
-      <div class="sec-head">
-        <div>
-          <p class="mono eyebrow">Selected work · 04</p>
-          <h2 id="workTitle">Tangles I've <em>untangled.</em></h2>
+      <h2 class="fw-title" id="workTitle">Featured work</h2>
+      <div class="fw" id="fw">
+        <ol class="fw-list" role="tablist" aria-label="Projects">
+        <li class="fw-item on" style="--c:#2F8F4E">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab0" aria-selected="true" aria-controls="fwShot0" data-i="0"><h3>Rebuilding checkout so more people actually pay</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>E-commerce</span><span>Mobile</span><span>Conversion</span></p>
+            <p class="fw-desc">A five-step grocery checkout turned into three, with saved addresses, smart delivery slots and one-tap payment.</p>
+            <p class="fw-metrics"><span><b>−18%</b>Checkout drop-off</span><span><b>41s</b>Time to pay, from 74s</span><span><b>5 → 3</b>Steps to pay</span></p>
+            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="checkout">Read case study <span aria-hidden="true">→</span></button></p>
+          </div></div>
+        </li>
+        <li class="fw-item" style="--c:#C2543A">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab1" aria-selected="false" aria-controls="fwShot1" data-i="1"><h3>An operations dashboard people can act on in minutes</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>Enterprise</span><span>Dashboard</span><span>Data</span></p>
+            <p class="fw-desc">A confidential internal tool that brought five systems and a pile of spreadsheets into one view for operations teams.</p>
+            <p class="fw-metrics"><span><b>60 → 15</b>Minutes to triage</span><span><b>5 → 1</b>Tools in use</span><span><b>300+</b>Daily users</span></p>
+            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="kyc">Ask me about it <span aria-hidden="true">→</span></button><span class="nda">🔒 Under NDA</span></p>
+          </div></div>
+        </li>
+        <li class="fw-item" style="--c:#2D74B5">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab2" aria-selected="false" aria-controls="fwShot2" data-i="2"><h3>Designing a Gen-AI assistant people can trust</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>Gen-AI</span><span>Healthcare</span><span>Components</span></p>
+            <p class="fw-desc">An enterprise AI product for regulated healthcare work, where every answer shows its source and admits when it is unsure.</p>
+            <p class="fw-metrics"><span><b>3</b>Features reusing the kit</span><span><b>100%</b>Answers with sources</span><span><b>Weeks</b>To daily use in pilot</span></p>
+            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="system">Ask me about it <span aria-hidden="true">→</span></button><span class="nda">🔒 Under NDA</span></p>
+          </div></div>
+        </li>
+        <li class="fw-item" style="--c:#7A54D8">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab3" aria-selected="false" aria-controls="fwShot3" data-i="3"><h3>A design system four squads actually use</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>Design systems</span><span>Figma</span><span>Tokens</span></p>
+            <p class="fw-desc">Audited 300+ screens, merged 41 button styles into 6 and shipped a Figma library with matching code tokens.</p>
+            <p class="fw-metrics"><span><b>41 → 6</b>Button variants</span><span><b>120</b>Components</span><span><b>−35%</b>Handoff questions</span></p>
+            <p class="fw-actions"><button class="fw-cta" type="button" data-open-case="plugin">Read case study <span aria-hidden="true">→</span></button></p>
+          </div></div>
+        </li>
+        </ol>
+        <div class="fw-stage">
+          <button class="fw-shot on" type="button" id="fwShot0" role="tabpanel" aria-labelledby="fwTab0" data-open-case="checkout" style="--c:#2F8F4E" tabindex="-1">
+            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+            <span class="meta"><span>2025</span><span>Case study</span></span>
+            <span class="ui ui-shop">
+                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Your cart · 6 items</b></span>
+                  <span class="wcols"><span class="list"><span class="it"><i></i><span><b></b><em></em></span><u>₹120</u></span><span class="it"><i></i><span><b></b><em></em></span><u>₹64</u></span><span class="it"><i></i><span><b></b><em></em></span><u>₹210</u></span><span class="it"><i></i><span><b></b><em></em></span><u>₹48</u></span></span>
+                  <span class="sum"><b>Summary</b><span class="kv"><em></em><u>₹442</u></span><span class="kv"><em></em><u>₹25</u></span><span class="kv tot"><em></em><u>₹467</u></span><span class="btn">Pay ₹467</span></span></span></span>
+                <span class="phone"><span class="steps"><i class="on"></i><i class="on"></i><i></i></span><span class="ph-t">Deliver to</span><span class="opt on"><i></i><span><b></b><em></em></span></span><span class="opt"><i></i><span><b></b><em></em></span></span><span class="slot"><i class="on">7–9am</i><i>9–11am</i></span><span class="btn">Pay in one tap</span></span>
+              </span>
+          </button>
+          <button class="fw-shot" type="button" id="fwShot1" role="tabpanel" aria-labelledby="fwTab1" data-open-case="kyc" style="--c:#C2543A" tabindex="-1">
+            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+            <span class="meta"><span>2024</span><span>🔒 NDA project</span></span>
+            <span class="ui ui-dash">
+                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Operations · Today</b></span>
+                  <span class="dash"><span class="side"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                  <span class="main"><span class="kpis"><span><em>Orders</em><b>12,480</b></span><span><em>Delayed</em><b class="bad">38</b></span><span><em>On time</em><b>97.2%</b></span></span>
+                  <span class="chart"><i style="--h:42%"></i><i style="--h:58%"></i><i style="--h:50%"></i><i style="--h:72%"></i><i style="--h:64%"></i><i style="--h:88%"></i><i style="--h:76%"></i><i style="--h:94%"></i></span>
+                  <span class="rows"><span><i></i><b></b><u class="st">Late</u></span><span><i></i><b></b><u class="st ok">OK</u></span><span><i></i><b></b><u class="st ok">OK</u></span></span></span></span></span>
+              </span>
+          </button>
+          <button class="fw-shot" type="button" id="fwShot2" role="tabpanel" aria-labelledby="fwTab2" data-open-case="system" style="--c:#2D74B5" tabindex="-1">
+            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+            <span class="meta"><span>2025</span><span>🔒 NDA project</span></span>
+            <span class="ui ui-ai">
+                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Assistant</b></span>
+                  <span class="chat"><span class="msg me">Summarise the dosage changes in this report</span>
+                  <span class="msg bot">Two changes since March: the morning dose moved from 10mg to 5mg, and a new evening dose was added.<span class="src"><i>Report p.4</i><i>Note 12 Mar</i></span></span>
+                  <span class="msg bot unsure">I'm not sure about the patient's allergy history. It isn't in these files.</span>
+                  <span class="input"><span class="spark">✦</span><em>Ask about this file…</em><span class="send">↑</span></span></span></span>
+              </span>
+          </button>
+          <button class="fw-shot" type="button" id="fwShot3" role="tabpanel" aria-labelledby="fwTab3" data-open-case="plugin" style="--c:#7A54D8" tabindex="-1">
+            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+            <span class="meta"><span>2024</span><span>Case study</span></span>
+            <span class="ui ui-sys">
+                <span class="pw"><span class="wbar"><i></i><i></i><i></i><b>Library · Components</b></span>
+                  <span class="sheet"><span class="sbtn p">Primary</span><span class="sbtn s">Secondary</span><span class="sbtn g">Ghost</span>
+                  <span class="field"><em>Email</em><i>you@mail.com</i></span><span class="field err"><em>Phone</em><i>98…</i></span>
+                  <span class="chips"><i class="on">Design</i><i>Research</i><i>AI</i></span><span class="tog"><i class="on"></i><i></i></span>
+                  <span class="swatch"><i style="background:#7A54D8"></i><i style="background:#A88BEA"></i><i style="background:#D9CCF6"></i><i style="background:#1E1F1C"></i><i style="background:#F2F0EA"></i></span></span></span>
+              </span>
+          </button>
         </div>
-        <p>Four projects, from shipped products to work under NDA. Hover to peek, click for the full story.</p>
-      </div>
-
-      <div class="cases">
-        <!-- 01 -->
-        <button class="cs" type="button" data-case="checkout" style="--c:#2F8F4E">
-          <span class="cs-back" aria-hidden="true"></span>
-          <span class="cs-front">
-            <span class="cs-top"><span class="kind"><i></i>Case study</span><span class="num">01</span></span>
-            <h3>Checkout, rebuilt</h3>
-            <span class="desc">Cut drop-off by 18% by turning a five-step grocery checkout into three.</span>
-            <span class="client"><b>[Client]</b><span>E-commerce</span></span>
-            <span class="mock m-phone" aria-hidden="true">
-              <span class="notch"></span><span class="blk tall"></span><span class="ln w70"></span><span class="ln w45"></span>
-              <span class="row3"><i></i><i></i><i></i></span><span class="cta"></span>
-            </span>
-            <span class="tags"><span>Mobile</span><span>Conversion</span><span>UX research</span><span>Prototyping</span></span>
-            <span class="cs-foot"><span>Read case study</span><span class="arrow">→</span></span>
-          </span>
-        </button>
-
-        <!-- 02 -->
-        <button class="cs" type="button" data-case="kyc" style="--c:#D9482F">
-          <span class="cs-back" aria-hidden="true"></span>
-          <span class="cs-front">
-            <span class="cs-top"><span class="kind"><i></i>NDA project</span><span class="num">02</span></span>
-            <h3>Operations dashboard</h3>
-            <span class="desc">A confidential internal dashboard for complex operations and large-scale data.</span>
-            <span class="client"><b>[Client]</b><span>Enterprise</span></span>
-            <span class="mock m-dash" aria-hidden="true">
-              <span class="side"><i></i><i></i><i></i><i></i></span>
-              <span class="main"><span class="kpis"><i></i><i></i><i></i></span><span class="chart"><i style="--h:40%"></i><i style="--h:65%"></i><i style="--h:50%"></i><i style="--h:85%"></i><i style="--h:60%"></i><i style="--h:95%"></i></span></span>
-            </span>
-            <span class="tags"><span class="hot">NDA</span><span>Enterprise</span><span>Dashboard</span><span>Data</span></span>
-            <span class="cs-foot"><span>Under NDA · ask me</span><span class="arrow">🔒</span></span>
-          </span>
-        </button>
-
-        <!-- 03 -->
-        <button class="cs" type="button" data-case="system" style="--c:#2D7FC1">
-          <span class="cs-back" aria-hidden="true"></span>
-          <span class="cs-front">
-            <span class="cs-top"><span class="kind"><i></i>NDA project</span><span class="num">03</span></span>
-            <h3>Gen-AI platform</h3>
-            <span class="desc">An enterprise AI product designed under strict regulatory and NDA constraints.</span>
-            <span class="client"><b>[Client]</b><span>Healthcare</span></span>
-            <span class="mock m-ai" aria-hidden="true">
-              <span class="bubble me"></span><span class="bubble bot"><i></i><i></i><i></i></span>
-              <span class="prompt"><span class="spark">✦</span><span class="ln"></span></span>
-            </span>
-            <span class="tags"><span class="hot">NDA</span><span>Gen-AI</span><span>Healthcare</span><span>Components</span></span>
-            <span class="cs-foot"><span>Under NDA · ask me</span><span class="arrow">🔒</span></span>
-          </span>
-        </button>
-
-        <!-- 04 -->
-        <button class="cs" type="button" data-case="plugin" style="--c:#7A54D8">
-          <span class="cs-back" aria-hidden="true"></span>
-          <span class="cs-front">
-            <span class="cs-top"><span class="kind"><i></i>Side project</span><span class="num">04</span></span>
-            <h3>Design system</h3>
-            <span class="desc">Merged 41 button styles into 6 and shipped a library four squads actually use.</span>
-            <span class="client"><b>[Client]</b><span>Platform</span></span>
-            <span class="mock m-sys" aria-hidden="true">
-              <i class="pill"></i><i class="sq"></i><i class="ci"></i><i class="sq"></i><i class="pill on"></i><i class="ci on"></i><i class="sq on"></i><i class="pill"></i>
-            </span>
-            <span class="tags"><span>Design systems</span><span>Figma</span><span>Tokens</span></span>
-            <span class="cs-foot"><span>Read case study</span><span class="arrow">→</span></span>
-          </span>
-        </button>
       </div>
     </div>
   </section>
@@ -321,6 +347,23 @@
       <li><span class="mono">2023 — 24</span><span><b>UI/UX Designer · [Company]</b>Onboarding and KYC for a lending app</span></li>
       <li><span class="mono">2022 — 23</span><span><b>Design Intern · [Studio]</b>Websites and brand work for early-stage startups</span></li>
     </ol>
+  </section>
+
+  <!-- ================= PLAYGROUND ================= -->
+  <section class="wrap reveal" id="playground" aria-labelledby="playTitle">
+    <div class="sec-head">
+      <div>
+        <p class="mono eyebrow">Playground</p>
+        <h2 id="playTitle">Off the clock.</h2>
+      </div>
+      <p>Visual explorations, motion tests and things I made for fun. Each one names the tool. Swap these placeholders for your own.</p>
+    </div>
+    <div class="play">
+      <div class="tile"><div class="art a1">Aa<small>type study</small></div><div class="cap">Type specimen<span class="mono">Figma</span></div></div>
+      <div class="tile"><div class="art a2"><div class="g" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="cap">Icon set, 24px grid<span class="mono">Figma</span></div></div>
+      <div class="tile"><div class="art a3"><div class="ball" aria-hidden="true"></div></div><div class="cap">Bounce timing study<span class="mono">Rive</span></div></div>
+      <div class="tile"><div class="art a4"><div class="sun"></div><div class="hill"></div></div><div class="cap">Through my lens<span class="mono">Photography</span></div></div>
+    </div>
   </section>
 
   <!-- ================= CONTACT ================= -->

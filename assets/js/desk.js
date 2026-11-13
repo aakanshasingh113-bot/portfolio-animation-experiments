@@ -1,7 +1,7 @@
 /* Desk — every prop can be dragged around and does something when clicked. */
 (function(){
   var S = window.Site, $ = S.$, snd = S.snd, music = S.music, reduce = S.reduce, root = S.root;
-  var stage = $('stage'), props = document.querySelectorAll('.prop');
+  var stage = $('stage'), deskEl = $('top'), props = document.querySelectorAll('.prop');
   var TOTAL = props.length, found = {};
 
   /* ---------- explored counter ---------- */
@@ -32,7 +32,7 @@
   function draggable(el, onTap){
     var sx, sy, ox, oy, active = false, moved = false;
     el.addEventListener('pointerdown', function(e){
-      if(root.classList.contains('doodle') || (e.button !== undefined && e.button !== 0)) return;
+      if(root.classList.contains('doodle') || deskEl.classList.contains('tidy') || (e.button !== undefined && e.button !== 0)) return;
       active = true; moved = false; sx = e.clientX; sy = e.clientY;
       ox = parseFloat(el.style.getPropertyValue('--dx')) || 0; oy = parseFloat(el.style.getPropertyValue('--dy')) || 0;
       el.setPointerCapture(e.pointerId);
@@ -44,7 +44,7 @@
     });
     function end(){ if(!active) return; active = false; el.classList.remove('dragging'); if(moved) snd.thud(); else { el.style.zIndex = ++z; onTap(); } }
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-    el.addEventListener('click', function(e){ if(e.detail === 0) onTap(); });   // keyboard
+    el.addEventListener('click', function(e){ if(e.detail === 0 && !deskEl.classList.contains('tidy')) onTap(); });   // keyboard
   }
   props.forEach(function(p){ p.addEventListener('mouseenter', function(){ snd.hover(pitch[p.dataset.k] || 700); }); });
 
@@ -198,6 +198,63 @@
   window.addEventListener('keydown', function(e){ if(e.key === 'Escape' && root.classList.contains('doodle')) setDoodle(false); });
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+
+
+  /* ---------- modes: Play keeps the desk, Tidy up sweeps every prop to the nearest edge ---------- */
+  var modes = $('modes'), thumb = modes.querySelector('.thumb'), modeBtns = modes.querySelectorAll('button');
+  var tidyOff = new Map();
+  function paintThumb(){
+    var on = modes.querySelector('[aria-pressed="true"]');
+    thumb.style.width = on.offsetWidth + 'px'; thumb.style.transform = 'translateX(' + (on.offsetLeft - 4) + 'px)';
+  }
+  function placeTidy(){
+    var sr = stage.getBoundingClientRect(), W = sr.width, H = sr.height, sides = {l:[], r:[]};
+    props.forEach(function(p){
+      var r = p.getBoundingClientRect(), o = tidyOff.get(p) || [0,0];
+      var cx = r.left + r.width/2 - sr.left - o[0], cy = r.top + r.height/2 - sr.top - o[1];
+      (cx < W/2 ? sides.l : sides.r).push({p:p, cx:cx, cy:cy, w:r.width, h:p.offsetHeight * .84});
+    });
+    // keep the two edges balanced
+    while(sides.l.length - sides.r.length > 1){ sides.l.sort(function(a,b){ return b.cx - a.cx; }); sides.r.push(sides.l.shift()); }
+    while(sides.r.length - sides.l.length > 1){ sides.r.sort(function(a,b){ return a.cx - b.cx; }); sides.l.push(sides.r.shift()); }
+    ['l','r'].forEach(function(side){
+      /* stack down the edge by real heights, spreading any spare room evenly */
+      var list = sides[side].sort(function(a,b){ return a.cy - b.cy; }), n = list.length;
+      var top = H * .1, avail = H * .86, sum = list.reduce(function(t, it){ return t + it.h; }, 0), gap = (avail - sum) / n, y = top + gap/2;
+      list.forEach(function(it, i){
+        var ty = y + it.h/2; y += it.h + gap;
+        var tx = side === 'l' ? it.w * .18 : W - it.w * .18;
+        var dx = tx - it.cx, dy = ty - it.cy, rot = ((i * 37 + (side === 'l' ? 11 : 23)) % 28) - 14;
+        tidyOff.set(it.p, [dx, dy]);
+        it.p.style.setProperty('--tx', dx.toFixed(1) + 'px'); it.p.style.setProperty('--ty', dy.toFixed(1) + 'px');
+        it.p.style.setProperty('--tr', rot + 'deg'); it.p.style.setProperty('--ts', '.84');
+        it.p.style.setProperty('--peek', side === 'l' ? '22px' : '-22px');
+        it.p.style.transitionDelay = (i * 45 + (side === 'l' ? 0 : 20)) + 'ms';
+      });
+    });
+  }
+  function setMode(mode, quiet){
+    var tidy = mode === 'tidy';
+    if(tidy && root.classList.contains('doodle')) setDoodle(false);
+    modeBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false'); });
+    paintThumb();
+    if(tidy){ placeTidy(); deskEl.classList.add('tidy'); if(!quiet && innerWidth <= 980) window.scrollTo({top:0, behavior: reduce ? 'auto' : 'smooth'}); }
+    else {
+      deskEl.classList.remove('tidy'); tidyOff.clear();
+      props.forEach(function(p, i){ p.style.transitionDelay = (i * 35) + 'ms'; ['--tx','--ty','--tr','--ts','--peek'].forEach(function(v){ p.style.removeProperty(v); }); });
+    }
+    setTimeout(function(){ props.forEach(function(p){ p.style.transitionDelay = ''; }); }, 1000);
+    S.store('deskMode', mode);
+    if(!quiet){ if(tidy){ snd.noise(.6, 'bandpass', 900, .16, 0, 300, .8); snd.noise(.4, 'highpass', 2500, .06, .15, 900); } else { snd.whoosh(); snd.pop(); } }
+  }
+  modeBtns.forEach(function(b){ b.addEventListener('click', function(){ if(b.getAttribute('aria-pressed') !== 'true') setMode(b.dataset.mode); }); });
+  props.forEach(function(p){ p.addEventListener('click', function(){ if(deskEl.classList.contains('tidy')) setMode('play'); }); });
+  window.addEventListener('resize', function(){ paintThumb(); if(deskEl.classList.contains('tidy')) placeTidy(); });
+  window.addEventListener('deskready', function(){
+    paintThumb();
+    if(S.store('deskMode') === 'tidy') setTimeout(function(){ setMode('tidy', true); }, reduce ? 0 : 1100);
+  });
+  paintThumb();
 
   $('replayBtn').addEventListener('click', function(){ if(window.Intro) window.Intro.play(); });
 })();

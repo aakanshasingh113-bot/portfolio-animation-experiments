@@ -4,6 +4,8 @@ A static portfolio site (no build step).
 
 **The intro:** a red dot draws a coiled thread under the name, and each letter of "Aakansha Singh" rises into place as the dot passes it. The coil pulls straight, the bold name lifts away and the dot runs along the line like a pen, writing the name in script, and the dark screen splits open along the thread. Click, scroll or press Escape to skip. It is skipped automatically for people who prefer reduced motion.
 
+**Play / Tidy up:** the switch at the bottom of the desk. Tidy up sweeps every object to the edges for a calm, focused intro; clicking any object (or Play) brings the desk back. The choice is remembered.
+
 **The desk:** eleven objects you can drag anywhere. Each one does something when clicked:
 
 | Object | Click |
@@ -48,14 +50,14 @@ Some content is still sample text. Replace:
 - **Email and links** in the contact section of `index.html`
 - **Postcard back** (`[your city]`) and the badge text
 - **Photos**: the three polaroids in `#photoStack` use drawn placeholders; swap in `<img>` tags
-- **Case studies** (4 cards in the dark Work section):
-  - Card text is in `index.html`: label (Case study / NDA project / Side project), title, one-line description, the `[Client]` pill, tags and footer.
-  - Each card's colour is the `--c` value on its `<button class="cs" ...>`.
-  - The full story for the pop-up is in `assets/js/cases.js`, under the same key as the card's `data-case`. Add `nda: true` to show the NDA note.
-  - The little screen mockups (phone, dashboard, AI chat, components) are drawn in CSS; keep one or swap a card to a different style.
+- **Case studies** ("Featured work"): a list on the left, one project open at a time, and a large preview on the right. It auto-advances until a visitor picks a project.
+  - Each project's text (tags, title, description, 3 metrics, button) is in its `<li class="fw-item">` in `index.html`; its colour is the `--c` value.
+  - The preview for each project is the matching `<button class="fw-shot">`. The drawn UI mockups are placeholders: replace the `.ui` block with an `<img>` of your real screens.
+  - The full story for the pop-up is in `assets/js/cases.js`, under the key in `data-open-case`. Add `nda: true` to show the NDA note.
 - **Experience**: the `[Company]` / `[Studio]` placeholders
 - **about.md pages**: the `pages` list in `assets/js/desk.js`
-- **Resume**: point the "Resume (PDF)" link at your file
+- **Resume**: point the header's Resume link and the "Resume (PDF)" link at your file
+- **Playground**: the four placeholder tiles
 
 ## Deploy
 
