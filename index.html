@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Aakansha Singh · Product Designer</title>
+<meta name="description" content="Aakansha Singh is a product designer who takes tangled problems and leaves them simple.">
+<meta property="og:title" content="Aakansha Singh · Product Designer">
+<meta property="og:description" content="Tangled in, simple out.">
+<meta name="theme-color" content="#F4F2EC">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%23D9482F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Caveat:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/css/styles.css">
+<noscript><style>.intro{display:none}.desk .land{animation:none;opacity:1}</style></noscript>
+</head>
+<body class="intro-on">
+
+<!-- ================= INTRO =================
+     A red dot draws a coiled thread and the name rises into place letter by
+     letter, in its final handwriting. The thread pulls taut, then the dark
+     screen splits open along it and the same name stays on the desk. -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="half top"></div>
+  <div class="half bottom"></div>
+  <svg class="ithread" id="ithread"><path id="ipath"/><circle id="ipen" r="7"/></svg>
+  <div class="iname" id="iname"></div>
+  <button class="skip" id="skipBtn" type="button">Skip intro →</button>
+</div>
+
+<header class="topbar" id="topbar">
+  <a class="mono-mark" href="#top" aria-label="Aakansha Singh, back to the desk">AS</a>
+  <nav class="nav" aria-label="Sections">
+    <a href="#work" data-sec="work"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg><span>Work</span></a>
+    <a href="#about" data-sec="about"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14.2a4.2 4.2 0 0 0 6.4 0M9.5 10h.01M14.5 10h.01"/></svg><span>About</span></a>
+    <a href="#experiments" data-sec="experiments"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span>AI experiments</span></a>
+    <!-- Point this at your resume PDF, e.g. href="assets/resume.pdf" target="_blank" -->
+    <a href="#contact" data-sec="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4.5 4.5v11A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5z"/><path d="M14 3.5V8h4.5M9 12.5h6M9 16h6"/></svg><span>Resume</span></a>
+  </nav>
+  <button class="sound" id="soundBtn" type="button" aria-pressed="true" aria-label="Sound on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="w" d="M17 9a4 4 0 0 1 0 6M19.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+  </button>
+</header>
+
+<!-- ================= HERO: THE DESK ================= -->
+<section class="desk" id="top" aria-label="Introduction">
+  <div class="stage" id="stage">
+    <canvas id="draw" aria-hidden="true"></canvas>
+
+    <div class="center">
+      <h1 class="name" id="deskName">Aakansha Singh</h1>
+      <svg class="swash" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16 C80 6, 160 20, 230 12 S350 4, 396 10"/></svg>
+      <p class="tagline">Tangled in · Simple out</p>
+      <p class="role">Product designer · 3 years · <span class="open"><i></i>open to roles</span></p>
+      <p class="lede">Three years of finding where people give up,<br>and making that part simple.</p>
+    </div>
+
+    <div class="props" id="props">
+
+      <!-- ID badge on a lanyard -->
+      <button class="prop" id="pBadge" data-k="badge" style="--i:0" type="button" aria-label="ID badge. Click to flip it">
+        <span class="tag">flip my badge</span>
+        <span class="land"><span class="art badge">
+          <span class="strap"><span>PRODUCT · DESIGN · PRODUCT · DESIGN ·</span></span>
+          <span class="clip"></span>
+          <span class="card" id="badgeCard">
+            <span class="face front">
+              <span class="dev">Product<br>Designer</span>
+              <span class="small">Loves untangling flows, prototyping and a good croissant</span>
+              <span class="avatar">AS</span>
+              <span class="bc" aria-hidden="true"></span>
+            </span>
+            <span class="face back">
+              <b>Hello there!</b>
+              <span>Product designer who starts where people give up.</span>
+              <span class="open"><i></i>Open to roles</span>
+            </span>
+          </span>
+        </span></span>
+      </button>
+
+      <!-- Coffee, top-down -->
+      <button class="prop" id="pCoffee" data-k="coffee" style="--i:1" type="button" aria-label="Coffee. Take a sip">
+        <span class="tag" id="coffeeTag">take a sip</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 140 130">
+          <ellipse cx="66" cy="68" rx="60" ry="58" fill="#FFFFFF" stroke="#E3DFD6" stroke-width="2"/>
+          <ellipse cx="66" cy="68" rx="46" ry="44" fill="#F1EEE7"/>
+          <path d="M108 52c22-6 30 24 6 28" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+          <path d="M108 52c22-6 30 24 6 28" fill="none" stroke="#E3DFD6" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+          <circle cx="66" cy="66" r="38" fill="#FFFFFF" stroke="#E3DFD6" stroke-width="2"/>
+          <circle id="coffeeLevel" cx="66" cy="66" r="31" fill="#7A4A2A"/>
+          <g id="latte"><path d="M66 82c-14-9-20-16-20-23a8 8 0 0 1 20-4 8 8 0 0 1 20 4c0 7-6 14-20 23z" fill="#E9D3B6"/><path d="M66 74c-7-5-10-9-10-12" stroke="#7A4A2A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/></g>
+        </svg></span></span>
+      </button>
+
+      <!-- Sticky notes -->
+      <button class="prop" id="pNotes" data-k="notes" style="--i:2" type="button" aria-label="Sticky notes of user quotes. Peel one off">
+        <span class="tag">peel one off</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 150 150">
+          <rect x="18" y="22" width="120" height="120" rx="3" fill="#E7C24A"/>
+          <rect x="14" y="16" width="120" height="120" rx="3" fill="#F2D35E"/>
+          <rect x="10" y="10" width="120" height="120" rx="3" fill="#FBE07A"/>
+          <path d="M10 10h120v14H10z" fill="#F4D865"/>
+          <text x="22" y="62" font-family="Caveat, cursive" font-size="22" font-weight="700" fill="#5A4A06">what users</text>
+          <text x="22" y="86" font-family="Caveat, cursive" font-size="22" font-weight="700" fill="#5A4A06">actually said</text>
+          <path d="M22 100c20-4 50 4 80-2" stroke="#C9A62A" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg></span></span>
+      </button>
+
+      <!-- Receipt of skills -->
+      <button class="prop" id="pReceipt" data-k="receipt" style="--i:3" type="button" aria-label="Receipt of skills. Print another line">
+        <span class="tag" id="receiptTag">print more</span>
+        <span class="land"><span class="art receipt">
+          <b>DESIGN SUPPLY CO.</b>
+          <small>DESIGN SUPPLIES · EST. 2022</small>
+          <hr>
+          <ul id="receiptLines">
+            <li><span>User research</span><span>x1</span></li>
+            <li><span>Wireframes</span><span>x24</span></li>
+            <li><span>Prototypes</span><span>∞</span></li>
+          </ul>
+          <hr>
+          <li class="total"><span>TOTAL</span><span>clarity</span></li>
+          <small class="thx">thank you, come again</small>
+        </span></span>
+      </button>
+
+      <!-- Moodboard: stack of photos -->
+      <button class="prop" id="pPhotos" data-k="photos" style="--i:4" type="button" aria-label="Photos. Shuffle the stack">
+        <span class="tag">shuffle</span>
+        <span class="land"><span class="art photos" id="photoStack">
+          <span class="pol" style="--pr:-7deg"><span class="img s3"></span><span class="cap">sketchbook days</span></span>
+          <span class="pol" style="--pr:5deg"><span class="img s2"></span><span class="cap">sea, always</span></span>
+          <span class="pol" style="--pr:-2deg"><span class="img s1"></span><span class="cap">weekend light</span></span>
+        </span></span>
+      </button>
+
+      <!-- Cassette -->
+      <button class="prop" id="pTape" data-k="tape" style="--i:5" type="button" aria-label="Cassette. Press play" aria-pressed="false">
+        <span class="tag" id="tapeTag">press play</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 200 128">
+          <rect x="4" y="4" width="192" height="120" rx="10" fill="#2A2927"/>
+          <rect x="18" y="16" width="164" height="70" rx="5" fill="#F3EEE4"/>
+          <rect x="18" y="16" width="164" height="16" rx="5" fill="#D9482F"/>
+          <text x="26" y="27.5" font-family="Bricolage Grotesque, sans-serif" font-size="8.5" font-weight="600" fill="#fff" letter-spacing=".6">SIDE A · LO-FI FOR FOCUS</text>
+          <text x="26" y="80" font-family="Caveat, cursive" font-size="13" font-weight="700" fill="#5A574F">deep work mix</text>
+          <rect x="54" y="40" width="92" height="30" rx="15" fill="#2A2927"/>
+          <g class="reel"><circle cx="72" cy="55" r="11" fill="#F3EEE4"/><path d="M72 46v18M63 55h18" stroke="#2A2927" stroke-width="3"/></g>
+          <g class="reel"><circle cx="128" cy="55" r="11" fill="#F3EEE4"/><path d="M128 46v18M119 55h18" stroke="#2A2927" stroke-width="3"/></g>
+          <path d="M44 124l10-24h92l10 24" fill="#3A3936"/>
+          <circle cx="76" cy="112" r="4" fill="#2A2927"/><circle cx="124" cy="112" r="4" fill="#2A2927"/>
+        </svg><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span></span>
+      </button>
+
+      <!-- Work folder -->
+      <button class="prop" id="pFolder" data-k="folder" style="--i:6" type="button" aria-label="Folder of work. Open it">
+        <span class="tag" id="folderTag">open my work</span>
+        <span class="land"><span class="art folder" id="folder">
+          <span class="fback"></span>
+          <span class="fcard c1"><b>Legrand</b>switch configurator</span>
+          <span class="fcard c2"><b>Oman 2040</b>holographic story</span>
+          <span class="fcard c3"><b>+2</b>coming soon</span>
+          <span class="ffront"><span>WORK · 2022—26</span></span>
+        </span></span>
+      </button>
+
+      <!-- Plant -->
+      <button class="prop" id="pPlant" data-k="plant" style="--i:7" type="button" aria-label="Plant. Water it">
+        <span class="tag">water it</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 124 170">
+          <g class="leaves">
+            <path d="M62 120C62 90 60 70 64 40" stroke="#5E8A4E" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path class="leaf on" d="M62 104c-18-2-30-12-30-24 14 0 28 8 30 24z" fill="#76AE63"/>
+            <path class="leaf on" d="M62 92c16-2 28-14 26-28-14 2-26 12-26 28z" fill="#5E9C4F"/>
+            <path class="leaf" d="M62 76c-16-4-24-16-22-28 12 2 22 12 22 28z" fill="#76AE63"/>
+            <path class="leaf" d="M63 64c14-4 22-16 20-28-12 2-20 14-20 28z" fill="#5E9C4F"/>
+            <path class="leaf" d="M64 46c-8-8-8-20 0-28 8 8 8 20 0 28z" fill="#86BD71"/>
+          </g>
+          <path d="M30 118h64l-8 46H38z" fill="#D9775A"/>
+          <path d="M26 112h72v12H26z" fill="#C4624A"/>
+          <ellipse cx="62" cy="114" rx="30" ry="4" fill="#6B4A36"/>
+        </svg><span class="ver" id="ver">v2</span></span></span>
+      </button>
+
+      <!-- about.md window -->
+      <button class="prop" id="pWindow" data-k="window" style="--i:8" type="button" aria-label="About file. Click for the next page">
+        <span class="tag">next page</span>
+        <span class="land"><span class="art win">
+          <span class="bar"><i></i><i></i><i></i><span>about.md</span></span>
+          <span class="body" id="winBody"></span>
+        </span></span>
+      </button>
+
+      <!-- Postcard -->
+      <button class="prop" id="pPost" data-k="post" style="--i:9" type="button" aria-label="Postcard. Flip it">
+        <span class="tag">flip it</span>
+        <span class="land"><span class="art post" id="post">
+          <span class="face front"><span class="greet">greetings<br>from my desk</span><span class="stamp">✳</span><span class="pm"></span></span>
+          <span class="face back"><span>Based in [your city], India.</span><span>Open to remote &amp; relocation.</span><span class="sig">— A.</span></span>
+        </span></span>
+      </button>
+
+      <!-- Pencil -->
+      <button class="prop" id="pPencil" data-k="pencil" style="--i:10" type="button" aria-label="Pencil. Pick it up to doodle" aria-pressed="false">
+        <span class="tag">doodle with me</span>
+        <span class="land"><span class="art"><svg viewBox="0 0 200 28">
+          <rect x="22" y="4" width="146" height="20" fill="#F5C33B"/><rect x="22" y="4" width="146" height="7" fill="#F9D867"/>
+          <rect x="168" y="4" width="10" height="20" fill="#B9B4AD"/><rect x="178" y="4" width="16" height="20" rx="4" fill="#E58C7A"/>
+          <path d="M22 4L2 14l20 10z" fill="#F0D2A8"/><path d="M8 11L2 14l6 3z" fill="#2A2927"/>
+        </svg></span></span>
+      </button>
+    </div>
+
+    <div class="counter" aria-live="polite"><span id="countTxt">drag &amp; click anything · 0/11</span><span class="pips" id="pips" aria-hidden="true"></span></div>
+    <button class="replay" id="replayBtn" type="button">↺ replay intro</button>
+
+    <!-- Play: the full desk. Tidy: everything is swept to the edges for a calm, focused intro. -->
+    <div class="modes" id="modes" role="group" aria-label="Desk mode">
+      <span class="thumb" aria-hidden="true"></span>
+      <button type="button" data-mode="play" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5a2 2 0 1 1 4 0V6h3.5A1.5 1.5 0 0 1 18 7.5V11h-1.5a2 2 0 1 0 0 4H18v3.5a1.5 1.5 0 0 1-1.5 1.5H13v-1.5a2 2 0 1 0-4 0V20H5.5A1.5 1.5 0 0 1 4 18.5V15h1.5a2 2 0 1 0 0-4H4V7.5A1.5 1.5 0 0 1 5.5 6H9z"/></svg><span>Play</span></button>
+      <button type="button" data-mode="tidy" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M8.5 11h7l1.5 4H7z"/><path d="M7 15l-1.5 6M10 15l-.5 6M14 15l.5 6M17 15l1.5 6"/></svg><span>Tidy up</span></button>
+    </div>
+    <div class="drawbar" id="drawbar" hidden><span>Doodle away</span><button class="ghost" id="clearBtn" type="button">Clear</button><button id="dropBtn" type="button">Put pencil down</button></div>
+  </div>
+</section>
+
+<main>
+  <!-- ================= WORK =================
+       Featured work: a list on the left (one project open at a time) and a large
+       preview on the right. Each project's colour is --c on its <li> and preview.
+       The full story for the pop-up lives in assets/js/cases.js under the key in
+       data-open-case; each opens its own page (case-<key>.html). Preview images live in assets/work/. The two "soon" items are
+       placeholders: copy a real item's markup over them when a case study is ready. -->
+  <section class="work-sec" id="work" aria-labelledby="workTitle">
+    <div class="wrap wide reveal">
+      <div class="sec-head">
+        <div>
+          <p class="eyebrow-no"><i></i><b>01</b>Selected work</p>
+          <h2 id="workTitle">Featured work.</h2>
+          <p class="hand-note">two shipped, two on the way</p>
+        </div>
+        <p>Real projects, from a switch configurator to a holographic national story. Open any project for the full story.</p>
+      </div>
+      <div class="fw" id="fw">
+        <ol class="fw-list" role="tablist" aria-label="Projects">
+        <li class="fw-item on" style="--c:#D9332B">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab0" aria-selected="true" aria-controls="fwShot0" data-i="0"><h3>A guided way to build the right switch plate</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>Legrand · Arteor</span><span>Configurator</span><span>Saudi Arabia</span></p>
+            <p class="fw-desc">Turning a purchase-driven configurator into a specification tool for architects and dealers, in a market with no online checkout.</p>
+            <p class="fw-metrics"><span><b>3 steps</b>Form, function, finish</span><span><b>Live</b>Validation at every action</span><span><b>3 endings</b>Save, bill of materials, image</span></p>
+            <p class="fw-actions"><a class="fw-cta" href="case-legrand.html" data-open-case="legrand">Read case study <span aria-hidden="true">→</span></a></p>
+          </div></div>
+        </li>
+        <li class="fw-item" style="--c:#E0566B">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab1" aria-selected="false" aria-controls="fwShot1" data-i="1"><h3>Oman Vision 2040, felt in under a minute</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>MTCIT × EvolutionCo</span><span>Holographic touch</span><span>AI media</span></p>
+            <p class="fw-desc">A 200-page national plan turned into a holographic touch story for COMEX Oman 2025: five pillars, fifteen tap-to-watch films.</p>
+            <p class="fw-metrics"><span><b>15</b>Stories, from 200+ pages</span><span><b>60s</b>Booth time we designed for</span><span><b>5 days</b>To make 15 AI films</span></p>
+            <p class="fw-actions"><a class="fw-cta" href="case-oman.html" data-open-case="oman">Read case study <span aria-hidden="true">→</span></a></p>
+          </div></div>
+        </li>
+        <li class="fw-item soon" style="--c:#2D74B5">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab2" aria-selected="false" aria-controls="fwShot2" data-i="2"><h3>Case study three, being refined</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>Coming soon</span></p>
+            <p class="fw-desc">This one is getting a final polish. Check back soon, or ask me about it.</p>
+            
+            <p class="fw-actions"><a class="fw-cta" href="#contact">Ask me about it <span aria-hidden="true">→</span></a></p>
+          </div></div>
+        </li>
+        <li class="fw-item soon" style="--c:#7A54D8">
+          <span class="fw-bar" aria-hidden="true"><i></i></span>
+          <button class="fw-head" type="button" role="tab" id="fwTab3" aria-selected="false" aria-controls="fwShot3" data-i="3"><h3>Case study four, being refined</h3></button>
+          <div class="fw-body"><div>
+            <p class="fw-tags"><span>Coming soon</span></p>
+            <p class="fw-desc">Another project on the way. Happy to walk you through it on a call.</p>
+            
+            <p class="fw-actions"><a class="fw-cta" href="#contact">Ask me about it <span aria-hidden="true">→</span></a></p>
+          </div></div>
+        </li>
+        </ol>
+        <div class="fw-stage">
+          <button class="fw-shot on" type="button" id="fwShot0" role="tabpanel" aria-labelledby="fwTab0" data-open-case="legrand" style="--c:#D9332B" tabindex="-1">
+            <img class="shot-img framed" src="assets/work/legrand.webp" alt="The Arteor switch configurator with a 2-module square plate" loading="lazy">
+            <span class="meta"><span>2025</span><span>Case study</span></span>
+          </button>
+          <button class="fw-shot" type="button" id="fwShot1" role="tabpanel" aria-labelledby="fwTab1" data-open-case="oman" style="--c:#E0566B" tabindex="-1">
+            <img class="shot-img" src="assets/work/oman.webp" alt="" loading="lazy" style="object-fit:cover; background:#160E10">
+            <span class="meta"><span>2025</span><span>Case study</span></span>
+          </button>
+          <button class="fw-shot soon" type="button" id="fwShot2" role="tabpanel" aria-labelledby="fwTab2" style="--c:#2D74B5" tabindex="-1">
+            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+            <span class="soon-card" aria-hidden="true"><b>03</b><span>being polished</span><i></i><i></i><i></i></span>
+            <span class="meta"><span>Soon</span><span>In the works</span></span>
+          </button>
+          <button class="fw-shot soon" type="button" id="fwShot3" role="tabpanel" aria-labelledby="fwTab3" style="--c:#7A54D8" tabindex="-1">
+            <span class="scene" aria-hidden="true"><span class="sun"></span><span class="hill h1"></span><span class="hill h2"></span><span class="hill h3"></span></span>
+            <span class="soon-card" aria-hidden="true"><b>04</b><span>being polished</span><i></i><i></i><i></i></span>
+            <span class="meta"><span>Soon</span><span>In the works</span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROCESS: a book you flip through =================
+       Edit the pages inside <template id="bookPages">, in reading order.
+       The script lays them out as a two-page book on desktop and a swipeable
+       stack on phones. Page 1 is the left page you open on; the last page is the
+       final right page. Paths with class="ink" draw themselves when shown. -->
+  <section class="process band" id="process" aria-labelledby="processTitle">
+    <div class="wrap reveal">
+      <div class="sec-head">
+        <div>
+          <p class="eyebrow-no"><i></i><b>02</b>How I work</p>
+          <h2 id="processTitle">My design process.</h2>
+          <p class="hand-note">(the honest edition)</p>
+        </div>
+        <p>How it really goes on a deadline: fast, scrappy, and with AI speeding up every step. Turn the pages.</p>
+      </div>
+      <div class="book-stage">
+        <div class="book" id="book" role="group" aria-roledescription="book" aria-label="My design process">
+          <span class="cover" aria-hidden="true"></span>
+          <span class="edge l" aria-hidden="true"></span><span class="edge r" aria-hidden="true"></span>
+          <div class="leaves" id="leaves"></div>
+        </div>
+      </div>
+      <div class="deck" id="deck" aria-label="My design process, swipe through"></div>
+      <div class="book-nav">
+        <button type="button" id="bookPrev" aria-label="Previous page">←</button>
+        <span id="bookCount" aria-live="polite">1 / 5</span>
+        <button type="button" id="bookNext" aria-label="Next page">→</button>
+      </div>
+      <p class="book-hint">click a page, or use ← → to turn</p>
+    </div>
+
+    <template id="bookPages">
+      <article class="pg pg-title">
+        <span class="pg-kicker">Vol. 1</span>
+        <h3>The Design<br>Process</h3>
+        <span class="pg-by">by Aakansha Singh</span>
+        <span class="pg-scrawl">a very serious guide (now with AI) →</span>
+      </article>
+
+      <article class="pg pg-poster">
+        <span class="frame"><span class="mat">
+          <span class="quote">Whenever I'm about to do something, I think, “Would an idiot do that?” And if they would, I do not do that thing.</span>
+          <span class="who">— Dwight Schrute</span>
+        </span></span>
+        <span class="pg-scrawl">step 1. obviously.</span>
+      </article>
+
+      <article class="pg pg-kidding">
+        <span class="big">Kidding.</span>
+        <span class="sub">(mostly. it's still a solid filter.)</span>
+        <span class="pg-scrawl">here's what actually happens →</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M40 90 C70 40, 120 110, 160 50"/><path class="ink" d="M150 44 L162 50 L156 62"/></svg>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">01</span>
+        <h3>Decode the brief</h3>
+        <p>A kickoff with PM and engineering to pin down the goal, the constraints, the deadline and how we'll know it worked.</p>
+        <span class="ai-note"><b>✦ AI</b> Turns the PRD and meeting notes into a crisp problem statement and a list of open questions.</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M40 50 C40 25, 80 25, 80 45 C80 60, 60 60, 60 75"/><circle class="ink" cx="60" cy="92" r="2"/><path class="ink" d="M110 45 C110 20, 150 20, 150 40 C150 55, 130 55, 130 70"/><circle class="ink" cx="130" cy="87" r="2"/><path class="ink" d="M168 30 C168 15, 186 15, 186 28 C186 36, 177 37, 177 46"/><circle class="ink" cx="177" cy="56" r="1.5"/></svg>
+        <span class="pg-scrawl">the brief is a starting point, not a spec</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">02</span>
+        <h3>Audit &amp; reference</h3>
+        <p>A quick audit of what exists, plus how the best products solve the same pattern, and the numbers if analytics has them.</p>
+        <span class="ai-note"><b>✦ AI</b> Perplexity and ChatGPT for fast competitor and pattern scans, so I'm not starting from zero.</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M30 20 H170 L120 70 V105 L80 95 V70 Z"/><path class="ink" d="M60 40 h80 M75 55 h50"/><path class="ink" d="M150 85 l14 14 m0 -14 l-14 14"/></svg>
+        <span class="pg-scrawl">no need to reinvent the dropdown</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">03</span>
+        <h3>Map flows &amp; edge cases</h3>
+        <p>User flows, information architecture and every state: empty, loading, error, too much, too little.</p>
+        <span class="ai-note"><b>✦ AI</b> Claude stress-tests my flows and lists the edge cases and states I'd otherwise find in QA.</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="20" y="20" width="44" height="34" rx="3"/><rect class="ink" x="78" y="20" width="44" height="34" rx="3"/><rect class="ink" x="136" y="20" width="44" height="34" rx="3"/><rect class="ink" x="20" y="68" width="44" height="34" rx="3"/><rect class="ink" x="78" y="68" width="44" height="34" rx="3"/><rect class="ink" x="136" y="68" width="44" height="34" rx="3"/><path class="ink hl" d="M68 86 C66 60, 132 58, 134 84 C136 110, 70 112, 74 80"/></svg>
+        <span class="pg-scrawl">edge cases live here</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">04</span>
+        <h3>Explore fast, wireframe rough</h3>
+        <p>Two or three directions as low-fi wireframes, reviewed early with PM and devs before anyone falls in love with pixels.</p>
+        <span class="ai-note"><b>✦ AI</b> Figma Make and v0 spin up rough concepts in minutes, so we compare real options, not opinions.</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="70" y="10" width="60" height="100" rx="10"/><path class="ink" d="M82 34 h36 M82 48 h24 M82 86 h36"/><path class="ink" d="M140 70 l16 30 l6 -12 l12 -2 z"/></svg>
+        <span class="pg-scrawl">rough is fine. fast is better.</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">05</span>
+        <h3>Design, prototype, review</h3>
+        <p>Hi-fi UI on the design system, a clickable prototype, design crits and quick feedback rounds with the team.</p>
+        <span class="ai-note"><b>✦ AI</b> Figma AI renames layers, fills realistic content and drafts microcopy. I edit everything.</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="30" y="40" width="140" height="44" rx="6"/><path class="ink" d="M30 24 h140 M30 18 v12 M170 18 v12"/><path class="ink" d="M186 40 v44 M180 40 h12 M180 84 h12"/><path class="ink hl" d="M50 62 h60"/></svg>
+        <span class="pg-scrawl">what happens when it's empty?</span>
+      </article>
+
+      <article class="pg pg-step">
+        <span class="num">06</span>
+        <h3>Hand off, QA, iterate</h3>
+        <p>Clean specs, a walkthrough with developers, design QA on real builds, then tweaks once it's live.</p>
+        <span class="ai-note"><b>✦ AI</b> Drafts specs and QA checklists, and Cursor turns tricky interactions into coded prototypes.</span>
+        <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M100 20 A40 40 0 1 1 62 48"/><path class="ink" d="M54 36 L62 50 L76 44"/><path class="ink" d="M86 64 l10 10 l20 -22"/></svg>
+        <span class="pg-scrawl">design QA is design too</span>
+      </article>
+
+      <article class="pg pg-end">
+        <span class="big">The End.</span>
+        <span class="sub">…until v2.</span>
+        <a class="pg-cta" href="#work">See it in real projects →</a>
+        <button class="pg-again" type="button" data-book-restart>read it again ↺</button>
+      </article>
+    </template>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section class="wrap reveal" id="about" aria-labelledby="aboutTitle">
+    <div class="about">
+      <div>
+        <p class="eyebrow-no"><i></i><b>03</b>About</p>
+        <h2 id="aboutTitle">Hi, I'm Aakansha.</h2>
+        <p class="hand-note">designer · question-asker · croissant enthusiast</p>
+      </div>
+      <div class="about-copy">
+        <p class="big">I'm a product designer with three years of making complex things feel simple, from product configurators to a holographic national story.</p>
+        <p>I start where people give up, keep their exact words close, and prototype early so the team argues less and ships more.</p>
+        <ol class="timeline">
+          <li><span class="mono">2024 — now</span><span><b>Product Designer · [Company]</b>Checkout, payments and the design system</span></li>
+          <li><span class="mono">2023 — 24</span><span><b>UI/UX Designer · [Company]</b>Onboarding and KYC for a lending app</span></li>
+          <li><span class="mono">2022 — 23</span><span><b>Design Intern · [Studio]</b>Websites and brand work for early-stage startups</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= OFF THE CLOCK: Side B =================
+       What I do when I'm not designing. Each hobby is a track on the B-side.
+       Edit the list below: the track name in .trk-t, and its details in the
+       matching <template data-track>. --lc is the record label colour. -->
+  <section class="wrap reveal band" id="offclock" aria-labelledby="offTitle">
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow-no"><i></i><b>04</b>Off the clock</p>
+        <h2 id="offTitle">Side B: when I'm not designing.</h2>
+        <p class="hand-note">pick a track ↓</p>
+      </div>
+      <p>The stuff that keeps me curious, and quietly makes me a better designer.</p>
+    </div>
+    <div class="sideb" id="sideb">
+      <div class="player">
+        <div class="tt" aria-hidden="true">
+          <div class="platter"><div class="vinyl" id="vinyl"><div class="label" id="vLabel"><span id="vLabelT">Side B</span><i></i></div></div></div>
+          <svg class="arm" id="arm" viewBox="0 0 120 220"><circle cx="90" cy="26" r="16" fill="#D8D0C0"/><circle cx="90" cy="26" r="7" fill="#9C9384"/><path d="M90 26 L84 150 L58 192" fill="none" stroke="#B9B0A0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="44" y="184" width="26" height="16" rx="3" transform="rotate(-38 57 192)" fill="#3B3631"/></svg>
+          <span class="knob"></span>
+        </div>
+        <div class="now" id="now" aria-live="polite">
+          <span class="now-k" id="nowK">Side B · track 1</span>
+          <div class="now-body" id="nowBody"></div>
+          <button class="now-play" id="nowPlay" type="button" aria-label="Play">▶ <span>Play</span></button>
+        </div>
+      </div>
+      <ol class="tracks">
+          <li><button class="trk on" type="button" data-i="0" style="--lc:#D9482F" aria-pressed="false">
+            <span class="trk-no">B1</span><span class="trk-t">Baking</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="1" style="--lc:#2D74B5" aria-pressed="false">
+            <span class="trk-no">B2</span><span class="trk-t">Yoga</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="2" style="--lc:#2F8F4E" aria-pressed="false">
+            <span class="trk-no">B3</span><span class="trk-t">Café sketching</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="3" style="--lc:#E0A92A" aria-pressed="false">
+            <span class="trk-no">B4</span><span class="trk-t">Street food: pani puri</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+          <li><button class="trk" type="button" data-i="4" style="--lc:#7A54D8" aria-pressed="false">
+            <span class="trk-no">B5</span><span class="trk-t">Lo-fi & long walks</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button></li>
+      </ol>
+        <template data-track="0"><b>Baking</b><p>Weekend bakes, measured to the gram. Recipes are just specs, and I iterate on them like designs.</p><span class="stat">current project: the perfect croissant</span><svg viewBox="0 0 80 70"><path d="M14 30 h52 v28 a6 6 0 0 1 -6 6 h-40 a6 6 0 0 1 -6 -6 Z"/><path d="M10 30 h60"/><path d="M24 30 c0 -10 32 -10 32 0"/><path d="M30 18 c-2 -4 2 -6 0 -10 M40 16 c-2 -4 2 -6 0 -10 M50 18 c-2 -4 2 -6 0 -10"/></svg></template>
+        <template data-track="1"><b>Yoga</b><p>The one hour of the day with no screens and no notifications. Balance on the mat, and slowly everywhere else.</p><span class="stat">favourite pose: still working on it</span><svg viewBox="0 0 80 70"><circle cx="40" cy="12" r="6"/><path d="M40 18 v22"/><path d="M40 26 L22 18 M40 26 L58 18"/><path d="M40 40 L28 58 M40 40 L52 58"/><path d="M12 62 h56"/></svg></template>
+        <template data-track="2"><b>Café sketching</b><p>A pocket sketchbook, a pen I'm scared to lose, and whoever sits by the window.</p><span class="stat">sketchbook no. 6 · half full</span><svg viewBox="0 0 80 70"><rect x="14" y="10" width="44" height="56" rx="3"/><path d="M14 18 h-4 M14 30 h-4 M14 42 h-4 M14 54 h-4"/><path d="M26 44 C30 30 40 30 44 40 S54 46 50 30"/><path d="M62 14 L72 60" /><path d="M70 54 l2 6 l-5 -3"/></svg></template>
+        <template data-track="3"><b>Street food: pani puri</b><p>Pani puri is a personality trait. I will walk 40 minutes for the right tangy water.</p><span class="stat">order: one more plate, extra teekha</span><svg viewBox="0 0 80 70"><path d="M10 40 h60 C68 56 56 64 40 64 S12 56 10 40 Z"/><circle cx="26" cy="32" r="10"/><circle cx="46" cy="30" r="11"/><circle cx="60" cy="34" r="8"/><ellipse cx="26" cy="27" rx="4" ry="2"/><ellipse cx="46" cy="25" rx="4.5" ry="2"/><path d="M46 12 c-2 -4 2 -6 0 -9"/></svg></template>
+        <template data-track="4"><b>Lo-fi & long walks</b><p>Headphones on, no destination. This is where most of my best ideas show up.</p><span class="stat">avg. walk: 6,000 steps · 3 ideas</span><svg viewBox="0 0 80 70"><path d="M16 44 V36 a24 24 0 0 1 48 0 V44"/><rect x="10" y="42" width="12" height="18" rx="4"/><rect x="58" y="42" width="12" height="18" rx="4"/></svg></template>
+    </div>
+  </section>
+
+  <!-- ================= AI EXPERIMENTS =================
+       Three tabs: Images, Videos, Games.
+       Images: put files in assets/ai/images and add a .pin button (data-i is its order).
+       Videos: put files in assets/ai/videos and set data-src on a .vid figure,
+               e.g. <figure class="vid" data-src="assets/ai/videos/loop.mp4">.
+       Games: single HTML files in assets/ai/games, with a screenshot in thumbs/. -->
+  <section class="wrap reveal" id="experiments" aria-labelledby="expTitle">
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow-no"><i></i><b>05</b>AI experiments</p>
+        <h2 id="expTitle">Things I made with AI.</h2>
+        <p class="hand-note">prompted, picked, and polished by me</p>
+      </div>
+      <div class="exp-tabs" id="expTabs" role="tablist" aria-label="Experiment type">
+        <span class="thumb" aria-hidden="true"></span>
+        <button type="button" role="tab" id="tabImages" aria-controls="panelImages" aria-selected="true">Images <i>4</i></button>
+        <button type="button" role="tab" id="tabVideos" aria-controls="panelVideos" aria-selected="false">Videos <i>3</i></button>
+        <button type="button" role="tab" id="tabGames" aria-controls="panelGames" aria-selected="false">Games <i>3</i></button>
+      </div>
+    </div>
+
+    <div class="exp-panel on" id="panelImages" role="tabpanel" aria-labelledby="tabImages">
+      <div class="pins">
+          <button class="pin" type="button" data-i="0" style="--rot:-2.2deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/butterday.webp" alt="butterday: Meet your sunny side. A warm breakfast brand poster." loading="lazy" style="aspect-ratio:4/5">
+            <span class="pin-cap"><b>butterday</b><span>Meet your sunny side</span></span>
+          </button>
+          <button class="pin" type="button" data-i="1" style="--rot:1.6deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/slowleaf.webp" alt="slowleaf: Nature, by the spoonful. A plant-bowl poster for a slow-food brand." loading="lazy" style="aspect-ratio:4/5">
+            <span class="pin-cap"><b>slowleaf</b><span>Nature, by the spoonful</span></span>
+          </button>
+          <button class="pin" type="button" data-i="2" style="--rot:-1deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/bun-club.webp" alt="Bun Club: Big Crunch. Bold type for a crispy chicken burger." loading="lazy" style="aspect-ratio:4/5">
+            <span class="pin-cap"><b>Bun Club</b><span>Big Crunch</span></span>
+          </button>
+          <button class="pin" type="button" data-i="3" style="--rot:2.4deg">
+            <span class="tape" aria-hidden="true"></span>
+            <img src="assets/ai/images/vada-pav.webp" alt="Vada Pav: The Great Mumbai Escape. A retro travel poster for a street-food icon." loading="lazy" style="aspect-ratio:2/3">
+            <span class="pin-cap"><b>Vada Pav</b><span>The Great Mumbai Escape</span></span>
+          </button>
+      </div>
+    </div>
+    <div class="exp-panel" id="panelVideos" role="tabpanel" aria-labelledby="tabVideos" hidden>
+      <div class="vids">
+          <figure class="vid" data-src="">
+            <div class="vid-frame"><span class="vid-empty"><span class="play-btn" aria-hidden="true">▶</span>Motion study #1<small>coming soon</small></span></div>
+            <figcaption><b>Motion study #1</b>Add an AI video here</figcaption>
+          </figure>
+          <figure class="vid" data-src="">
+            <div class="vid-frame"><span class="vid-empty"><span class="play-btn" aria-hidden="true">▶</span>Product teaser<small>coming soon</small></span></div>
+            <figcaption><b>Product teaser</b>Add an AI video here</figcaption>
+          </figure>
+          <figure class="vid" data-src="">
+            <div class="vid-frame"><span class="vid-empty"><span class="play-btn" aria-hidden="true">▶</span>Brand loop<small>coming soon</small></span></div>
+            <figcaption><b>Brand loop</b>Add an AI video here</figcaption>
+          </figure>
+      </div>
+    </div>
+    <div class="exp-panel" id="panelGames" role="tabpanel" aria-labelledby="tabGames" hidden>
+      <div class="games">
+          <article class="game">
+            <button class="game-shot" type="button" data-game="snakes-and-ladders" data-title="Snakes &amp; Ladders" aria-label="Play Snakes &amp; Ladders">
+              <img src="assets/ai/games/thumbs/snakes-and-ladders.webp" alt="" loading="lazy">
+              <span class="play-btn" aria-hidden="true">▶</span>
+            </button>
+            <div class="game-body">
+              <h3>Snakes &amp; Ladders</h3>
+              <p>A wooden-board classic with hand-drawn snakes. Play the computer or a friend.</p>
+              <p class="chips"><span>1–2 players</span><span>Dice</span><span>Sound</span></p>
+              <button class="game-cta" type="button" data-game="snakes-and-ladders" data-title="Snakes &amp; Ladders">Play now <span aria-hidden="true">→</span></button>
+            </div>
+          </article>
+          <article class="game">
+            <button class="game-shot" type="button" data-game="pen-fight" data-title="Pen Fight" aria-label="Play Pen Fight">
+              <img src="assets/ai/games/thumbs/pen-fight.webp" alt="" loading="lazy">
+              <span class="play-btn" aria-hidden="true">▶</span>
+            </button>
+            <div class="game-body">
+              <h3>Pen Fight</h3>
+              <p>The school-desk game: flick your pen, knock theirs off the desk. Report cards included.</p>
+              <p class="chips"><span>1–2 players</span><span>Physics</span><span>Unlockables</span></p>
+              <button class="game-cta" type="button" data-game="pen-fight" data-title="Pen Fight">Play now <span aria-hidden="true">→</span></button>
+            </div>
+          </article>
+          <article class="game">
+            <button class="game-shot" type="button" data-game="keys-that-sing" data-title="Keys That Sing" aria-label="Play Keys That Sing">
+              <img src="assets/ai/games/thumbs/keys-that-sing.webp" alt="" loading="lazy">
+              <span class="play-btn" aria-hidden="true">▶</span>
+            </button>
+            <div class="game-body">
+              <h3>Keys That Sing</h3>
+              <p>A writing pad where every key plays a note. Vowels ring, full stops land on chords.</p>
+              <p class="chips"><span>Type to play</span><span>Music</span><span>Calm</span></p>
+              <button class="game-cta" type="button" data-game="keys-that-sing" data-title="Keys That Sing">Play now <span aria-hidden="true">→</span></button>
+            </div>
+          </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+  <!-- ================= FOOTER: contact + a little game ================= -->
+  <footer class="site-foot" id="contact" aria-labelledby="contactTitle">
+    <div class="wrap foot-grid reveal">
+      <div class="foot-talk">
+        <p class="eyebrow-no"><i></i><b>06</b>Let's talk</p>
+        <h2 id="contactTitle">Got a flow that's a bit <em>tangled?</em></h2>
+        <p class="contact-sub">I'm open to product design roles and the occasional freelance project. I reply within a day.</p>
+        <div class="mail"><code id="email">you@youremail.com</code><button class="copy" id="copyBtn" type="button">Copy email</button></div>
+        <ul class="stamps">
+          <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="https://dribbble.com/" target="_blank" rel="noopener">Dribbble</a></li>
+          <li><a href="https://medium.com/" target="_blank" rel="noopener">Medium</a></li>
+          <li><a href="#contact">Resume</a></li>
+        </ul>
+      </div>
+
+      <div class="toss" id="toss">
+        <div class="toss-head">
+          <div><b>Before you go…</b><span>flick the paper ball into the bin</span></div>
+          <div class="toss-score"><span>score <b id="tossScore">0</b></span><span>best <b id="tossBest">0</b></span></div>
+        </div>
+        <canvas id="tossCanvas" aria-label="Paper toss game. Drag the paper ball back and let go to throw it into the bin."></canvas>
+        <p class="toss-msg" id="tossMsg" aria-live="polite">drag the ball back, then let go</p>
+      </div>
+    </div>
+    <div class="wrap foot-bar">
+      <span>© <span id="year">2026</span> Aakansha Singh</span>
+      <span class="hand">designed with too much coffee ☕</span>
+      <a href="#top">Back to the desk ↑</a>
+    </div>
+  </footer>
+
+<dialog id="lightbox" class="lightbox" aria-label="Image viewer">
+  <button class="lb-close" type="button" data-close aria-label="Close">×</button>
+  <button class="lb-nav prev" type="button" id="lbPrev" aria-label="Previous image">←</button>
+  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <button class="lb-nav next" type="button" id="lbNext" aria-label="Next image">→</button>
+</dialog>
+
+<dialog id="gameDlg" class="game-dlg" aria-labelledby="gameTitle">
+  <div class="gd-bar"><b id="gameTitle"></b><span><a id="gameNewTab" href="#" target="_blank" rel="noopener">open in new tab ↗</a><button type="button" data-close aria-label="Close game">×</button></span></div>
+  <iframe id="gameFrame" title="Game" allow="autoplay; fullscreen"></iframe>
+</dialog>
+
+<script src="assets/js/sound.js"></script>
+<script src="assets/js/intro.js"></script>
+<script src="assets/js/desk.js"></script>
+<script src="assets/js/cases.js"></script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/process.js"></script>
+<script src="assets/js/experiments.js"></script>
+<script src="assets/js/toss.js"></script>
+<script src="assets/js/sideb.js"></script>
+<script src="assets/js/about-me.js"></script>
+<script src="assets/js/chat.js"></script>
+</body>
+</html>
