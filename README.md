@@ -49,6 +49,8 @@ assets/js/intro.js    the thread / name intro
 assets/js/desk.js     dragging and the click action of every desk object
 assets/js/cases.js    case study content for the detail pages
 assets/js/case.js     renders a case study page
+assets/js/about-me.js everything the chatbot knows about you (edit this)
+assets/js/chat.js     the "Ask me anything" chatbot
 assets/js/site.js     featured work, case study dialog, copy email, header highlight, scroll reveals
 assets/js/process.js  the flip-through design process book
 assets/js/experiments.js  AI experiments tabs, image viewer, videos, game player
@@ -56,6 +58,10 @@ assets/js/toss.js     the paper-toss game in the footer
 assets/js/sideb.js    the Side B record player
 assets/ai/            AI images, videos and games
 ```
+
+## Chatbot
+
+An "Ask me anything" button on every page answers visitors' questions about you. It only uses what is written in `assets/js/about-me.js` (plus the case studies in `cases.js`), and says it doesn't know when something isn't there. On the claude.ai preview it asks Claude (visitors approve this the first time); anywhere else it uses the quick answers in `ABOUT_ME.faq`.
 
 ## Make it yours
 
