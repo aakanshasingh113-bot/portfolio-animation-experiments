@@ -2,7 +2,7 @@
 
 A static portfolio site (no build step).
 
-**The intro:** a red dot draws a coiled thread under the name, and each letter of "Aakansha Singh" rises into place as the dot passes it. The coil pulls straight, the bold name lifts away and the dot runs along the line like a pen, writing the name in script, and the dark screen splits open along the thread. Click, scroll or press Escape to skip. It is skipped automatically for people who prefer reduced motion.
+**The intro:** a ball of tangled red thread spins on a dark screen. Press and hold (or Space, or just wait about 3 seconds) and the thread unwinds: its fibres stream out of the ball and stitch "Aakansha Singh" together, left to right. Let go early and it tangles back up; move the cursor through the fibres to scatter them. When the name is complete it settles into the crisp handwriting and the screen splits open onto the desk. Escape, scrolling or "Skip intro" skips it; it plays once per visit and is skipped for reduced motion.
 
 **Play / Tidy up:** the switch at the bottom of the desk. Tidy up sweeps every object to the edges for a calm, focused intro; clicking any object (or Play) brings the desk back. The choice is remembered.
 

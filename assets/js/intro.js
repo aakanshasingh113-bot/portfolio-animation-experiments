@@ -1,141 +1,208 @@
-/* Intro — a red dot draws a coiled thread and each letter of the name rises
-   into place, in its final handwriting, as the dot passes. The thread pulls
-   taut, then the dark screen splits open along it and the same name stays
-   put on the desk. The name is written once.
-   Click, Escape or scroll skips it. Reduced motion skips it entirely. */
+/* Intro — a ball of tangled red thread spins on a dark screen. Press and hold
+   (or Space, or just wait) and the thread unwinds: its fibres stream out of the
+   ball, left to right, and stitch the name together. Let go early and it tangles
+   back up. The cursor scatters the fibres; they spring back. When the name is
+   complete the fibres settle into the crisp name, in exactly the spot it sits on
+   the desk, and the screen splits open. Escape, scroll or "Skip" skips it. */
 (function(){
   var S = window.Site, $ = S.$, snd = S.snd;
-  var intro = $('intro'), path = $('ipath'), pen = $('ipen'), iname = $('iname');
+  var intro = $('intro'), cv = $('icv'), ctx = cv.getContext('2d'), iname = $('iname'), hint = $('ihint'), bar = $('ibar');
   var desk = $('top'), deskName = $('deskName'), body = document.body;
   var NAME = 'Aakansha Singh';
-  var timers = [], raf = null, done = false;
+  var timers = [], raf = null, done = false, running = false;
 
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
-  function clearAll(){ timers.forEach(clearTimeout); timers = []; cancelAnimationFrame(raf); }
-  function animate(dur, step, end){
-    var t0 = performance.now();
-    (function tick(now){
-      var k = Math.min(1, (now - t0) / dur); step(k);
-      if(k < 1) raf = requestAnimationFrame(tick); else if(end) end();
-    })(t0);
-  }
   function ease(k){ return k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k + 2, 3) / 2; }
-
+  function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
 
   function reveal(){
     desk.classList.remove('ready'); void desk.offsetWidth; desk.classList.add('ready');
     window.dispatchEvent(new Event('deskready'));
   }
-
+  function stop(){ timers.forEach(clearTimeout); timers = []; cancelAnimationFrame(raf); running = false; }
   function finish(){
-    if(done) return; done = true; started = true; clearAll();
-    intro.classList.add('open');
-    body.classList.remove('intro-on');
+    if(done) return; done = true; stop();
+    intro.classList.add('open'); body.classList.remove('intro-on');
     reveal();
     later(function(){ intro.hidden = true; }, 1300);
   }
 
-  function play(){
-    clearAll(); done = false;
-    window.scrollTo(0, 0);
-    body.classList.add('intro-on');
-    desk.classList.remove('ready');
-    intro.hidden = false; intro.classList.remove('open');
-    pen.style.opacity = 0; path.setAttribute('d', '');
-    var W = innerWidth, H = innerHeight;
-    var r0 = deskName.getBoundingClientRect();
-    /* on phones the desk name sits near the top; play the intro centred and let the split hide the jump */
-    var shift = (r0.top + r0.height/2 < H * .3) ? Math.round(H * .46 - (r0.top + r0.height/2)) : 0;
-    var nr = {left:r0.left, right:r0.right, width:r0.width, height:r0.height, top:r0.top + shift};
-    var cx = nr.left + nr.width/2, cy = nr.top + nr.height/2;
+  /* ---------- scene state ---------- */
+  var W, H, dpr, P = [], N = 0, cx, cy, R, shift = 0;
+  var prog = 0, holding = false, auto = false, settled = false, settledAt = 0, t0 = 0, last = 0, lastTick = 0;
+  var ptr = { x: -9999, y: -9999, on: false };
 
-    /* the name is laid out exactly like the desk's name, so it appears once and simply stays */
-    var cs = getComputedStyle(deskName);
-    iname.innerHTML = ''; iname.style.transition = ''; iname.style.transform = '';
+  function build(){
+    W = innerWidth; H = innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+
+    /* where the name sits on the desk (centred on phones, where the desk name is near the top) */
+    var r0 = deskName.getBoundingClientRect(), cs = getComputedStyle(deskName);
+    shift = (r0.top + r0.height/2 < H * .3) ? Math.round(H * .44 - (r0.top + r0.height/2)) : 0;
     ['fontFamily','fontWeight','fontSize','letterSpacing','lineHeight','padding'].forEach(function(k){ iname.style[k] = cs[k]; });
-    var spans = NAME.split('').map(function(ch){ var s = document.createElement('span'); s.textContent = ch; iname.appendChild(s); return s; });
-    var bw = iname.offsetWidth, bh = iname.offsetHeight, left = nr.left + (nr.width - bw) / 2, top = nr.top + (nr.height - bh) / 2;
-    iname.style.left = left + 'px'; iname.style.top = top + 'px';
-    var lineY = Math.round(top + bh * .8);
-    intro.style.setProperty('--cut', lineY + 'px');
+    iname.textContent = NAME; iname.style.transform = '';
+    iname.style.left = r0.left + 'px'; iname.style.top = (r0.top + shift) + 'px'; iname.style.width = r0.width + 'px'; iname.style.textAlign = 'center';
+    var range = document.createRange(); range.selectNodeContents(iname);
+    var tr = range.getBoundingClientRect();
 
-    /* the letters wait just below their final spots */
-    var letters = [];
-    spans.forEach(function(s, i){
-      if(NAME[i] === ' ') return;
-      s.style.transition = 'none'; s.className = 'wait';
-      letters.push({s:s, fx: left + s.offsetLeft + s.offsetWidth/2});
+    /* sample the name's pixels to get each fibre's destination */
+    var fs = parseFloat(cs.fontSize), off = document.createElement('canvas'), oc = off.getContext('2d');
+    off.width = W; off.height = H;
+    oc.font = cs.fontWeight + ' ' + fs + 'px ' + cs.fontFamily;
+    try{ oc.letterSpacing = cs.letterSpacing; }catch(e){}
+    var m = oc.measureText(NAME), asc = m.fontBoundingBoxAscent || fs * .8, des = m.fontBoundingBoxDescent || fs * .25;
+    var bx = tr.left + (tr.width - m.width) / 2, by = tr.top + (tr.height - (asc + des)) / 2 + asc;
+    oc.fillStyle = '#fff'; oc.textBaseline = 'alphabetic'; oc.fillText(NAME, bx, by);
+    var step = Math.round(clamp(fs / 52, 2, 3)), img = oc.getImageData(0, 0, W, H).data, T = [];
+    var y0 = Math.max(0, Math.floor(tr.top - fs * .4)), y1 = Math.min(H, Math.ceil(tr.bottom + fs * .4));
+    for(var y = y0; y < y1; y += step) for(var x = 0; x < W; x += step) if(img[(y * W + x) * 4 + 3] > 140) T.push([x + (Math.random() - .5) * step * .6, y + (Math.random() - .5) * step * .6]);
+    T.sort(function(a, b){ return a[0] - b[0]; });
+    N = T.length;
+    intro.style.setProperty('--cut', Math.round(tr.top + tr.height * .86) + 'px');
+
+    /* the ball sits where the name will be */
+    cx = W / 2; cy = tr.top + tr.height / 2; R = clamp(Math.min(W * .26, H * .2), 70, 150);
+    hint.style.top = Math.min(H - 120, cy + R + 46) + 'px';
+
+    P = T.map(function(t, i){
+      return { tx: t[0], ty: t[1], u: i / Math.max(1, N - 1), ox: 0, oy: 0, vx: 0, vy: 0, sx: 0, sy: 0, z: 0, local: 0, bend: (Math.random() - .5) * 2 };
     });
-    void iname.offsetWidth;
-    spans.forEach(function(s){ s.style.transition = ''; });
-
-    /* the thread: a straight lead-in, an even coil of loops under the name, a straight lead-out */
-    var pl = parseFloat(cs.paddingLeft) || 0, x0 = left + pl - 20, x1 = left + bw - pl + 20, loops = Math.max(7, Math.round((x1 - x0) / 62));
-    var R = Math.max(9, Math.min(16, bh * .12)), pts = [], base = [];
-    function add(x, y, bx){ pts.push([x, y]); base.push(bx); }
-    for(var i = 0; i <= 24; i++){ var x = -20 + (x0 + 20) * i / 24; add(x, lineY, x); }
-    var C = loops * 26;
-    for(var j = 1; j <= C; j++){
-      var u = j / C, th = u * Math.PI * 2 * loops, bx = x0 + (x1 - x0) * u;
-      add(bx - R * 1.15 * Math.sin(th), lineY + R * (1 - Math.cos(th)), bx);
-    }
-    for(var k2 = 1; k2 <= 24; k2++){ var xx = x1 + (W + 20 - x1) * k2 / 24; add(xx, lineY, xx); }
-    var N = pts.length, cum = [0];
-    for(var c = 1; c < N; c++) cum.push(cum[c-1] + Math.hypot(pts[c][0]-pts[c-1][0], pts[c][1]-pts[c-1][1]));
-    var L = cum[N-1];
-    function line(p){ var d = 'M' + p[0][0].toFixed(1) + ' ' + p[0][1].toFixed(1); for(var i = 1; i < p.length; i++) d += 'L' + p[i][0].toFixed(1) + ' ' + p[i][1].toFixed(1); return d; }
-    path.setAttribute('d', line(pts));
-    path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
-    function at(len){ var lo = 0, hi = N - 1; while(lo < hi){ var m = (lo + hi) >> 1; if(cum[m] < len) lo = m + 1; else hi = m; } return lo; }
-
-    later(function(){
-      // 1. the dot draws the coil; each letter rises into place as the dot passes it
-      pen.style.opacity = 1;
-      var lastLoop = -1;
-      animate(1700, function(k){
-        var e = ease(k) * .15 + k * .85, len = L * e, idx = at(len), p = pts[idx];
-        path.style.strokeDashoffset = L - len;
-        pen.setAttribute('cx', p[0]); pen.setAttribute('cy', p[1]);
-        letters.forEach(function(l){ if(!l.shown && base[idx] >= l.fx - 14){ l.shown = true; l.s.className = ''; snd.tone(420 + l.fx % 300, .06, 'triangle', .035); } });
-        var loopNo = Math.floor((base[idx] - x0) / (x1 - x0) * loops);
-        if(loopNo !== lastLoop && base[idx] > x0 && base[idx] < x1){ lastLoop = loopNo; snd.noise(.05, 'bandpass', 2600, .02, 0, null, 3); }
-      }, function(){
-        letters.forEach(function(l){ l.s.className = ''; });
-        later(straighten, 280);
-      });
-    }, 500);
-
-    // 2. the coil pulls taut, in place
-    function straighten(){
-      path.style.strokeDasharray = 'none'; path.style.strokeDashoffset = 0;
-      snd.whoosh();
-      animate(800, function(k){
-        var e = ease(k), p = [];
-        for(var i = 0; i < N; i++) p.push([pts[i][0] + (base[i] - pts[i][0]) * e, pts[i][1] + (lineY - pts[i][1]) * e]);
-        path.setAttribute('d', line(p));
-        pen.setAttribute('cx', W + 20); pen.style.opacity = 0;
-      }, function(){ snd.chime(); later(split, 520); });
-    }
-
-    // 4. the screen splits along the thread and the desk appears
-    function split(){
-      snd.noise(.9, 'bandpass', 300, .2, 0, 2400, .7);
-      if(shift){   // phones: glide the name up to where it sits on the desk, then hand over
-        iname.style.transition = 'transform .9s cubic-bezier(.65,0,.25,1), opacity .4s .75s';
-        iname.style.transform = 'translateY(' + (-shift) + 'px)';
-      }
-      done = true;
-      intro.classList.add('open');
-      body.classList.remove('intro-on');
-      later(reveal, 250);
-      later(function(){ intro.hidden = true; }, 1400);
-    }
   }
 
-  intro.addEventListener('click', finish);
-  window.addEventListener('keydown', function(e){ if(!done && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) finish(); });
-  window.addEventListener('wheel', function(){ if(!done) finish(); }, {passive:true});
+  /* a point on the yarn ball: a long thread wound around a sphere whose winding axis precesses */
+  var K = 23;
+  function ballPoint(u, time){
+    var th = u * Math.PI * 2 * K, ph = u * Math.PI * 2 * 3.3 + time * .35, tilt = .9 + .5 * Math.sin(u * 17);
+    var x = Math.cos(th), y = Math.sin(th) * Math.cos(tilt), z = Math.sin(th) * Math.sin(tilt);
+    var c = Math.cos(ph), s = Math.sin(ph), x2 = x * c + z * s, z2 = -x * s + z * c;
+    var wob = 1 + .06 * Math.sin(u * 211 + time * 1.3);
+    return [cx + x2 * R * wob, cy + y * R * wob * .92, z2];
+  }
 
+  function frame(now){
+    var dt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+    var time = (now - t0) / 1000;
+
+    /* progress: holding pulls, letting go early rewinds, waiting pulls on its own */
+    if(!auto && !holding && time > 3.2 && prog === 0) auto = true;
+    if(!settled){
+      if(holding || auto || prog > .86) prog = Math.min(1, prog + dt / (auto && !holding ? 2.6 : 1.7));
+      else if(prog > 0) prog = Math.max(0, prog - dt / 1.2);
+      intro.classList.toggle('pulling', prog > 0);
+      bar.style.transform = 'scaleX(' + prog.toFixed(3) + ')';
+      var tick = Math.floor(prog * 16);
+      if(tick > lastTick) snd.tone(380 + tick * 34, .05, 'triangle', .035);
+      lastTick = tick;
+    }
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    var spread = .55, threadPts = [], allHome = true;
+    var settleK = settled ? Math.min(1, (now - settledAt) / 500) : 0;
+
+    for(var i = 0; i < N; i++){
+      var p = P[i];
+      var local = clamp(prog * (1 + spread) - p.u * spread, 0, 1), e = ease(local);
+      var b = ballPoint(p.u, time), x, y;
+      if(local <= 0){ x = b[0]; y = b[1]; }
+      else{
+        /* fibres travel on a gentle arc, like thread being drawn out */
+        var mx = (b[0] + p.tx) / 2, my = (b[1] + p.ty) / 2 - 60 * p.bend - 30, a = 1 - e;
+        x = a*a*b[0] + 2*a*e*mx + e*e*p.tx; y = a*a*b[1] + 2*a*e*my + e*e*p.ty;
+      }
+      /* the cursor scatters fibres; springs pull them home */
+      if(ptr.on){
+        var dx = x + p.ox - ptr.x, dy = y + p.oy - ptr.y, d2 = dx*dx + dy*dy, rr = 90;
+        if(d2 < rr*rr && d2 > .01){ var d = Math.sqrt(d2), f = (rr - d) / rr; p.vx += dx / d * f * 3.2; p.vy += dy / d * f * 3.2; }
+      }
+      p.vx += -p.ox * .06; p.vy += -p.oy * .06; p.vx *= .86; p.vy *= .86; p.ox += p.vx; p.oy += p.vy;
+      p.sx = x + p.ox; p.sy = y + p.oy; p.local = local; p.z = local <= 0 ? b[2] : 1;
+      if(local < 1) allHome = false;
+      if(local < .04) threadPts.push(i);
+    }
+
+    /* the still-wound thread: one continuous line through the ball */
+    if(threadPts.length > 1){
+      ctx.lineWidth = 1.1; ctx.strokeStyle = 'rgba(229,83,58,.55)'; ctx.beginPath();
+      var prev = -2;
+      for(var k = 0; k < threadPts.length; k++){ var q = P[threadPts[k]]; if(threadPts[k] !== prev + 1) ctx.moveTo(q.sx, q.sy); else ctx.lineTo(q.sx, q.sy); prev = threadPts[k]; }
+      ctx.stroke();
+      /* the loose end hanging out of the ball */
+      if(prog === 0){
+        var endP = P[threadPts[threadPts.length - 1]], sway = Math.sin(time * 1.6) * 10, ex = cx + R + 60, ey = cy + R * .9 + sway;
+        ctx.beginPath(); ctx.moveTo(endP.sx, endP.sy);
+        ctx.bezierCurveTo(endP.sx + 40, endP.sy + 30, cx + R + 30, cy + R * .5 + sway, ex, ey);
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(229,83,58,.9)'; ctx.stroke();
+        ctx.fillStyle = '#E5533A'; ctx.shadowColor = 'rgba(255,110,80,.9)'; ctx.shadowBlur = 14;
+        ctx.beginPath(); ctx.arc(ex, ey, 6 + Math.sin(time * 4) * 1.2, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0;
+      }
+    }
+
+    /* fibres: red while travelling, settling to cream once the name is whole */
+    for(var j = 0; j < N; j++){
+      var f2 = P[j], depth = f2.local <= 0 ? .45 + .55 * (f2.z + 1) / 2 : 1;
+      var warm = settled ? settleK : clamp(f2.local * 1.2 - .2, 0, 1) * .35;
+      var r = Math.round(229 + 15 * warm), g = Math.round(83 + 159 * warm), bl = Math.round(58 + 178 * warm);
+      ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + bl + ',' + (depth * (f2.local > 0 ? .95 : .8)).toFixed(2) + ')';
+      var sz = f2.local > 0 ? 1.9 : 1.3;
+      ctx.fillRect(f2.sx - sz/2, f2.sy - sz/2, sz, sz);
+    }
+
+    if(!settled && prog >= 1 && allHome) settle(now);
+    if(running) raf = requestAnimationFrame(frame);
+  }
+
+  function settle(now){
+    settled = true; settledAt = now; holding = false; intro.classList.remove('holding');
+    snd.chime();
+    later(function(){ intro.classList.add('settled'); }, 380);
+    later(split, 1250);
+  }
+
+  function split(){
+    snd.noise(.9, 'bandpass', 300, .2, 0, 2400, .7);
+    done = true; running = false; cancelAnimationFrame(raf);
+    if(shift){   // phones: glide the name up to where it sits on the desk
+      iname.style.transition = 'transform .9s cubic-bezier(.65,0,.25,1), opacity .4s .75s';
+      iname.style.transform = 'translateY(' + (-shift) + 'px)';
+    }
+    intro.classList.add('open'); body.classList.remove('intro-on');
+    later(reveal, 250);
+    later(function(){ intro.hidden = true; }, 1400);
+  }
+
+  function play(){
+    stop(); done = false; settled = false; prog = 0; holding = false; auto = false; lastTick = 0;
+    window.scrollTo(0, 0);
+    body.classList.add('intro-on'); desk.classList.remove('ready');
+    intro.hidden = false; intro.classList.remove('open', 'settled', 'pulling', 'holding');
+    iname.style.transition = ''; iname.style.transform = '';
+    build();
+    t0 = last = performance.now(); running = true;
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* ---------- input ---------- */
+  function up(){ holding = false; intro.classList.remove('holding'); }
+  intro.addEventListener('pointerdown', function(e){
+    if(done || settled || e.target.closest('.skip')) return;
+    holding = true; intro.classList.add('holding');
+    if(prog === 0) snd.noise(.5, 'bandpass', 400, .14, 0, 1800, .8);
+    ptr.x = e.clientX; ptr.y = e.clientY;
+  });
+  window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  intro.addEventListener('pointermove', function(e){ ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true; });
+  intro.addEventListener('pointerleave', function(){ ptr.on = false; });
+  $('skipBtn').addEventListener('click', function(e){ e.stopPropagation(); finish(); });
+  window.addEventListener('keydown', function(e){
+    if(done) return;
+    if(e.key === 'Escape'){ finish(); return; }
+    if((e.key === ' ' || e.key === 'Enter') && !e.repeat && !e.target.closest('button')){ e.preventDefault(); holding = true; intro.classList.add('holding'); }
+  });
+  window.addEventListener('keyup', function(e){ if(e.key === ' ' || e.key === 'Enter') up(); });
+  window.addEventListener('wheel', function(){ if(!done) finish(); }, {passive:true});
+  window.addEventListener('resize', function(){ if(running && !settled && prog === 0) build(); });
+
+  /* ---------- start ---------- */
   function seen(v){ try{ if(v) sessionStorage.setItem('introSeen', '1'); return sessionStorage.getItem('introSeen') === '1'; }catch(e){ return false; } }
   function start(){
     /* skip it when motion is reduced, when it has already played this visit, or when arriving on a section link */

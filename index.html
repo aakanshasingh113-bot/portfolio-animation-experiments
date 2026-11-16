@@ -18,14 +18,15 @@
 <body class="intro-on">
 
 <!-- ================= INTRO =================
-     A red dot draws a coiled thread and the name rises into place letter by
-     letter, in its final handwriting. The thread pulls taut, then the dark
-     screen splits open along it and the same name stays on the desk. -->
+     A ball of tangled red thread spins on a dark screen. Press and hold
+     (or wait) and the thread unwinds into the name, fibre by fibre; the
+     cursor scatters the fibres. Then the screen splits open on the desk. -->
 <div class="intro" id="intro" aria-hidden="true">
   <div class="half top"></div>
   <div class="half bottom"></div>
-  <svg class="ithread" id="ithread"><path id="ipath"/><circle id="ipen" r="7"/></svg>
+  <canvas class="icv" id="icv"></canvas>
   <div class="iname" id="iname"></div>
+  <div class="ihint" id="ihint"><b>press &amp; hold to pull the thread</b><span>or just wait</span><div class="bar"><i id="ibar"></i></div></div>
   <button class="skip" id="skipBtn" type="button">Skip intro →</button>
 </div>
 
