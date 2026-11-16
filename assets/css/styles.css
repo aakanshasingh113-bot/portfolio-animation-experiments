@@ -844,14 +844,10 @@ body.leaving{opacity:0; transition:opacity .25s}
 .qmark{font:800 clamp(64px,8vw,110px)/.6 var(--display); color:var(--accent); margin-bottom:-2px}
 .big-quote{margin:0; font:600 clamp(20px,2.25vw,31px)/1.22 var(--display); letter-spacing:-.025em; color:var(--ink); max-width:17ch}
 .big-quote mark{background:linear-gradient(transparent 55%, var(--hl) 55%); color:inherit; padding:0 .08em}
-.mini-badge{position:relative; display:flex; align-items:center; gap:10px; margin-top:clamp(18px,3vh,28px); padding:8px 14px 8px 8px; background:#fff; border-radius:10px; border-left:5px solid #2B4C7E; box-shadow:0 12px 22px -12px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.04); transform:rotate(-2deg); transition:transform .35s cubic-bezier(.3,1.5,.5,1)}
-.pg-poster:hover .mini-badge{transform:rotate(0) translateY(-3px)}
-.mini-badge .clip{position:absolute; left:28px; top:-9px; width:26px; height:11px; border-radius:3px; background:linear-gradient(#C9CBD0,#9FA2A8); box-shadow:0 2px 3px rgba(0,0,0,.25)}
-.mini-badge img{width:clamp(40px,4.4vw,54px); aspect-ratio:1; object-fit:cover; border-radius:6px; border:2px solid #E9E4D8}
-.mini-badge span{display:flex; flex-direction:column; line-height:1.2}
-.mini-badge b{font:700 clamp(13px,1.2vw,15.5px) var(--display); color:var(--ink)}
-.mini-badge small{font-size:clamp(10px,.85vw,11.5px); color:#6E675C}
-.mini-badge i{font-style:normal; font:700 9.5px var(--display); letter-spacing:.16em; text-transform:uppercase; color:#2B4C7E; margin-top:3px}
+.attrib{display:flex; align-items:center; gap:12px; margin-top:clamp(18px,3vh,26px)}
+.attrib img{width:clamp(38px,3.8vw,46px); aspect-ratio:1; object-fit:cover; border-radius:50%}
+.attrib span{display:flex; flex-direction:column; font:600 clamp(13.5px,1.25vw,16px)/1.25 var(--display); color:var(--ink)}
+.pg .attrib em{font-style:normal; font-weight:400; font-size:.86em; color:var(--muted); background:none; padding:0}
 .pg-poster .pg-scrawl{margin-top:clamp(16px,2.6vh,24px)}
 
 @media (max-width:380px){ .deck .card{aspect-ratio:.56} .deck .pg{padding:22px 20px} }
