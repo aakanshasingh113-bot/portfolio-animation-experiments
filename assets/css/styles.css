@@ -844,7 +844,7 @@ body.leaving{opacity:0; transition:opacity .25s}
 .qmark{font:800 clamp(64px,8vw,110px)/.6 var(--display); color:var(--accent); margin-bottom:clamp(8px,1.4vh,14px)}
 .big-quote{margin:0; font:600 clamp(20px,2.25vw,31px)/1.22 var(--display); letter-spacing:-.025em; color:var(--ink); max-width:17ch}
 .big-quote mark{background:linear-gradient(transparent 55%, var(--hl) 55%); color:inherit; padding:0 .08em}
-.attrib{display:flex; align-items:center; gap:14px; margin-top:clamp(28px,4.8vh,44px); padding-top:clamp(16px,2.6vh,22px); border-top:1px solid var(--line); width:100%; max-width:24em}
+.attrib{display:flex; align-items:center; gap:14px; margin-top:clamp(30px,5vh,46px)}
 .attrib img{width:clamp(38px,3.8vw,46px); aspect-ratio:1; object-fit:cover; border-radius:50%}
 .attrib span{display:flex; flex-direction:column; font:600 clamp(13.5px,1.25vw,16px)/1.25 var(--display); color:var(--ink)}
 .pg .attrib em{font-style:normal; font-weight:400; font-size:.86em; color:var(--muted); background:none; padding:0}
