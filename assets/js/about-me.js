@@ -19,7 +19,7 @@ Her design process (fast and realistic, built for real deadlines, with AI at eve
 2. Audit & benchmark – a quick heuristic review of the current product, existing analytics, and how the best products solve the same pattern. Perplexity and ChatGPT speed up pattern scans; she checks every claim.
 3. Map flows & edge cases – user flows, IA and every state: empty, loading, error. Claude stress-tests flows for missed edge cases.
 4. Explore wide, then converge – two or three rough directions reviewed early with PM and devs, then one chosen on purpose. Figma Make, v0 and Claude turn prompts into rough clickable concepts.
-5. Design, prototype, critique – hi-fi UI on the design system, clickable prototype and a design crit. Figma AI renames layers, replaces placeholder content and makes prototype links; she edits all microcopy.
+5. Design, prototype, critique – hi-fi UI, clickable prototype and a design crit. Figma AI renames layers, replaces placeholder content and makes prototype links; she edits all microcopy.
 6. Hand off, QA, learn – specs, developer walkthroughs, design QA on real builds, then watching the metric after launch to plan v2. Cursor helps with coded prototypes of tricky interactions.
 
 Design beliefs: the product can be complex but using it shouldn't be; preventive feedback beats corrective feedback; every tool needs a strong end state; every extra line of text costs attention; AI is a strategic accelerator, not a shortcut.
