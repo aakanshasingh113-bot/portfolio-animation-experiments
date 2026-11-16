@@ -839,11 +839,16 @@ body.leaving{opacity:0; transition:opacity .25s}
 .exp-bar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:14px 24px; margin-bottom:8px}
 .exp-more{font:700 clamp(22px,2.2vw,28px) var(--display); letter-spacing:-.02em}
 
-/* Dwight's polaroid, taped to the corner of the quote frame */
-.frame{position:relative}
-.dwight{position:absolute; z-index:2; top:-40%; right:-13%; width:32%; min-width:74px; max-width:128px; padding:6px 6px 0; background:#FFFDF8; box-shadow:0 10px 18px -6px rgba(0,0,0,.4); transform:rotate(8deg); transition:transform .35s cubic-bezier(.3,1.5,.5,1)}
-.dwight img{display:block; width:100%; aspect-ratio:1; object-fit:cover; filter:saturate(.9)}
-.dwight .cap{display:block; font:700 clamp(11px,1.1vw,14px)/1.1 var(--hand); color:#4A4842; text-align:center; padding:5px 0 6px; white-space:nowrap}
-.dwight .tape{position:absolute; top:-9px; left:50%; width:48px; height:16px; margin-left:-24px; background:rgba(236,226,200,.88); transform:rotate(-4deg)}
-.pg-poster:hover .dwight{transform:rotate(2deg) scale(1.04)}
-.deck .dwight{top:-44%; right:-4%; width:30%}
+/* Dwight's "employee of the month" badge on the quote page */
+.pg-poster{gap:clamp(12px,2.4vh,20px)}
+.emp-badge{position:relative; width:min(62%, 250px); background:#fff; border-radius:12px; box-shadow:0 18px 30px -12px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.04); text-align:center; transform:rotate(2deg); transition:transform .4s cubic-bezier(.3,1.5,.5,1)}
+.pg-poster:hover .emp-badge{transform:rotate(-1deg) translateY(-4px)}
+.emp-badge .clip{position:absolute; left:50%; top:-12px; width:34px; height:14px; margin-left:-17px; border-radius:3px; background:linear-gradient(#C9CBD0,#9FA2A8); box-shadow:0 2px 3px rgba(0,0,0,.25)}
+.emp-badge .top{background:#2B4C7E; color:#fff; font:700 clamp(9px,.85vw,11px) var(--display); letter-spacing:.2em; text-transform:uppercase; padding:9px 8px; border-radius:12px 12px 0 0}
+.emp-badge img{display:block; width:56%; aspect-ratio:1; object-fit:cover; border-radius:6px; margin:clamp(10px,1.4vw,14px) auto 6px; border:3px solid #E9E4D8}
+.emp-badge .nm{font:700 clamp(15px,1.5vw,20px) var(--display); letter-spacing:-.01em; color:var(--ink)}
+.emp-badge .role{font-size:clamp(10px,.9vw,11.5px); color:#6E675C; padding:2px 10px clamp(8px,1vw,11px)}
+.emp-badge .q{background:#FFF6D8; font:700 clamp(13px,1.25vw,16px)/1.15 var(--hand); color:#3A3000; padding:10px 14px 13px; border-top:1px dashed #E3D7A8; border-radius:0 0 12px 12px}
+.deck .emp-badge{width:72%}
+
+@media (max-width:380px){ .deck .card{aspect-ratio:.56} .deck .pg{padding:22px 20px} }
