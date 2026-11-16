@@ -14,13 +14,13 @@ She works across UX and UI: research synthesis, flows, information architecture,
 She uses AI as an accelerator in her process: ChatGPT and Perplexity for quick research and pattern scans, Claude for stress-testing flows and edge cases, Figma AI, Figma Make and v0 for rapid concepts, Cursor for coded prototypes, and Sora, PixVerse, OpenArt and NotebookLM for AI media.
 Tools: Figma, FigJam, Protopie, Rive, Maze, Notion, HTML & CSS, Claude.
 
-Her design process (fast and realistic, with AI at every step):
-1. Decode the brief – kickoff with PM and engineering on goal, constraints, deadline and success metrics.
-2. Audit & reference – what exists today and how the best products solve the same pattern.
-3. Map flows & edge cases – user flows, IA and every state: empty, loading, error.
-4. Explore fast, wireframe rough – two or three directions, reviewed early with PM and devs.
-5. Design, prototype, review – hi-fi UI on the design system, clickable prototype, design crits.
-6. Hand off, QA, iterate – specs, dev walkthroughs, design QA on real builds, tweaks after launch.
+Her design process (fast and realistic, built for real deadlines, with AI at every step; no time-heavy user interviews):
+1. Decode the brief – kickoff with PM and engineering: goal, constraints, deadline and the one success metric. AI turns the PRD and notes into a problem statement and open questions (the reason she built Brief Decoder).
+2. Audit & benchmark – a quick heuristic review of the current product, existing analytics, and how the best products solve the same pattern. Perplexity and ChatGPT speed up pattern scans; she checks every claim.
+3. Map flows & edge cases – user flows, IA and every state: empty, loading, error. Claude stress-tests flows for missed edge cases.
+4. Explore wide, then converge – two or three rough directions reviewed early with PM and devs, then one chosen on purpose. Figma Make and v0 turn prompts into rough clickable concepts.
+5. Design, prototype, critique – hi-fi UI on the design system, clickable prototype, design crit and a heuristics pass. Figma AI renames layers, replaces placeholder content and makes prototype links; she edits all microcopy.
+6. Hand off, QA, learn – specs, developer walkthroughs, design QA on real builds, then watching the metric after launch to plan v2. Cursor helps with coded prototypes of tricky interactions.
 
 Design beliefs: the product can be complex but using it shouldn't be; preventive feedback beats corrective feedback; every tool needs a strong end state; every extra line of text costs attention; AI is a strategic accelerator, not a shortcut.
 

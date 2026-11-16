@@ -329,7 +329,7 @@
         <div class="book" id="book" role="group" aria-roledescription="book" aria-label="My design process">
           <span class="cover" aria-hidden="true"></span>
           <span class="edge l" aria-hidden="true"></span><span class="edge r" aria-hidden="true"></span>
-          <div class="leaves" id="leaves"></div>
+          <div class="bk-leaves" id="leaves"></div>
         </div>
       </div>
       <div class="deck" id="deck" aria-label="My design process, swipe through"></div>
@@ -338,7 +338,7 @@
         <span id="bookCount" aria-live="polite">1 / 5</span>
         <button type="button" id="bookNext" aria-label="Next page">→</button>
       </div>
-      <p class="book-hint">click a page, or use ← → to turn</p>
+      <p class="book-hint">grab a page corner and drag it, or click · ← → also work</p>
     </div>
 
     <template id="bookPages">
@@ -367,17 +367,17 @@
       <article class="pg pg-step">
         <span class="num">01</span>
         <h3>Decode the brief</h3>
-        <p>A kickoff with PM and engineering to pin down the goal, the constraints, the deadline and how we'll know it worked.</p>
-        <span class="ai-note"><b>✦ AI</b> Turns the PRD and meeting notes into a crisp problem statement and a list of open questions.</span>
+        <p>A kickoff with PM and engineering: the goal, constraints, deadline, and the one metric that will tell us it worked.</p>
+        <span class="ai-note"><b>✦ AI</b> Turns the PRD and kickoff notes into a problem statement and open questions. (It's why I built Brief Decoder.)</span>
         <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M40 50 C40 25, 80 25, 80 45 C80 60, 60 60, 60 75"/><circle class="ink" cx="60" cy="92" r="2"/><path class="ink" d="M110 45 C110 20, 150 20, 150 40 C150 55, 130 55, 130 70"/><circle class="ink" cx="130" cy="87" r="2"/><path class="ink" d="M168 30 C168 15, 186 15, 186 28 C186 36, 177 37, 177 46"/><circle class="ink" cx="177" cy="56" r="1.5"/></svg>
         <span class="pg-scrawl">the brief is a starting point, not a spec</span>
       </article>
 
       <article class="pg pg-step">
         <span class="num">02</span>
-        <h3>Audit &amp; reference</h3>
-        <p>A quick audit of what exists, plus how the best products solve the same pattern, and the numbers if analytics has them.</p>
-        <span class="ai-note"><b>✦ AI</b> Perplexity and ChatGPT for fast competitor and pattern scans, so I'm not starting from zero.</span>
+        <h3>Audit &amp; benchmark</h3>
+        <p>A quick heuristic review of what exists today, any analytics we already have, and how the best products solve the same pattern.</p>
+        <span class="ai-note"><b>✦ AI</b> Perplexity and ChatGPT for fast pattern and competitor scans. I check every claim against the real product.</span>
         <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M30 20 H170 L120 70 V105 L80 95 V70 Z"/><path class="ink" d="M60 40 h80 M75 55 h50"/><path class="ink" d="M150 85 l14 14 m0 -14 l-14 14"/></svg>
         <span class="pg-scrawl">no need to reinvent the dropdown</span>
       </article>
@@ -386,34 +386,34 @@
         <span class="num">03</span>
         <h3>Map flows &amp; edge cases</h3>
         <p>User flows, information architecture and every state: empty, loading, error, too much, too little.</p>
-        <span class="ai-note"><b>✦ AI</b> Claude stress-tests my flows and lists the edge cases and states I'd otherwise find in QA.</span>
+        <span class="ai-note"><b>✦ AI</b> Claude stress-tests the flows and lists edge cases I'd otherwise find in QA.</span>
         <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="20" y="20" width="44" height="34" rx="3"/><rect class="ink" x="78" y="20" width="44" height="34" rx="3"/><rect class="ink" x="136" y="20" width="44" height="34" rx="3"/><rect class="ink" x="20" y="68" width="44" height="34" rx="3"/><rect class="ink" x="78" y="68" width="44" height="34" rx="3"/><rect class="ink" x="136" y="68" width="44" height="34" rx="3"/><path class="ink hl" d="M68 86 C66 60, 132 58, 134 84 C136 110, 70 112, 74 80"/></svg>
         <span class="pg-scrawl">edge cases live here</span>
       </article>
 
       <article class="pg pg-step">
         <span class="num">04</span>
-        <h3>Explore fast, wireframe rough</h3>
-        <p>Two or three directions as low-fi wireframes, reviewed early with PM and devs before anyone falls in love with pixels.</p>
-        <span class="ai-note"><b>✦ AI</b> Figma Make and v0 spin up rough concepts in minutes, so we compare real options, not opinions.</span>
+        <h3>Explore wide, then converge</h3>
+        <p>Two or three directions as rough wireframes, reviewed early with PM and devs, then one direction picked on purpose.</p>
+        <span class="ai-note"><b>✦ AI</b> Figma Make and v0 turn prompts into rough clickable concepts in minutes, so we compare real options, not opinions.</span>
         <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="70" y="10" width="60" height="100" rx="10"/><path class="ink" d="M82 34 h36 M82 48 h24 M82 86 h36"/><path class="ink" d="M140 70 l16 30 l6 -12 l12 -2 z"/></svg>
         <span class="pg-scrawl">rough is fine. fast is better.</span>
       </article>
 
       <article class="pg pg-step">
         <span class="num">05</span>
-        <h3>Design, prototype, review</h3>
-        <p>Hi-fi UI on the design system, a clickable prototype, design crits and quick feedback rounds with the team.</p>
-        <span class="ai-note"><b>✦ AI</b> Figma AI renames layers, fills realistic content and drafts microcopy. I edit everything.</span>
+        <h3>Design, prototype, critique</h3>
+        <p>Hi-fi UI on the design system, a clickable prototype, then a design crit and a heuristics pass before anything ships.</p>
+        <span class="ai-note"><b>✦ AI</b> Figma AI to rename layers, replace placeholder content and make prototype links; drafts microcopy I always edit.</span>
         <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><rect class="ink" x="30" y="40" width="140" height="44" rx="6"/><path class="ink" d="M30 24 h140 M30 18 v12 M170 18 v12"/><path class="ink" d="M186 40 v44 M180 40 h12 M180 84 h12"/><path class="ink hl" d="M50 62 h60"/></svg>
         <span class="pg-scrawl">what happens when it's empty?</span>
       </article>
 
       <article class="pg pg-step">
         <span class="num">06</span>
-        <h3>Hand off, QA, iterate</h3>
-        <p>Clean specs, a walkthrough with developers, design QA on real builds, then tweaks once it's live.</p>
-        <span class="ai-note"><b>✦ AI</b> Drafts specs and QA checklists, and Cursor turns tricky interactions into coded prototypes.</span>
+        <h3>Hand off, QA, learn</h3>
+        <p>Specs and a walkthrough with developers, design QA on real builds, then watching the metric after launch to plan v2.</p>
+        <span class="ai-note"><b>✦ AI</b> Drafts specs and QA checklists; Cursor helps turn tricky interactions into coded prototypes.</span>
         <svg class="doodle" viewBox="0 0 200 120" aria-hidden="true"><path class="ink" d="M100 20 A40 40 0 1 1 62 48"/><path class="ink" d="M54 36 L62 50 L76 44"/><path class="ink" d="M86 64 l10 10 l20 -22"/></svg>
         <span class="pg-scrawl">design QA is design too</span>
       </article>

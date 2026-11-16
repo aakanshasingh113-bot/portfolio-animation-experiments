@@ -26,12 +26,60 @@
     var b = document.createElement('div'); b.className = 'bk-side back'; var pb = page(2 + 2*i); b.appendChild(sheet('sheet-l', pb));
     leaf.appendChild(f); leaf.appendChild(b); leavesEl.appendChild(leaf);
     leaves.push(leaf); faces.push([pf, pb]);
-    (function(k){
-      f.addEventListener('click', function(e){ if(e.target.closest('a,button')) return; if(k === cur) go(cur + 1); });
-      b.addEventListener('click', function(e){ if(e.target.closest('a,button')) return; if(k === cur - 1) go(cur - 1); });
-    })(i);
+    (function(k, leafEl){
+      /* the hidden side of a turned page still takes the pointer, so decide the direction by which page this is */
+      leafEl.addEventListener('pointerdown', function(e){ if(k === cur) startDrag(e, k, 1); else if(k === cur - 1) startDrag(e, k, -1); });
+    })(i, leaf);
   }
-  baseL.addEventListener('click', function(){ if(cur > 0) go(cur - 1); });
+  baseL.addEventListener('click', function(e){ if(!e.target.closest('a,button') && cur > 0) go(cur - 1); });
+
+  /* ---------- drag a page to turn it (a click still turns it too) ---------- */
+  var drag = null;
+  function setFold(leaf, p){
+    leaf.style.transform = 'rotateY(' + (-180 * p).toFixed(2) + 'deg)';
+    var fold = Math.sin(p * Math.PI);
+    leaf.style.setProperty('--fold', fold.toFixed(3));
+    baseR.style.setProperty('--under', (p < .5 ? fold : 0).toFixed(3));
+  }
+  function startDrag(e, k, dir){
+    if(e.button !== undefined && e.button !== 0) return;
+    if(e.target.closest('a,button')) return;
+    var leaf = leaves[k], w = $('book').getBoundingClientRect().width / 2;
+    drag = { k: k, dir: dir, leaf: leaf, x0: e.clientX, w: w, p: dir > 0 ? 0 : 1, moved: false, id: e.pointerId };
+    try{ leaf.setPointerCapture(e.pointerId); }catch(err){}
+  }
+  document.addEventListener('pointermove', function(e){
+    if(!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x0;
+    if(!drag.moved){
+      if(Math.abs(dx) < 6) return;
+      drag.moved = true; drag.leaf.classList.add('dragging'); drag.leaf.style.zIndex = 200; flipSound();
+    }
+    drag.p = Math.max(0, Math.min(1, (drag.dir > 0 ? 0 : 1) - dx / (drag.w * 1.6)));
+    setFold(drag.leaf, drag.p);
+  });
+  function endDrag(e){
+    if(!drag || (e && e.pointerId !== drag.id)) return;
+    var d = drag; drag = null;
+    if(!d.moved){ go(d.dir > 0 ? cur + 1 : cur - 1); return; }
+    var commit = d.dir > 0 ? d.p > .32 : d.p < .68, end = (d.dir > 0) === commit ? 1 : 0;
+    d.leaf.classList.remove('dragging');
+    requestAnimationFrame(function(){
+      d.leaf.style.transform = 'rotateY(' + (-180 * end) + 'deg)';
+      d.leaf.style.setProperty('--fold', '0'); baseR.style.setProperty('--under', '0');
+      setTimeout(function(){
+        d.leaf.style.transform = ''; d.leaf.classList.toggle('flipped', end === 1);
+        if(commit){ cur += d.dir; stack(); paint(); visible().forEach(function(p){ p.classList.add('show'); }); }
+        else stack();
+      }, reduce ? 0 : 820);
+      if(commit){
+        flipSound();
+        document.querySelectorAll('#book .pg.show').forEach(function(p){ p.classList.remove('show'); });
+      }
+    });
+  }
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
 
   function stack(){
     leaves.forEach(function(l, i){ l.style.zIndex = i < cur ? 10 + i : 10 + (n - i); });

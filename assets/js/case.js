@@ -2,7 +2,7 @@
 (function(){
   var key = document.body.getAttribute('data-case'), c = (window.CASES || {})[key];
   var root = document.getElementById('case');
-  if(!c || !root){ if(root) root.innerHTML = '<div class="wrap case-hero"><a class="back" href="index.html#work">← All work</a><h1>Case study not found</h1></div>'; return; }
+  if(!c || !root){ if(root) root.innerHTML = '<div class="wrap case-hero"><a class="case-back" href="index.html#work">← All work</a><h1>Case study not found</h1></div>'; return; }
   document.documentElement.style.setProperty('--c', c.color || '#D9482F');
   document.title = c.title + ' · Aakansha Singh';
 
@@ -11,7 +11,7 @@
 
   /* hero */
   var hero = el('header', 'wrap case-hero reveal');
-  var back = el('a', 'back', '← All work'); back.href = 'index.html#work';
+  var back = el('a', 'case-back', '← All work'); back.href = 'index.html#work';
   var eb = el('p', 'eyebrow-no'); eb.innerHTML = '<i></i><b>Case study</b>'; eb.appendChild(document.createTextNode(c.eyebrow));
   var tags = el('p', 'case-tags'); (c.tags || []).forEach(function(t){ tags.appendChild(el('span', null, t)); });
   add(hero, back, eb, el('h1', null, c.title), el('p', 'lead', c.sub), tags);
