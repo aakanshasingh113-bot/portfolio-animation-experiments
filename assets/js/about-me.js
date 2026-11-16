@@ -29,6 +29,8 @@ Experience (company names still to be added):
 - 2023 – 24: UI/UX Designer at [Company] – onboarding and KYC for a lending app.
 - 2022 – 23: Design Intern at [Studio] – websites and brand work for early-stage startups.
 
+Featured AI product: Brief Decoder (2026), an AI tool Aakansha designed and built herself. It separates what a design brief actually says from what still needs a conversation, reading a brief through six lenses: Stated, Unclear, Missing, Assumptions, Conflicts and Questions (one ranked list for the stakeholder). Every stated requirement shows the exact source quote from the brief; quotes that can't be matched are flagged as unverified; plausible assumptions stay out until the designer confirms, rejects or edits them; nothing is invented; instructions hidden inside a pasted brief are ignored; and there is no database or tracking. It ends with an editable working brief to copy or download, and works on mobile with Brief and Analysis as tabs. Built with Claude Code, Next.js, Gemini and Vercel. Learnings: design for uncertainty, trust is traceability, and states are the product. Live demo: https://portfolio-animations-experiments.vercel.app/ and the case study is in the AI experiments section.
+
 AI experiments: AI-generated brand posters (Butterday breakfast, Slowleaf plant bowls, Bun Club "Big Crunch", a retro Vada Pav Mumbai travel poster) and small games built with AI: Snakes & Ladders, Pen Fight (a school-desk flicking game) and Keys That Sing (a typing pad where every key plays a note).
 
 Outside design: baking (recipes are just specs, current project is the perfect croissant), yoga, café sketching, street food (pani puri above all, extra teekha) and long walks with lo-fi music.
@@ -45,7 +47,8 @@ Outside design: baking (recipes are just specs, current project is the perfect c
     { k: ['experience', 'years', 'background', 'worked', 'company', 'career'], a: 'Aakansha has about three years of product design experience: currently a Product Designer working on checkout, payments and a design system; before that a UI/UX Designer on onboarding and KYC for a lending app; and she started as a design intern doing websites and brand work.' },
     { k: ['skill', 'strength', 'good at', 'specialise', 'specialize'], a: 'Her strengths are untangling complex flows, mapping logic and edge cases before visuals, design systems, and moving fast with AI-assisted prototyping.' },
     { k: ['hobby', 'hobbies', 'free time', 'fun', 'outside', 'weekend'], a: 'Outside design: baking (currently chasing the perfect croissant), yoga, café sketching, pani puri hunts and long walks with lo-fi music.' },
+    { k: ['brief decoder', 'decoder', 'brief', 'tool', 'built', 'build', 'vibe', 'code'], a: 'Brief Decoder is an AI tool Aakansha designed and built (Claude Code, Next.js, Gemini, Vercel). It reads a design brief through six lenses (stated, unclear, missing, assumptions, conflicts and questions), shows the exact source quote for every requirement, and never invents what isn\'t there. You can try it live or read the case study in the AI experiments section.' },
     { k: ['experiment', 'game', 'poster', 'side project'], a: 'Her AI experiments include brand posters (Butterday, Slowleaf, Bun Club, Vada Pav) and games built with AI: Snakes & Ladders, Pen Fight and Keys That Sing. You can play them in the AI experiments section.' }
   ],
-  suggestions: ['Is she open to new roles?', 'Tell me about the Legrand project', 'How does she use AI in design?', 'What is her design process?']
+  suggestions: ['Is she open to new roles?', 'What is Brief Decoder?', 'How does she use AI in design?', 'What is her design process?']
 };

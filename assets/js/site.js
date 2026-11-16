@@ -9,6 +9,9 @@
     snd.whoosh(); document.body.classList.add('leaving');
     setTimeout(function(){ location.href = url; }, 230);
   }
+  document.querySelectorAll('a[data-go]').forEach(function(el){
+    el.addEventListener('click', function(e){ if(e.metaKey || e.ctrlKey) return; e.preventDefault(); goTo(el.getAttribute('href')); });
+  });
   document.querySelectorAll('[data-open-case]').forEach(function(el){
     el.addEventListener('click', function(e){
       var c = (window.CASES || {})[el.dataset.openCase]; if(!c) return;

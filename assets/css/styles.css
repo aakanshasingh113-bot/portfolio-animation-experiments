@@ -803,3 +803,30 @@ body.leaving{opacity:0; transition:opacity .25s}
   .chat-panel{width:100%; height:min(600px, calc(100dvh - 90px))}
   .chat-fab-t{font-size:14px}
 }
+
+/* ---------- featured AI tool (AI experiments) ---------- */
+.feat-ai{--g:#285747; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:clamp(24px,4vw,56px); align-items:center; margin-bottom:clamp(40px,5vw,64px); padding:clamp(18px,2.6vw,30px); border-radius:26px; background:var(--card); border:1px solid var(--line); box-shadow:0 30px 60px -40px rgba(40,60,50,.45)}
+.fa-shot{position:relative; display:block; border-radius:16px; overflow:hidden; background:linear-gradient(180deg,#285747,#1d4336); padding:clamp(16px,3vw,34px) clamp(16px,3vw,34px) 0; text-decoration:none}
+.fa-bar{display:flex; align-items:center; gap:6px; padding:8px 12px; background:#eceae4; border-radius:10px 10px 0 0}
+.fa-bar i{width:8px; height:8px; border-radius:50%; background:#d3d0c8}
+.fa-bar span{margin:0 auto; font-size:11px; color:#566058; background:#f6f5f1; padding:2px 22px; border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.fa-shot img{display:block; width:100%; height:auto; aspect-ratio:1800/1050; object-fit:cover; object-position:top; transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.fa-shot:hover img{transform:translateY(-6px)}
+.fa-body{display:flex; flex-direction:column; gap:14px}
+.fa-kicker{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.fa-kicker span{padding:4px 10px; border-radius:999px; background:#eaf1ec; color:var(--g); letter-spacing:.1em}
+.fa-body h3{font-size:clamp(34px,4vw,52px); font-weight:700; letter-spacing:-.04em; line-height:1}
+.fa-lead{font-size:clamp(16.5px,1.5vw,19px); line-height:1.5; color:var(--muted); max-width:40ch}
+.fa-lenses{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px}
+.fa-lenses li{font-size:13px; font-weight:500; padding:6px 11px; border-radius:999px}
+.fa-lenses .l1{background:#eaf1ec; color:#1d4336} .fa-lenses .l2{background:#f6ecd6; color:#6a4a0c} .fa-lenses .l3{background:#eceae4; color:#3d4440}
+.fa-lenses .l4{background:#e3ecf4; color:#25466a} .fa-lenses .l5{background:#f6e1db; color:#7a2e1c} .fa-lenses .l6{background:#285747; color:#fff}
+.fa-stack{font-size:13.5px; color:var(--muted)}
+.fa-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:4px}
+.fa-cta, .fa-live{display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:10px 18px; border-radius:999px; font-weight:600; font-size:14.5px; text-decoration:none; transition:transform .2s, background .2s}
+.fa-cta{background:var(--g); color:#fff} .fa-cta:hover{background:#1d4336; transform:translateY(-2px)}
+.fa-live{background:#fff; color:var(--ink); box-shadow:inset 0 0 0 1px var(--line)} .fa-live:hover{transform:translateY(-2px)}
+@media (max-width:900px){ .feat-ai{grid-template-columns:1fr} }
+@media (max-width:640px){ .feat-ai{border-radius:20px; padding:12px 12px 20px} .fa-body{padding:0 6px} .fa-shot{border-radius:12px} }
+.exp-bar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:14px 24px; margin-bottom:8px}
+.exp-more{font:700 clamp(22px,2.2vw,28px) var(--display); letter-spacing:-.02em}
