@@ -147,17 +147,10 @@ const check = (name, ok, info) => { results.push((ok ? 'PASS ' : 'FAIL ') + name
   check('sound preference restored after reload', (await p.getAttribute('#sound-toggle', 'aria-pressed')) === 'false');
   check('mode preference restored', await p.isChecked('input[value="chill"]'));
 
-  // ---------- 3. voice: test voice + captions
-  await p.click('#voice-test');
-  const note = await p.textContent('#voice-note');
-  check('test voice gives visible feedback', note.length > 0, note);
-  const speechInfo = await p.evaluate(() => ({ supported: window.__WAO.voice.supported, voices: speechSynthesis.getVoices().length }));
-  results.push('INFO speech: ' + JSON.stringify(speechInfo));
-  await p.click('#voice-toggle');
-  check('voice toggle off persists', await p.evaluate(() => localStorage.getItem('woa.voice')) === '0');
-  await p.click('#start-btn');
-  await p.waitForTimeout(100);
-  check('caption shown even with voice off', (await p.textContent('#caption-text')).includes('bad decisions'));
+  // ---------- 3. no narration
+  check('no speech synthesis used', await p.evaluate(() => { let spoke = false; const orig = speechSynthesis.speak.bind(speechSynthesis); speechSynthesis.speak = (u) => { spoke = true; orig(u); }; document.getElementById('start-btn').click(); return new Promise((r) => setTimeout(() => r(!spoke), 2500)); }));
+  check('no voice controls', (await p.locator('#voice-toggle, #hud-voice, #voice-test').count()) === 0);
+  check('referee caption bubble still shown', (await p.textContent('#caption-text')).length >= 0);
 
   // ---------- 4. reduced motion
   const rm = await page({ reducedMotion: 'reduce' });

@@ -6,8 +6,8 @@ A tiny browser game. Each question has two answers — pick the **factually fals
 Unless a **NORMAL ROUND** appears: then pick the true one. Three mistakes end the run.
 
 Plain HTML, CSS and JavaScript. No build step, no backend, no external fonts, images or audio.
-Illustrations are inline SVG, sound is synthesised with the Web Audio API, and the referee
-speaks through the browser's SpeechSynthesis (always captioned).
+Illustrations are inline SVG and sound effects are synthesised with the Web Audio API.
+The referee reacts with text bubbles only — there is no spoken narration.
 
 ## Run
 
@@ -38,7 +38,7 @@ Then visit http://localhost:8080. To embed it in a portfolio:
 | `js/engine.js` | Authoritative state machine (`INTRO`, `PRACTICE`, `RULE_TRANSITION`, `QUESTION_ACTIVE`, `FEEDBACK`, `PAUSED`, `GAME_OVER`); all answers and timeouts pass through one guarded `resolve()` |
 | `js/input.js` | Pure keyboard mapping (ignores repeats/modifiers) |
 | `js/main.js` | DOM rendering, input wiring, interruptions, frame loop |
-| `js/audio.js` / `js/voice.js` / `js/effects.js` | Synth sounds, referee voice, ink + confetti canvas |
+| `js/audio.js` / `js/effects.js` | Synth sounds, ink + confetti canvas |
 
 Factual truth lives only in each question's `correctId`. The winning option is derived as
 `wrong` rule → the option that is not `correctId`; `normal` rule → `correctId`. Button position

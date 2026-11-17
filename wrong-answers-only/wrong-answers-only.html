@@ -529,11 +529,8 @@ button { font: inherit; color: inherit; }
         </fieldset>
       </div>
 
-      <div class="settings" role="group" aria-label="Sound and voice settings">
+      <div class="settings" role="group" aria-label="Sound settings">
         <button class="toggle" id="sound-toggle" type="button" aria-pressed="true"><span class="tg-box" aria-hidden="true"></span>Sound</button>
-        <button class="toggle" id="voice-toggle" type="button" aria-pressed="true"><span class="tg-box" aria-hidden="true"></span>Voice</button>
-        <button class="link-btn" id="voice-test" type="button">Test voice</button>
-        <span class="settings-note" id="voice-note" role="status"></span>
       </div>
       <p class="intro-foot"><span id="intro-best">Best — timed 0 · chill 0</span><button class="link-btn" id="practice-again" type="button" hidden>Practice again</button></p>
     </section>
@@ -551,7 +548,6 @@ button { font: inherit; color: inherit; }
         <div class="mast-ctrls">
           <button class="icon-btn" id="pause-btn" type="button" aria-label="Pause"><span aria-hidden="true">❚❚</span></button>
           <button class="icon-btn" id="hud-sound" type="button" aria-pressed="true" aria-label="Sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="ico-on" d="M16 8.5c1.6 1.8 1.6 5.2 0 7M18.6 6c2.9 3.3 2.9 8.7 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ico-off" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-          <button class="icon-btn" id="hud-voice" type="button" aria-pressed="true" aria-label="Voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H10l-5 4v-4H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path class="ico-on" d="M8 10.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ico-off" d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
         </div>
       </header>
 
@@ -1551,85 +1547,6 @@ button { font: inherit; color: inherit; }
 </script>
 <script>
 /*
- * Referee voice via SpeechSynthesis. Captions are always shown by the caller;
- * speech is an optional extra. Never queues, rate-limited, always cancellable,
- * and isSpeaking() has a hard upper bound so nothing can wait on it forever.
- */
-(function (root) {
-  'use strict';
-
-  function createVoice(initialEnabled) {
-    const synth = root.speechSynthesis;
-    const supported = !!(synth && typeof root.SpeechSynthesisUtterance === 'function');
-    let enabled = !!initialEnabled && supported;
-    let voice = null;
-    let current = null;
-    let busyUntil = 0;
-    let lastAt = -Infinity;
-    const MIN_GAP = 1400;
-
-    function loadVoices() {
-      if (!supported) return;
-      try {
-        const list = synth.getVoices() || [];
-        const en = list.filter((v) => /^en([-_]|$)/i.test(v.lang || ''));
-        voice = en.find((v) => v.localService && v.default) || en.find((v) => v.localService) || en[0] || null;
-      } catch (e) { voice = null; }
-    }
-    if (supported) {
-      loadVoices();
-      try {
-        if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices);
-        else synth.onvoiceschanged = loadVoices;
-      } catch (e) { /* ignore */ }
-    }
-
-    function cancel() {
-      current = null;
-      busyUntil = 0;
-      if (!supported) return;
-      try { synth.cancel(); } catch (e) { /* ignore */ }
-    }
-
-    /** Speak one short line, replacing anything in progress. Returns true if speech started. */
-    function say(text, opts) {
-      opts = opts || {};
-      if (!enabled || !supported) return false;
-      const t = root.performance.now();
-      if (!opts.force && t - lastAt < MIN_GAP) return false;
-      try {
-        synth.cancel();
-        const u = new root.SpeechSynthesisUtterance(text);
-        if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'en-US';
-        u.rate = 1.05; u.pitch = 1; u.volume = 0.9;
-        const done = () => { if (current === u) { current = null; busyUntil = 0; } };
-        u.onend = done; u.onerror = done;
-        current = u;
-        lastAt = t;
-        busyUntil = t + Math.min(2600, 500 + text.length * 65); // upper bound, not a wait
-        synth.speak(u);
-        return true;
-      } catch (e) { cancel(); return false; }
-    }
-
-    function isSpeaking() {
-      return !!current && root.performance.now() < busyUntil;
-    }
-
-    return {
-      say, cancel, isSpeaking,
-      setEnabled(v) { enabled = !!v && supported; if (!enabled) cancel(); },
-      get enabled() { return enabled; },
-      get supported() { return supported; }
-    };
-  }
-
-  root.WAOVoice = { createVoice };
-})(typeof self !== 'undefined' ? self : this);
-
-</script>
-<script>
-/*
  * Ink bursts and confetti on one pointer-transparent canvas.
  * Capped particle count, ~1 s lifetime, fully independent of scoring.
  */
@@ -1747,7 +1664,6 @@ button { font: inherit; color: inherit; }
 
   // -------------------------------------------------------------- services
   const audio = window.WAOAudio.createAudio(store.get('woa.sound') !== '0');
-  const voice = window.WAOVoice.createVoice(store.get('woa.voice') !== '0');
   const fx = window.WAOEffects.createEffects($('fx'));
   fx.setEnabled(!reduced());
   if (reducedMotionMq.addEventListener) reducedMotionMq.addEventListener('change', () => fx.setEnabled(!reduced()));
@@ -1781,8 +1697,6 @@ button { font: inherit; color: inherit; }
   const engine = E.createEngine({
     questions: Q,
     storage: store,
-    isSpeaking: () => voice.isSpeaking(),
-    cancelSpeech: () => voice.cancel(),
     onEvent: handle
   });
 
@@ -1792,7 +1706,6 @@ button { font: inherit; color: inherit; }
     clearTimeout(captionTimer);
     el.captionText.textContent = text ? '“' + text + '”' : '';
     el.caption.classList.toggle('on', !!text);
-    if (speak && text) voice.say(text, opts);
     if (text) captionTimer = setTimeout(() => el.caption.classList.remove('on'), 2600);
   }
   function announce(text) {
@@ -1909,8 +1822,7 @@ button { font: inherit; color: inherit; }
     backToWrong: 'Back to being wrong.',
     scoreMilestone: 'You’re getting worse. Excellent.',
     gameOver: 'Too much common sense.',
-    newBest: 'A new personal worst. I mean best.',
-    test: 'Testing. One, two, wrong.'
+    newBest: 'A new personal worst. I mean best.'
   };
 
   // -------------------------------------------------------------- events
@@ -2307,7 +2219,7 @@ button { font: inherit; color: inherit; }
   $('resume-btn').addEventListener('click', () => { audio.unlock(); engine.resume(); });
   $('quit-btn').addEventListener('click', () => { engine.toIntro(); toIntro(); });
   $('again-btn').addEventListener('click', () => {
-    audio.unlock(); fx.clear(); voice.cancel(); caption('');
+    audio.unlock(); fx.clear(); caption('');
     engine.start({ mode: engine.getState().mode, practice: false });
   });
   $('review-btn').addEventListener('click', () => { showScreen('review'); $('review-back').focus({ preventScroll: true }); });
@@ -2315,7 +2227,7 @@ button { font: inherit; color: inherit; }
   $('menu-btn').addEventListener('click', () => { engine.toIntro(); toIntro(); });
 
   function toIntro() {
-    voice.cancel(); fx.clear(); caption('');
+    fx.clear(); caption('');
     showScreen('intro');
     mood('smug');
     updateIntroBest();
@@ -2327,16 +2239,10 @@ button { font: inherit; color: inherit; }
     $('practice-again').hidden = store.get('woa.practiceDone') !== '1';
   }
 
-  // Sound + voice toggles (start screen and HUD stay in sync)
+  // Sound toggle (start screen and HUD stay in sync)
   function syncToggles() {
     ['sound-toggle', 'hud-sound'].forEach((id) => $(id).setAttribute('aria-pressed', String(audio.enabled)));
-    ['voice-toggle', 'hud-voice'].forEach((id) => $(id).setAttribute('aria-pressed', String(voice.enabled)));
     $('hud-sound').setAttribute('aria-label', audio.enabled ? 'Sound on' : 'Sound off');
-    $('hud-voice').setAttribute('aria-label', voice.enabled ? 'Voice on' : 'Voice off');
-    if (!voice.supported) {
-      ['voice-toggle', 'hud-voice', 'voice-test'].forEach((id) => { $(id).disabled = true; });
-      $('voice-note').textContent = 'Voice isn’t available in this browser — captions only.';
-    }
   }
   function toggleSound() {
     audio.unlock();
@@ -2345,28 +2251,13 @@ button { font: inherit; color: inherit; }
     if (audio.enabled) { audio.wake(); audio.play('click'); }
     syncToggles();
   }
-  function toggleVoice() {
-    voice.setEnabled(!voice.enabled);
-    store.set('woa.voice', voice.enabled ? '1' : '0');
-    syncToggles();
-  }
   $('sound-toggle').addEventListener('click', toggleSound);
   $('hud-sound').addEventListener('click', toggleSound);
-  $('voice-toggle').addEventListener('click', toggleVoice);
-  $('hud-voice').addEventListener('click', toggleVoice);
-  $('voice-test').addEventListener('click', () => {
-    if (!voice.supported) return;
-    if (!voice.enabled) { voice.setEnabled(true); store.set('woa.voice', '1'); syncToggles(); }
-    const started = voice.say(LINES.test, { force: true });
-    el.captionText.textContent = '';
-    $('voice-note').textContent = started ? '“' + LINES.test + '”' : 'Couldn’t start speech — captions will still appear.';
-  });
   syncToggles();
   updateIntroBest();
 
   // -------------------------------------------------------------- interruptions
   function interrupt(reason) {
-    voice.cancel();
     clearHeld();
     engine.pause(reason);
     if (engine.getState().state !== S.PAUSED) audio.suspend();
@@ -2377,7 +2268,7 @@ button { font: inherit; color: inherit; }
   });
   window.addEventListener('blur', () => interrupt('blur'));
   window.addEventListener('focus', () => { if (engine.getState().state !== S.PAUSED) audio.wake(); });
-  window.addEventListener('pagehide', () => { voice.cancel(); audio.suspend(); });
+  window.addEventListener('pagehide', () => { audio.suspend(); });
 
   // -------------------------------------------------------------- frame loop
   let last = performance.now();
@@ -2400,7 +2291,7 @@ button { font: inherit; color: inherit; }
   requestAnimationFrame(frame);
 
   // Test hook (read-only access for automated browser checks).
-  window.__WAO = { engine, audio, voice, fx, Q };
+  window.__WAO = { engine, audio, fx, Q };
 })();
 
 </script>

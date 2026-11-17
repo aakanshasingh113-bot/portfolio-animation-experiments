@@ -22,7 +22,6 @@
 
   // -------------------------------------------------------------- services
   const audio = window.WAOAudio.createAudio(store.get('woa.sound') !== '0');
-  const voice = window.WAOVoice.createVoice(store.get('woa.voice') !== '0');
   const fx = window.WAOEffects.createEffects($('fx'));
   fx.setEnabled(!reduced());
   if (reducedMotionMq.addEventListener) reducedMotionMq.addEventListener('change', () => fx.setEnabled(!reduced()));
@@ -56,8 +55,6 @@
   const engine = E.createEngine({
     questions: Q,
     storage: store,
-    isSpeaking: () => voice.isSpeaking(),
-    cancelSpeech: () => voice.cancel(),
     onEvent: handle
   });
 
@@ -67,7 +64,6 @@
     clearTimeout(captionTimer);
     el.captionText.textContent = text ? '“' + text + '”' : '';
     el.caption.classList.toggle('on', !!text);
-    if (speak && text) voice.say(text, opts);
     if (text) captionTimer = setTimeout(() => el.caption.classList.remove('on'), 2600);
   }
   function announce(text) {
@@ -184,8 +180,7 @@
     backToWrong: 'Back to being wrong.',
     scoreMilestone: 'You’re getting worse. Excellent.',
     gameOver: 'Too much common sense.',
-    newBest: 'A new personal worst. I mean best.',
-    test: 'Testing. One, two, wrong.'
+    newBest: 'A new personal worst. I mean best.'
   };
 
   // -------------------------------------------------------------- events
@@ -582,7 +577,7 @@
   $('resume-btn').addEventListener('click', () => { audio.unlock(); engine.resume(); });
   $('quit-btn').addEventListener('click', () => { engine.toIntro(); toIntro(); });
   $('again-btn').addEventListener('click', () => {
-    audio.unlock(); fx.clear(); voice.cancel(); caption('');
+    audio.unlock(); fx.clear(); caption('');
     engine.start({ mode: engine.getState().mode, practice: false });
   });
   $('review-btn').addEventListener('click', () => { showScreen('review'); $('review-back').focus({ preventScroll: true }); });
@@ -590,7 +585,7 @@
   $('menu-btn').addEventListener('click', () => { engine.toIntro(); toIntro(); });
 
   function toIntro() {
-    voice.cancel(); fx.clear(); caption('');
+    fx.clear(); caption('');
     showScreen('intro');
     mood('smug');
     updateIntroBest();
@@ -602,16 +597,10 @@
     $('practice-again').hidden = store.get('woa.practiceDone') !== '1';
   }
 
-  // Sound + voice toggles (start screen and HUD stay in sync)
+  // Sound toggle (start screen and HUD stay in sync)
   function syncToggles() {
     ['sound-toggle', 'hud-sound'].forEach((id) => $(id).setAttribute('aria-pressed', String(audio.enabled)));
-    ['voice-toggle', 'hud-voice'].forEach((id) => $(id).setAttribute('aria-pressed', String(voice.enabled)));
     $('hud-sound').setAttribute('aria-label', audio.enabled ? 'Sound on' : 'Sound off');
-    $('hud-voice').setAttribute('aria-label', voice.enabled ? 'Voice on' : 'Voice off');
-    if (!voice.supported) {
-      ['voice-toggle', 'hud-voice', 'voice-test'].forEach((id) => { $(id).disabled = true; });
-      $('voice-note').textContent = 'Voice isn’t available in this browser — captions only.';
-    }
   }
   function toggleSound() {
     audio.unlock();
@@ -620,28 +609,13 @@
     if (audio.enabled) { audio.wake(); audio.play('click'); }
     syncToggles();
   }
-  function toggleVoice() {
-    voice.setEnabled(!voice.enabled);
-    store.set('woa.voice', voice.enabled ? '1' : '0');
-    syncToggles();
-  }
   $('sound-toggle').addEventListener('click', toggleSound);
   $('hud-sound').addEventListener('click', toggleSound);
-  $('voice-toggle').addEventListener('click', toggleVoice);
-  $('hud-voice').addEventListener('click', toggleVoice);
-  $('voice-test').addEventListener('click', () => {
-    if (!voice.supported) return;
-    if (!voice.enabled) { voice.setEnabled(true); store.set('woa.voice', '1'); syncToggles(); }
-    const started = voice.say(LINES.test, { force: true });
-    el.captionText.textContent = '';
-    $('voice-note').textContent = started ? '“' + LINES.test + '”' : 'Couldn’t start speech — captions will still appear.';
-  });
   syncToggles();
   updateIntroBest();
 
   // -------------------------------------------------------------- interruptions
   function interrupt(reason) {
-    voice.cancel();
     clearHeld();
     engine.pause(reason);
     if (engine.getState().state !== S.PAUSED) audio.suspend();
@@ -652,7 +626,7 @@
   });
   window.addEventListener('blur', () => interrupt('blur'));
   window.addEventListener('focus', () => { if (engine.getState().state !== S.PAUSED) audio.wake(); });
-  window.addEventListener('pagehide', () => { voice.cancel(); audio.suspend(); });
+  window.addEventListener('pagehide', () => { audio.suspend(); });
 
   // -------------------------------------------------------------- frame loop
   let last = performance.now();
@@ -675,5 +649,5 @@
   requestAnimationFrame(frame);
 
   // Test hook (read-only access for automated browser checks).
-  window.__WAO = { engine, audio, voice, fx, Q };
+  window.__WAO = { engine, audio, fx, Q };
 })();
