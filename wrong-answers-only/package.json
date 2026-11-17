@@ -1,0 +1,10 @@
+{
+  "name": "wrong-answers-only",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A tiny browser game where being right is your biggest mistake. No build step.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "serve": "python3 -m http.server 8080"
+  }
+}

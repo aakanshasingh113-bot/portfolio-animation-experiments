@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="description" content="A tiny browser game where being right is your biggest mistake.">
+<title>Wrong Answers Only</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<main id="game" class="game" data-screen="intro" data-state="INTRO" data-rule="wrong" tabindex="-1" aria-label="Wrong Answers Only — game">
+
+  <!-- Referee: one SVG instance reused (moved) between screens -->
+  <template id="ref-template">
+    <svg class="ref" viewBox="0 0 120 120" data-mood="smug" aria-hidden="true" focusable="false">
+      <defs>
+        <clipPath id="shirt-clip"><path d="M14 120 C 18 99, 38 93, 60 93 C 82 93, 102 99, 106 120 Z"/></clipPath>
+      </defs>
+      <g class="ref-shirt">
+        <path d="M14 120 C 18 99, 38 93, 60 93 C 82 93, 102 99, 106 120 Z" fill="#FFF6E5"/>
+        <g clip-path="url(#shirt-clip)" fill="#24211E">
+          <rect x="22" y="90" width="9" height="32"/><rect x="41" y="90" width="9" height="32"/>
+          <rect x="70" y="90" width="9" height="32"/><rect x="89" y="90" width="9" height="32"/>
+        </g>
+        <path d="M14 120 C 18 99, 38 93, 60 93 C 82 93, 102 99, 106 120" fill="none" stroke="#24211E" stroke-width="3"/>
+        <path d="M50 93 L60 106 L70 93" fill="#FFF6E5" stroke="#24211E" stroke-width="3" stroke-linejoin="round"/>
+      </g>
+      <path class="ref-cord" d="M47 92 Q60 108 73 92" fill="none" stroke="#24211E" stroke-width="1.6"/>
+      <g class="ref-whistle">
+        <rect x="66" y="99" width="15" height="8" rx="2" fill="#3454D1" stroke="#24211E" stroke-width="2"/>
+        <circle cx="68" cy="103" r="1.6" fill="#24211E"/>
+      </g>
+      <g class="ref-head">
+        <path d="M27 58 C 22 58, 22 70, 28 70 M93 58 C 98 58, 98 70, 92 70" fill="#FFF6E5" stroke="#24211E" stroke-width="3"/>
+        <path d="M30 50 C 30 32, 44 24, 60 24 C 76 24, 90 32, 90 50 L 90 66 C 90 82, 77 92, 60 92 C 43 92, 30 82, 30 66 Z" fill="#FFF6E5" stroke="#24211E" stroke-width="3"/>
+        <path d="M31 42 C 33 23, 46 16, 60 16 C 74 16, 87 23, 89 42 Z" fill="#24211E"/>
+        <rect x="22" y="39" width="76" height="7" fill="#24211E"/>
+        <rect x="56" y="16" width="8" height="26" fill="#E7EF63"/>
+        <circle class="ref-cheek" cx="40" cy="74" r="4.5" fill="#E34B36"/>
+        <circle class="ref-cheek" cx="80" cy="74" r="4.5" fill="#E34B36"/>
+        <g class="brows" fill="#24211E">
+          <rect class="brow brow-l" x="37" y="51" width="17" height="4.5"/>
+          <rect class="brow brow-r" x="66" y="51" width="17" height="4.5"/>
+        </g>
+        <g class="eyes eyes-open" fill="#24211E"><circle cx="46" cy="63" r="4"/><circle cx="74" cy="63" r="4"/></g>
+        <g class="eyes eyes-happy" fill="none" stroke="#24211E" stroke-width="3.4" stroke-linecap="round"><path d="M41 65 Q46 58 51 65"/><path d="M69 65 Q74 58 79 65"/></g>
+        <g class="eyes eyes-lid"><path d="M40 63 a6 6 0 0 0 12 0 Z M68 63 a6 6 0 0 0 12 0 Z" fill="#24211E"/><path d="M39 62 H53 M67 62 H81" stroke="#24211E" stroke-width="3" stroke-linecap="round"/></g>
+        <g class="eyes eyes-wide"><circle cx="46" cy="63" r="6" fill="#FFF6E5" stroke="#24211E" stroke-width="2.6"/><circle cx="74" cy="63" r="6" fill="#FFF6E5" stroke="#24211E" stroke-width="2.6"/><circle cx="46" cy="63" r="2.4" fill="#24211E"/><circle cx="74" cy="63" r="2.4" fill="#24211E"/></g>
+        <g class="eyes eyes-shut" fill="none" stroke="#24211E" stroke-width="3" stroke-linecap="round"><path d="M40 64 Q46 67 52 64"/><path d="M68 64 Q74 67 80 64"/></g>
+        <path d="M61 64 L56 74 L63 74" fill="none" stroke="#24211E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <g fill="none" stroke="#24211E" stroke-width="3.2" stroke-linecap="round">
+          <path class="mouth m-neutral" d="M51 82 H69"/>
+          <path class="mouth m-smile" d="M47 79 Q60 91 73 79"/>
+          <path class="mouth m-flat" d="M50 84 Q60 79 70 84"/>
+          <path class="mouth m-smirk" d="M50 83 Q63 86 72 77"/>
+        </g>
+        <ellipse class="mouth m-o" cx="60" cy="83" rx="4" ry="5" fill="#24211E"/>
+      </g>
+    </svg>
+  </template>
+
+  <div class="sheet" id="sheet">
+
+    <!-- ============================== INTRO ============================== -->
+    <section class="screen screen-intro" id="screen-intro" aria-labelledby="title">
+      <div class="intro-top">
+        <h1 id="title" class="title">
+          <span class="t-line t-wrong">Wrong</span>
+          <span class="t-line t-answers">Answers</span>
+          <span class="t-line t-only">Only<span class="t-dot">.</span></span>
+        </h1>
+        <div class="intro-ref" data-ref-slot="intro"></div>
+      </div>
+      <p class="tagline">Being right is your biggest mistake.</p>
+      <p class="rule-line"><span class="mark mark-x" aria-hidden="true">✗</span> Pick the false answer. Unless <b class="nr-chip">NORMAL ROUND</b> appears.</p>
+
+      <div class="intro-actions">
+        <button class="btn btn-primary" id="start-btn" type="button">Let’s be wrong</button>
+        <fieldset class="modes">
+          <legend class="sr-only">Mode</legend>
+          <label class="mode-opt"><input type="radio" name="mode" value="timed" checked><span>Timed</span></label>
+          <label class="mode-opt"><input type="radio" name="mode" value="chill"><span>Chill <small>no clock</small></span></label>
+        </fieldset>
+      </div>
+
+      <div class="settings" role="group" aria-label="Sound and voice settings">
+        <button class="toggle" id="sound-toggle" type="button" aria-pressed="true"><span class="tg-box" aria-hidden="true"></span>Sound</button>
+        <button class="toggle" id="voice-toggle" type="button" aria-pressed="true"><span class="tg-box" aria-hidden="true"></span>Voice</button>
+        <button class="link-btn" id="voice-test" type="button">Test voice</button>
+        <span class="settings-note" id="voice-note" role="status"></span>
+      </div>
+      <p class="intro-foot"><span id="intro-best">Best — timed 0 · chill 0</span><button class="link-btn" id="practice-again" type="button" hidden>Practice again</button></p>
+    </section>
+
+    <!-- ============================== PLAY =============================== -->
+    <section class="screen screen-play" id="screen-play" aria-label="Game" tabindex="-1">
+      <header class="masthead">
+        <span class="mast-title" aria-hidden="true">Wrong Answers Only</span>
+        <dl class="hud">
+          <div class="hud-item"><dt>Score</dt><dd id="hud-score" class="hud-num">0</dd></div>
+          <div class="hud-item"><dt>Best</dt><dd id="hud-best" class="hud-num">0</dd></div>
+          <div class="hud-item"><dt class="sr-only">Lives</dt><dd class="lives" id="lives" role="img" aria-label="3 of 3 lives left">
+            <span class="life"></span><span class="life"></span><span class="life"></span></dd></div>
+        </dl>
+        <div class="mast-ctrls">
+          <button class="icon-btn" id="pause-btn" type="button" aria-label="Pause"><span aria-hidden="true">❚❚</span></button>
+          <button class="icon-btn" id="hud-sound" type="button" aria-pressed="true" aria-label="Sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="ico-on" d="M16 8.5c1.6 1.8 1.6 5.2 0 7M18.6 6c2.9 3.3 2.9 8.7 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ico-off" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn" id="hud-voice" type="button" aria-pressed="true" aria-label="Voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H10l-5 4v-4H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path class="ico-on" d="M8 10.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ico-off" d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+      </header>
+
+      <div class="rule" id="rule" aria-hidden="true">
+        <span class="rule-mark" id="rule-mark">✗</span>
+        <span class="rule-text" id="rule-text">PICK THE WRONG ANSWER</span>
+      </div>
+
+      <div class="ref-strip">
+        <div class="ref-slot" data-ref-slot="play"></div>
+        <p class="caption" id="caption"><span class="caption-text" id="caption-text"></span></p>
+        <span class="q-num" id="q-num">Q.01</span>
+        <div class="stamp" id="stamp" aria-hidden="true"></div>
+      </div>
+
+      <div class="stage" id="stage">
+        <h2 class="prompt" id="prompt">&nbsp;</h2>
+        <div class="visual" id="visual" aria-hidden="true"></div>
+        <div class="transition" id="transition" aria-hidden="true">
+          <span class="tr-kicker" id="tr-kicker">Round rules</span>
+          <span class="tr-big" id="tr-big">WRONG ANSWERS ONLY</span>
+          <span class="tr-small" id="tr-small"><span class="mark">✗</span> Pick the wrong answer</span>
+        </div>
+      </div>
+
+      <div class="timer" id="timer" aria-hidden="true"><div class="timer-fill" id="timer-fill"></div><span class="timer-label" id="timer-label"></span></div>
+
+      <div class="answers" id="answers">
+        <button class="answer" id="ans-left" type="button" data-side="left" aria-disabled="true" aria-label="Left answer"><span class="a-label" id="ans-left-label">—</span><span class="a-key" aria-hidden="true">← A</span></button>
+        <button class="answer" id="ans-right" type="button" data-side="right" aria-disabled="true" aria-label="Right answer"><span class="a-label" id="ans-right-label">—</span><span class="a-key" aria-hidden="true">D →</span></button>
+      </div>
+
+      <div class="foot">
+        <p class="feedback" id="feedback"></p>
+        <div class="practice-bar" id="practice-bar" hidden>
+          <span class="pr-tag" id="pr-tag">Practice 1 / 2 · untimed</span>
+          <button class="link-btn" id="skip-practice" type="button">Skip practice</button>
+          <button class="btn btn-small" id="practice-next" type="button" hidden>Next</button>
+        </div>
+      </div>
+
+      <!-- Pause overlay lives inside the play screen to keep one composition -->
+      <div class="pause" id="pause" hidden>
+        <div class="pause-inner" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+          <div class="pause-ref" data-ref-slot="pause"></div>
+          <p class="pause-kicker" id="pause-kicker">Game paused</p>
+          <h2 class="pause-title" id="pause-title">Paused.</h2>
+          <p class="pause-sub" id="pause-sub">The clock is frozen. Take your time being wrong.</p>
+          <button class="btn btn-primary" id="resume-btn" type="button">Resume</button>
+          <button class="link-btn" id="quit-btn" type="button">Quit to start</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ GAME OVER ============================ -->
+    <section class="screen screen-over" id="screen-over" aria-labelledby="over-title" tabindex="-1">
+      <div class="over-top">
+        <p class="over-mode" id="over-mode">Timed</p>
+        <div class="over-ref" data-ref-slot="over"></div>
+      </div>
+      <h2 class="over-title" id="over-title">Too right for your own&nbsp;good.</h2>
+      <div class="over-score">
+        <span class="over-num" id="over-score">0</span>
+        <span class="over-num-label" id="over-num-label">points</span>
+        <span class="best-stamp" id="best-stamp" hidden>New best</span>
+      </div>
+      <dl class="over-stats">
+        <div><dt>Best</dt><dd id="over-best">0</dd></div>
+        <div><dt>Longest streak</dt><dd id="over-streak">0</dd></div>
+        <div><dt>Mistakes</dt><dd id="over-mistakes">3</dd></div>
+      </dl>
+      <p class="over-survived" id="over-survived">You survived 0 questions.</p>
+      <div class="over-actions">
+        <button class="btn btn-primary" id="again-btn" type="button">Wrong again</button>
+        <button class="btn btn-secondary" id="review-btn" type="button">Review mistakes</button>
+      </div>
+      <p class="over-foot"><button class="link-btn" id="menu-btn" type="button">Change mode or settings</button></p>
+    </section>
+
+    <!-- ============================== REVIEW ============================= -->
+    <section class="screen screen-review" id="screen-review" aria-labelledby="review-title" tabindex="-1">
+      <header class="review-head">
+        <h2 class="review-title" id="review-title">Your mistakes</h2>
+        <button class="btn btn-small" id="review-back" type="button">Back to results</button>
+      </header>
+      <ol class="review-list" id="review-list"></ol>
+    </section>
+  </div>
+
+  <canvas class="fx" id="fx" aria-hidden="true"></canvas>
+  <div class="sr-only" id="live" aria-live="polite" aria-atomic="true"></div>
+</main>
+
+<script src="js/questions.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/input.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
