@@ -30,7 +30,7 @@ then visit `http://localhost:8765/`. To embed it in a portfolio page, point an `
 | `js/sim.js` | Deterministic game rules and state machine (no DOM) |
 | `js/prizes.js` | Prize and face artwork |
 | `js/render.js` | Chamber, claw, tray and effects rendering |
-| `js/audio.js` | Web Audio sound effects (off by default) |
+| `js/audio.js` | Synthesised Web Audio sound design (starts on first interaction; mute is remembered) |
 | `js/main.js` | Input, the animation loop, UI sync, storage |
 | `tests/` | Automated checks |
 
@@ -44,4 +44,5 @@ Browser checks need Playwright with Chromium and the local server above running:
 
 ```bash
 node tests/e2e.js
+node tests/audio-e2e.js
 ```

@@ -106,7 +106,8 @@ async function grab(page, type, opts) {
     assert.equal(s.state, 'READY'); assert.equal(s.attempt, 1); assert.equal(s.score, 0);
     assert.equal(await page.textContent('#plateMsg'), 'Aim above a prize, then drop.');
     assert.equal(await page.textContent('#action'), 'Drop claw');
-    assert.equal(await page.getAttribute('#soundBtn', 'aria-pressed'), 'false');
+    assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Mute sound');
+    assert.equal(await page.evaluate(() => DCI.sound.debug.state()), 'none', 'no audio before any interaction');
     await shot(page, 'desktop-1-ready');
   });
 
@@ -399,13 +400,13 @@ async function grab(page, type, opts) {
     assert.ok((await page.textContent('#live')).length > 0, 'outcome announced');
   });
 
-  await check('sound can be switched on and used without errors', async () => {
+  await check('sound can be muted and unmuted during play without errors', async () => {
     await page.click('#soundBtn');
-    assert.equal(await page.getAttribute('#soundBtn', 'aria-pressed'), 'true');
+    assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Enable sound');
     await page.evaluate(() => DCI.game.restart());
     await grab(page, 'egg');
     await page.click('#soundBtn');
-    assert.equal(await page.getAttribute('#soundBtn', 'aria-pressed'), 'false');
+    assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Mute sound');
   });
 
   await check('beating the best celebrates with one bounded confetti burst', async () => {
@@ -460,11 +461,13 @@ async function grab(page, type, opts) {
 
   // ------------------------------------------------------ audio missing --
   page = await open({}, () => { delete window.AudioContext; delete window.webkitAudioContext; window.AudioContext = undefined; window.webkitAudioContext = undefined; });
-  await check('audio unavailable: toggle stays off, game unaffected', async () => {
-    await page.click('#soundBtn');
-    assert.equal(await page.getAttribute('#soundBtn', 'aria-pressed'), 'false');
+  await check('audio unavailable: toggle says so, game unaffected', async () => {
     const s = await grab(page, 'soap');
     assert.equal(s.outcome.ok, true);
+    assert.equal(await page.getAttribute('#soundBtn', 'data-sound'), 'unavailable');
+    assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Sound unavailable');
+    await page.evaluate(() => document.getElementById('soundBtn').click());   // still harmless to press
+    assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Sound unavailable');
   });
   await page.context().close();
 

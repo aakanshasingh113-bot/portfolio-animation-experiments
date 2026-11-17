@@ -406,9 +406,11 @@ body {
 .mini svg { width: 60%; height: 60%; }
 .mini .spk { fill: var(--ink); }
 .mini .wav, .mini .off { fill: none; stroke: var(--ink); stroke-width: 1.9; stroke-linecap: round; }
-#soundBtn[aria-pressed="false"] .wav { display: none; }
-#soundBtn[aria-pressed="true"] .off { display: none; }
-#soundBtn[aria-pressed="true"] > span { background: var(--yellow); }
+#soundBtn:not([data-sound="on"]) .wav { display: none; }
+#soundBtn[data-sound="on"] .off { display: none; }
+#soundBtn[data-sound="on"] > span { background: var(--yellow); }
+#soundBtn[data-sound="unavailable"] > span { opacity: .55; }
+#soundBtn svg { width: 68%; height: 68%; }
 
 /* ---------------------------------------------------------------- base -- */
 

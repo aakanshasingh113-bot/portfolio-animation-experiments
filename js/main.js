@@ -25,6 +25,7 @@
   var renderer = DCI.render.createRenderer(el.scene);
   var audio = DCI.audio.createAudio();
   DCI.game = game;   // handy for debugging and the automated browser checks
+  DCI.sound = audio;
 
   var COPY = {
     aim: 'Aim above a prize, then drop.',
@@ -190,7 +191,7 @@
     if (presses[src] != null) return;
     presses[src] = modeSerial;
     el.action.classList.add('is-down');            // immediate tactile feedback
-    if (mode === 'grip' && game.setHold(true)) audio.squeeze();
+    if (mode === 'grip') game.setHold(true);
   }
   function pressEnd(src, commit) {
     if (presses[src] == null) return;
@@ -275,11 +276,13 @@
     return false;
   }
   doc.addEventListener('visibilitychange', function () {
-    if (doc.hidden) pauseGame();
+    if (doc.hidden) { pauseGame(); audio.halt(); sound.motor = { hum: false, lift: false }; }
+    else audio.wake();
     lastFrame = 0;
   });
   root.addEventListener('blur', clearInput);
-  root.addEventListener('pagehide', pauseGame);
+  root.addEventListener('pagehide', function () { pauseGame(); audio.halt(); });
+  root.addEventListener('pageshow', function () { if (!doc.hidden) audio.wake(); });
   el.resume.addEventListener('click', function () {
     if (el.help.open) return;
     clearInput();
@@ -306,13 +309,87 @@
   });
   el.help.addEventListener('click', function (e) { if (e.target === el.help) closeHelp(); });
 
-  // sound: off until asked for
-  el.soundBtn.addEventListener('click', function () {
-    var on = audio.setEnabled(!audio.isOn());
-    el.soundBtn.setAttribute('aria-pressed', String(on));
-    if (on) audio.click();
-    else if (!audio.available) el.soundBtn.title = 'Sound is not available in this browser';
+  // ---------------------------------------------------------------- sound --
+
+  // Audio starts inside the first intentional click, tap or key press (browsers
+  // block it before that), unless the player muted it on an earlier visit.
+  function unlockAudio(e) {
+    if (e.type === 'keydown' && (e.key === 'Tab' || e.key === 'Escape' || e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta')) return;
+    audio.unlock();
+    if (el.soundBtn.getAttribute('data-sound') !== audio.status()) refreshSoundBtn();
+  }
+  ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'].forEach(function (type) {
+    doc.addEventListener(type, unlockAudio, true);
   });
+
+  function refreshSoundBtn() {
+    var st = audio.status();
+    el.soundBtn.setAttribute('data-sound', st);
+    el.soundBtn.setAttribute('aria-label', st === 'on' ? 'Mute sound' : st === 'muted' ? 'Enable sound' : 'Sound unavailable');
+    el.soundBtn.title = el.soundBtn.getAttribute('aria-label');
+    if (st === 'unavailable') el.soundBtn.setAttribute('aria-disabled', 'true'); else el.soundBtn.removeAttribute('aria-disabled');
+  }
+  el.soundBtn.addEventListener('click', function () {
+    if (audio.status() !== 'unavailable') {
+      audio.setMuted(!audio.isMuted());
+      sound.motor = { hum: false, lift: false };   // let the loops re-sync with the game
+      audio.click();
+    }
+    refreshSoundBtn();
+  });
+  el.helpBtn.addEventListener('click', function () { audio.click(); });
+  el.helpClose.addEventListener('click', function () { audio.click(); });
+  el.resume.addEventListener('click', function () { audio.click(); });
+
+  // Sound bookkeeping. Everything is triggered by a change in game state:
+  // a loop turning on or off, a ratchet tooth passed, a warning pulse coming due.
+  var sound = { motor: { hum: false, lift: false }, moving: false, tooth: 0, nextWarn: 0 };
+
+  function setMotor(name, on, progress, remaining) {
+    if (sound.motor[name] === on) return;
+    sound.motor[name] = on;
+    audio.loop(name, on, progress, remaining);
+  }
+
+  function syncSound(speed) {
+    var st = game.state, gripping = !!game.target && (st === S.GRIPPING || st === S.LIFTING);
+
+    // carriage motor: only while the claw is actually travelling
+    var travelling = st === S.READY || st === S.AIMING || (st === S.RETURNING && game.carrying);
+    if (!travelling) sound.moving = false;
+    else if (speed > 30) sound.moving = true;
+    else if (speed < 8) sound.moving = false;
+    setMotor('hum', sound.moving);
+
+    // winch: runs for the lift, rising in pitch
+    setMotor('lift', st === S.LIFTING, game.t / C.LIFT_TIME, C.LIFT_TIME - game.t);
+
+    // ratchet: one soft click per tooth as the grip tightens
+    var tooth = gripping ? Math.floor(game.pressure / 7) : 0;
+    if (gripping && game.hold && tooth > sound.tooth) audio.ratchet(tooth);
+    sound.tooth = tooth;
+
+    // warning pulse while damage builds, quicker the nearer it is to failing
+    if (st === S.LIFTING && game.zone() !== 'safe') {
+      if (view.time >= sound.nextWarn) {
+        var z = game.zone(), dmg = z === 'high' ? game.crush : game.slip;
+        audio.warn(z);
+        sound.nextWarn = view.time + sim.lerp(0.44, 0.13, sim.clamp(dmg, 0, 1));
+      }
+    } else {
+      sound.nextWarn = 0;
+    }
+  }
+
+  function failSound(ev) {
+    var type = ev.prize && ev.prize.type;
+    if (ev.cause === 'miss') return;                 // the empty clack already played
+    if (ev.cause === 'slip') { audio.whistle(); if (type === 'soap') audio.pops(); return; }
+    if (type === 'cake') audio.squish();
+    else if (type === 'egg') audio.crack();
+    else if (type === 'cactus') audio.squeak();
+    else { audio.squish(); audio.pops(); }           // soap squeezed out of shape
+  }
 
   // ------------------------------------------------------------------ UI ---
 
@@ -408,8 +485,8 @@
       }
     }
     el.card.hidden = false;
-    if (n === C.ATTEMPTS || res.isNew) fireConfetti();
-    if (n > 0) audio.chime();
+    if (n === C.ATTEMPTS || res.isNew) { fireConfetti(); audio.flourish(); }   // together
+    else audio.closing();
     announce('Round over. ' + COPY.round[n] + ' Score ' + game.score + '.' + (res.isNew ? ' New personal best.' : '') + ' Press Play again for another round.');
   }
 
@@ -418,6 +495,7 @@
     switch (ev.type) {
       case 'restart':
         trayItems.length = 0; el.card.hidden = true; el.pause.hidden = true; stopConfetti();
+        audio.stopAll(); sound.motor = { hum: false, lift: false }; sound.tooth = 0; sound.nextWarn = 0;
         announce('New round. Attempt 1 of ' + C.ATTEMPTS + '. ' + COPY.aim);
         break;
       case 'next':
@@ -426,22 +504,27 @@
       case 'drop': audio.lower(); break;
       case 'touch':
         hintThisGrip = firstGripPending; firstGripPending = false;
-        audio.click();
         announce('The claw is on the ' + PRIZES[ev.prize.type].name.toLowerCase() + '. Hold to squeeze, release to loosen. Pressure is shown on the meter.');
         break;
-      case 'lift-start': announce('Lifting. Keep the pressure in the safe band.'); break;
-      case 'fail': audio.fail(); break;
+      case 'empty': audio.clack(); break;
+      case 'lift-start':
+        audio.safe();
+        announce('Lifting. Keep the pressure in the safe band.'); break;
+      case 'fail': failSound(ev); break;
       case 'thud': audio.thud(); break;
       case 'collected':
         trayItems.push({ type: ev.prize.type, at: view.time });
-        audio.chime();
+        audio.landed();
+        audio.points(ev.outcome.bonus > 0);
         break;
       case 'result':
         hintThisGrip = false;
         announce(outcomeText(ev.outcome) + (game.attempt < C.ATTEMPTS ? ' Press Next grab.' : ''));
         break;
       case 'round-over': showRoundOver(); break;
-      case 'pause': announce('Paused. Press Resume to continue.'); break;
+      case 'pause':
+        audio.stopAll(); sound.motor = { hum: false, lift: false };
+        announce('Paused. Press Resume to continue.'); break;
       default: break;
     }
   }
@@ -475,6 +558,8 @@
       view.sway += view.swayV * dt;
     }
 
+    syncSound(dt > 0 ? Math.abs(view.x - prevX) / dt : 0);
+
     renderer.draw(game, view);
     DCI.render.drawTray(el.tray, trayItems, view.time, reduced);
     stepConfetti(dt);
@@ -483,6 +568,7 @@
 
   // deliver the opening 'restart' event quietly: nothing is announced before the player acts
   game.events.length = 0;
+  refreshSoundBtn();
   syncUI();
   root.requestAnimationFrame(frame);
 })(typeof self !== 'undefined' ? self : this);
