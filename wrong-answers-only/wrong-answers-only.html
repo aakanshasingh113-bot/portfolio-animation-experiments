@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="A tiny browser game where being right is your biggest mistake.">
+<title>Wrong Answers Only</title>
+<style>
+/* WRONG ANSWERS ONLY — editorial, typographic, mischievous. */
+:root {
+  --paper: #FFF6E5;
+  --ink: #24211E;
+  --red: #E34B36;
+  --blue: #3454D1;
+  --acid: #E7EF63;
+  --muted: #5d574f;
+  --sans: system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --b: 3px;
+  --shadow: 7px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+:focus { outline: none; }
+:focus-visible { outline: 3px dashed var(--ink); outline-offset: 4px; }
+
+/* ------------------------------------------------------------- frame */
+.game {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 3vw, 32px);
+  padding-bottom: calc(clamp(10px, 3vw, 32px) + var(--shadow));
+}
+.game:focus-visible { outline: none; }
+.sheet {
+  position: relative;
+  width: min(100%, 760px);
+  background: var(--paper);
+  border: var(--b) solid var(--ink);
+  box-shadow: 10px 10px 0 var(--ink);
+  padding: clamp(16px, 3.4vw, 34px);
+}
+.screen { display: none; }
+.game[data-screen="intro"] .screen-intro,
+.game[data-screen="play"] .screen-play,
+.game[data-screen="over"] .screen-over,
+.game[data-screen="review"] .screen-review { display: block; }
+.screen:focus-visible { outline: none; }
+
+/* ------------------------------------------------------------- buttons */
+.btn {
+  appearance: none;
+  border: var(--b) solid var(--ink);
+  background: var(--red);
+  color: var(--paper);
+  font-weight: 850;
+  font-size: clamp(18px, 2.6vw, 22px);
+  letter-spacing: -0.01em;
+  padding: 14px 26px;
+  min-height: 56px;
+  box-shadow: 5px 5px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out, background-color 120ms;
+  touch-action: manipulation;
+}
+.btn:hover { background: #cf3f2b; }
+.btn:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--ink); }
+.btn-secondary { background: var(--paper); color: var(--ink); }
+.btn-secondary:hover { background: var(--acid); }
+.btn-secondary:disabled { opacity: .45; cursor: default; box-shadow: 5px 5px 0 var(--ink); transform: none; background: var(--paper); }
+.btn-small { font-size: 16px; min-height: 44px; padding: 8px 16px; box-shadow: 4px 4px 0 var(--ink); }
+.btn-small:active { transform: translate(4px, 4px); }
+.link-btn {
+  appearance: none; background: none; border: 0; padding: 10px 4px; min-height: 44px;
+  font-weight: 700; font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px;
+  text-underline-offset: 4px; cursor: pointer;
+}
+.link-btn:hover { color: var(--red); }
+.link-btn:disabled { opacity: .5; cursor: default; text-decoration: none; }
+.mark { font-weight: 900; }
+
+/* ------------------------------------------------------------- referee */
+.ref { display: block; width: 100%; height: auto; overflow: visible; }
+.ref .eyes, .ref .mouth, .ref .ref-cheek { display: none; }
+.ref[data-mood="neutral"] .eyes-open, .ref[data-mood="neutral"] .m-neutral,
+.ref[data-mood="smug"] .eyes-open, .ref[data-mood="smug"] .m-smirk,
+.ref[data-mood="approve"] .eyes-happy, .ref[data-mood="approve"] .m-smile, .ref[data-mood="approve"] .ref-cheek,
+.ref[data-mood="disappointed"] .eyes-lid, .ref[data-mood="disappointed"] .m-flat,
+.ref[data-mood="surprised"] .eyes-wide, .ref[data-mood="surprised"] .m-o,
+.ref[data-mood="sleepy"] .eyes-shut, .ref[data-mood="sleepy"] .m-neutral { display: inline; }
+.ref .brow { transform-box: fill-box; transform-origin: center; transition: transform 160ms ease-out; }
+.ref[data-mood="smug"] .brow-r { transform: translateY(-4px) rotate(-9deg); }
+.ref[data-mood="approve"] .brow { transform: translateY(-4px); }
+.ref[data-mood="disappointed"] .brow-l { transform: translateY(-1px) rotate(-15deg); }
+.ref[data-mood="disappointed"] .brow-r { transform: translateY(-1px) rotate(15deg); }
+.ref[data-mood="surprised"] .brow { transform: translateY(-7px); }
+.ref[data-mood="sleepy"] .brow { transform: translateY(2px); }
+.ref .ref-head { transform-box: fill-box; transform-origin: 50% 100%; }
+.ref[data-mood="approve"] .ref-head { animation: nod 320ms ease-out; }
+.ref[data-mood="disappointed"] .ref-head { animation: tilt 420ms ease-out forwards; }
+@keyframes nod { 0% { transform: translateY(0); } 40% { transform: translateY(3px) rotate(-2deg); } 100% { transform: none; } }
+@keyframes tilt { 0% { transform: none; } 100% { transform: rotate(4deg); } }
+
+/* ------------------------------------------------------------- intro */
+.intro-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; position: relative; }
+.title {
+  margin: 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(54px, 14.2vw, 128px);
+  line-height: .8;
+  letter-spacing: -0.06em;
+}
+.t-line { display: block; }
+.t-wrong { color: var(--red); }
+.t-answers { position: relative; width: max-content; }
+.t-answers::after { /* the struck-out "answer" */
+  content: ""; position: absolute; left: -0.02em; right: 0.04em; top: 50%; height: 0.075em;
+  background: var(--ink); transform: rotate(-3deg);
+}
+.t-only { display: inline-block; background: var(--acid); padding: 0.08em 0.06em 0 0.02em; margin-top: 0.06em; }
+.t-dot { color: var(--red); }
+.intro-ref { width: clamp(92px, 22vw, 168px); margin-bottom: 4px; }
+.tagline {
+  margin: clamp(18px, 3vw, 28px) 0 6px;
+  font-size: clamp(21px, 3.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.rule-line { margin: 0; font-size: clamp(16px, 2.3vw, 19px); font-weight: 600; line-height: 1.5; }
+.mark-x { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; background: var(--red); color: var(--paper); margin-right: 4px; vertical-align: -0.2em; }
+.nr-chip { background: var(--blue); color: #fff; padding: 1px 6px; font-weight: 900; letter-spacing: .03em; white-space: nowrap; }
+.nr-chip::before { content: "✓ "; }
+.intro-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px;
+  margin-top: clamp(20px, 3.4vw, 30px); padding-top: clamp(18px, 3vw, 26px);
+  border-top: var(--b) solid var(--ink);
+}
+.modes { display: flex; border: var(--b) solid var(--ink); margin: 0; padding: 0; }
+.mode-opt { position: relative; cursor: pointer; }
+.mode-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.mode-opt span { display: flex; align-items: center; gap: 6px; min-height: 50px; padding: 0 16px; font-weight: 800; font-size: 16px; }
+.mode-opt + .mode-opt span { border-left: var(--b) solid var(--ink); }
+.mode-opt small { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.mode-opt input:checked + span { background: var(--ink); color: var(--paper); }
+.mode-opt input:checked + span::before { content: "●"; font-size: 11px; }
+.mode-opt input:focus-visible + span { outline: 3px dashed var(--ink); outline-offset: 3px; }
+.settings { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin-top: 18px; }
+.toggle {
+  appearance: none; background: none; border: 0; padding: 0 2px; min-height: 44px;
+  display: inline-flex; align-items: center; gap: 8px; font-weight: 750; font-size: 16px; cursor: pointer;
+}
+.tg-box { width: 22px; height: 22px; border: var(--b) solid var(--ink); display: grid; place-items: center; font-size: 14px; font-weight: 900; }
+.toggle[aria-pressed="true"] .tg-box { background: var(--ink); color: var(--acid); }
+.toggle[aria-pressed="true"] .tg-box::after { content: "✓"; }
+.toggle:disabled { opacity: .5; cursor: default; }
+.settings-note { font-size: 14px; color: var(--muted); font-style: italic; flex-basis: 100%; min-height: 1.2em; }
+.settings-note:empty { display: none; }
+.intro-foot { margin: 10px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.intro-foot .link-btn { font-family: var(--sans); text-transform: none; letter-spacing: 0; color: var(--ink); }
+
+/* ------------------------------------------------------------- play: masthead */
+.screen-play { position: relative; }
+.masthead {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
+  padding-bottom: 10px; border-bottom: var(--b) solid var(--ink);
+}
+.mast-title { font-weight: 900; text-transform: uppercase; letter-spacing: -0.02em; font-size: 17px; line-height: 1; }
+.mast-title::first-letter { color: var(--red); }
+.hud { display: flex; align-items: center; gap: clamp(12px, 3vw, 26px); margin: 0 0 0 auto; }
+.hud-item { display: flex; align-items: baseline; gap: 6px; }
+.hud dt { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.hud dd { margin: 0; }
+.hud-num { font-weight: 900; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; min-width: 1.2ch; display: inline-block; }
+.hud-num.bump { animation: bump 260ms ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); color: var(--red); } 100% { transform: scale(1); } }
+.lives { display: flex; gap: 5px; align-items: center; }
+.life { position: relative; width: 20px; height: 20px; border: 2.5px solid var(--ink); background: var(--acid); }
+.life.lost { background: var(--paper); }
+.life::before, .life::after {
+  content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 3.5px; margin-top: -1.75px;
+  background: var(--red); transform: rotate(45deg) scaleX(0); transition: transform 160ms ease-out;
+}
+.life::after { transform: rotate(-45deg) scaleX(0); }
+.life.lost::before { transform: rotate(45deg) scaleX(1); }
+.life.lost::after { transform: rotate(-45deg) scaleX(1); }
+.life.cross { animation: lifehit 380ms ease-out; }
+@keyframes lifehit { 30% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.mast-ctrls { display: flex; gap: 6px; }
+.icon-btn {
+  appearance: none; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer;
+  border: 2.5px solid var(--ink); background: var(--paper); font-size: 13px; font-weight: 900; letter-spacing: -1px;
+}
+.icon-btn:hover { background: var(--acid); }
+.icon-btn svg { width: 22px; height: 22px; }
+.icon-btn .ico-off { display: none; }
+.icon-btn[aria-pressed="false"] .ico-on { display: none; }
+.icon-btn[aria-pressed="false"] .ico-off { display: inline; }
+.icon-btn[aria-pressed="false"] { color: var(--muted); }
+
+/* ------------------------------------------------------------- rule bar */
+.rule {
+  margin-top: 14px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px;
+  background: var(--ink); color: var(--paper);
+  font-weight: 900; letter-spacing: .05em;
+  font-size: clamp(15px, 2.6vw, 21px); line-height: 1.15;
+  border: var(--b) solid var(--ink);
+}
+.rule-mark { flex: none; display: grid; place-items: center; width: 34px; height: 34px; background: var(--red); color: var(--paper); font-size: 22px; }
+.game[data-rule="normal"] .rule {
+  background: var(--blue); color: #fff;
+  box-shadow: inset 0 0 0 3px var(--blue), inset 0 0 0 6px var(--acid);
+  padding: 12px 14px;
+}
+.game[data-rule="normal"] .rule-mark { background: var(--acid); color: var(--ink); border-radius: 50%; }
+.rule.flip { animation: flip 260ms cubic-bezier(.2,.9,.3,1.3); }
+@keyframes flip { 0% { transform: scaleY(.1); } 100% { transform: scaleY(1); } }
+
+/* ------------------------------------------------------------- referee strip */
+.ref-strip { display: grid; grid-template-columns: 62px 1fr auto; align-items: center; gap: 12px; margin-top: 10px; min-height: 62px; }
+.ref-slot { width: 62px; }
+.caption {
+  grid-column: 2; grid-row: 1; margin: 0 0 0 4px; position: relative; font-weight: 700; font-size: 15px; line-height: 1.25;
+  padding: 6px 10px; border: 2px solid var(--ink); background: var(--paper);
+  justify-self: start; opacity: 0; transition: opacity 120ms; max-width: 100%;
+}
+.caption::before { /* speech tail toward the referee */
+  content: ""; position: absolute; left: -9px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+  background: var(--paper); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg);
+}
+.caption.on { opacity: 1; }
+.q-num { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .06em; align-self: start; padding-top: 6px; }
+
+/* ------------------------------------------------------------- stage */
+.stage {
+  position: relative;
+  min-height: clamp(140px, 25vh, 220px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 6px 0 12px;
+}
+.prompt {
+  margin: 0; font-weight: 900; letter-spacing: -0.035em; line-height: 1.02;
+  font-size: clamp(30px, 6.2vw, 54px); max-width: 15ch; text-wrap: balance;
+}
+.visual { display: none; margin-top: 10px; }
+.visual.has { display: block; }
+.vis { width: clamp(92px, 16vh, 128px); height: auto; display: block; overflow: visible; }
+.vis .dot { fill: var(--ink); }
+.vis .shape { fill: var(--acid); stroke: var(--ink); stroke-width: 4; stroke-linejoin: round; }
+.game[data-rule="normal"] .vis .shape { fill: #fff; }
+
+.stamp {
+  grid-column: 3; grid-row: 1; justify-self: end; align-self: center; z-index: 2;
+  padding: 4px 10px 3px; border: 4px solid currentColor; background: var(--paper);
+  font-weight: 900; text-transform: uppercase; letter-spacing: .01em; line-height: 1;
+  font-size: clamp(15px, 2.8vw, 24px); white-space: nowrap;
+  transform: rotate(4deg); opacity: 0; pointer-events: none; visibility: hidden;
+}
+.stamp.on { opacity: 1; visibility: visible; animation: stamp 200ms cubic-bezier(.2,.9,.3,1.4); }
+.q-num { grid-column: 3; grid-row: 1; }
+.ref-strip.stamped .q-num { visibility: hidden; }
+.stamp.good-wrong { color: var(--red); }
+.stamp.good-normal { color: var(--blue); }
+.stamp.bad { color: var(--ink); background: var(--acid); }
+.stamp.bad::before { content: "✗ "; }
+.stamp.good-wrong::before, .stamp.good-normal::before { content: "✓ "; }
+@keyframes stamp { 0% { transform: rotate(12deg) scale(1.6); opacity: 0; } 100% { transform: rotate(4deg) scale(1); opacity: 1; } }
+
+.transition {
+  position: absolute; inset: 0 -2px; z-index: 3; display: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: var(--ink); color: var(--paper); text-align: center; padding: 12px;
+}
+.transition.on { display: flex; animation: wipe 220ms cubic-bezier(.2,.8,.2,1); }
+.transition[data-rule="normal"] { background: var(--blue); color: #fff; box-shadow: inset 0 0 0 5px var(--acid); }
+.tr-kicker { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--acid); }
+.tr-big { font-weight: 900; font-size: clamp(34px, 8vw, 70px); letter-spacing: -0.045em; line-height: .9; }
+.tr-small { font-weight: 800; font-size: clamp(16px, 2.6vw, 20px); text-transform: uppercase; letter-spacing: .05em; }
+@keyframes wipe { 0% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0 0 0 0); } }
+
+/* ------------------------------------------------------------- timer */
+.timer { position: relative; height: 18px; border: var(--b) solid var(--ink); background: var(--paper); margin: 2px 0 16px; overflow: hidden; }
+.timer-fill { position: absolute; inset: 0; background: var(--ink); transform-origin: left center; will-change: transform; }
+.game[data-rule="normal"] .timer-fill { background: var(--blue); }
+.timer-fill.low { background: var(--red) !important; }
+.timer-label { position: absolute; inset: 0; display: none; place-items: center; font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; line-height: 1; }
+.game[data-timed="chill"] .timer-fill, .game[data-timed="practice"] .timer-fill { display: none; }
+.game[data-timed="chill"] .timer-label, .game[data-timed="practice"] .timer-label { display: grid; }
+.game[data-timed="chill"] .timer, .game[data-timed="practice"] .timer { border-style: dashed; height: 28px; }
+
+/* ------------------------------------------------------------- answers */
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(14px, 2.6vw, 24px); padding-right: var(--shadow); }
+.answer {
+  position: relative; appearance: none; cursor: pointer;
+  min-height: clamp(104px, 19vh, 150px); padding: 14px 12px 22px;
+  border: var(--b) solid var(--ink); background: var(--paper); color: var(--ink);
+  box-shadow: var(--shadow) var(--shadow) 0 var(--ink);
+  font-weight: 900; font-size: clamp(30px, 6.8vw, 56px); letter-spacing: -0.035em; line-height: 1;
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out, background-color 100ms;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+}
+.answer .a-label { display: block; overflow-wrap: anywhere; }
+.answer .a-key { position: absolute; bottom: 7px; left: 10px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; opacity: .55; }
+.answer[data-side="right"] .a-key { left: auto; right: 10px; }
+.answer[aria-disabled="false"]:hover { background: var(--acid); }
+.answer[aria-disabled="false"]:active, .answer.kbd {
+  transform: translate(var(--shadow), var(--shadow)); box-shadow: 0 0 0 var(--ink);
+}
+.answer[aria-disabled="true"] { cursor: default; }
+.game[data-state="RULE_TRANSITION"] .answer .a-label, .game[data-state="PAUSED"] .answer .a-label { opacity: .25; }
+.answer[data-mark="yes"] { background: var(--acid); }
+.answer[data-mark="no"] { background: var(--paper); border-color: var(--red); box-shadow: var(--shadow) var(--shadow) 0 var(--red); }
+.answer[data-mark="needed"] { border-style: dashed; }
+.answer[data-mark]::before {
+  position: absolute; top: -13px; left: 10px; padding: 3px 7px; font-family: var(--mono); font-size: 11px;
+  font-weight: 700; letter-spacing: .06em; line-height: 1; background: var(--ink); color: var(--paper); text-transform: uppercase;
+}
+.answer[data-mark="yes"]::before { content: "✓ Nice"; }
+.answer[data-mark="no"]::before { content: "✗ You"; background: var(--red); }
+.answer[data-mark="needed"]::before { content: "→ Needed"; }
+.answer.pop { animation: pop 300ms cubic-bezier(.2,.9,.3,1.5); }
+@keyframes pop {
+  0% { transform: translate(var(--shadow), var(--shadow)) scale(.95); box-shadow: 0 0 0 var(--ink); }
+  60% { transform: translate(-1px, -1px) scale(1.03); }
+  100% { transform: none; }
+}
+.answer.wobble { animation: wobble 320ms ease-in-out; }
+@keyframes wobble { 20% { transform: rotate(-2.2deg); } 45% { transform: rotate(2deg); } 70% { transform: rotate(-1deg); } 100% { transform: none; } }
+
+/* ------------------------------------------------------------- foot */
+.foot { min-height: 64px; margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+.feedback { margin: 0; font-size: clamp(15px, 2.2vw, 18px); font-weight: 600; line-height: 1.35; min-height: 1.35em; }
+.feedback strong { font-weight: 850; }
+.feedback.bad strong { color: var(--red); }
+.feedback.good { color: var(--blue); font-weight: 800; }
+.feedback.hint { color: var(--muted); }
+.practice-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 18px; }
+.practice-bar[hidden] { display: none; }
+.pr-tag { font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 4px 8px; border: 2px solid var(--ink); }
+#practice-next { margin-left: auto; }
+
+/* ------------------------------------------------------------- pause */
+.pause {
+  position: absolute; inset: 0; z-index: 10; background: var(--paper);
+  display: grid; place-items: center; text-align: center; padding: 24px;
+}
+.pause[hidden] { display: none; }
+.pause-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pause-ref { width: 92px; margin-bottom: 4px; }
+.pause-kicker { margin: 0; font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .14em; }
+.pause-title { margin: 0; font-weight: 900; font-size: clamp(60px, 14vw, 120px); letter-spacing: -0.06em; line-height: .85; }
+.pause-sub { margin: 0 0 8px; font-weight: 600; font-size: 17px; max-width: 28ch; }
+
+/* ------------------------------------------------------------- game over */
+.over-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.over-mode { margin: 6px 0 0; font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; border: 2px solid var(--ink); padding: 5px 9px; }
+.over-ref { width: clamp(80px, 16vw, 116px); }
+.over-title { margin: 4px 0 0; font-weight: 900; font-size: clamp(38px, 8.4vw, 76px); letter-spacing: -0.05em; line-height: .9; max-width: 12ch; }
+.over-score { position: relative; display: flex; align-items: baseline; gap: 12px; margin-top: clamp(18px, 3vw, 28px); }
+.over-num { font-weight: 900; font-size: clamp(96px, 24vw, 184px); line-height: .8; letter-spacing: -0.06em; color: var(--red); font-variant-numeric: tabular-nums; }
+.over-num-label { font-weight: 800; font-size: 22px; }
+.best-stamp {
+  align-self: center; margin-left: auto; padding: 6px 12px; border: 4px solid var(--ink); background: var(--acid);
+  font-weight: 900; font-size: clamp(20px, 3.6vw, 30px); text-transform: uppercase; transform: rotate(-6deg);
+}
+.best-stamp[hidden] { display: none; }
+.best-stamp.on { animation: bstamp 240ms cubic-bezier(.2,.9,.3,1.4); }
+@keyframes bstamp { 0% { transform: rotate(-14deg) scale(1.6); opacity: 0; } 100% { transform: rotate(-6deg) scale(1); opacity: 1; } }
+.over-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin: 22px 0 0; border-top: var(--b) solid var(--ink); }
+.over-stats > div { padding: 10px 10px 4px 0; }
+.over-stats > div + div { border-left: 2px solid var(--ink); padding-left: 12px; }
+.over-stats dt { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.over-stats dd { margin: 2px 0 0; font-weight: 900; font-size: 32px; font-variant-numeric: tabular-nums; }
+.over-survived { margin: 12px 0 0; padding-top: 10px; border-top: 2px solid var(--ink); font-weight: 700; font-size: 18px; }
+.over-actions { display: flex; flex-wrap: wrap; gap: 16px 18px; margin-top: 22px; }
+.over-foot { margin: 8px 0 0; }
+
+/* ------------------------------------------------------------- review */
+.review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: var(--b) solid var(--ink); flex-wrap: wrap; }
+.review-title { margin: 0; font-weight: 900; font-size: clamp(32px, 6vw, 52px); letter-spacing: -0.045em; line-height: .95; }
+.review-list { list-style: none; margin: 0; padding: 0; max-height: min(60vh, 520px); overflow-y: auto; overscroll-behavior: contain; }
+.rv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; padding: 14px 0; border-bottom: 2px solid var(--ink); }
+.rv-n { font-family: var(--mono); font-weight: 700; font-size: 13px; }
+.rv-rule { justify-self: start; font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 6px; background: var(--ink); color: var(--paper); }
+.rv-normal .rv-rule { background: var(--blue); color: #fff; }
+.rv-prompt { grid-column: 1 / -1; font-weight: 850; font-size: 20px; letter-spacing: -0.02em; }
+.rv-row { grid-column: 1 / -1; display: flex; gap: 10px; font-size: 16px; }
+.rv-k { flex: none; width: 4.6em; font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding-top: 2px; color: var(--muted); }
+.rv-you { font-weight: 700; color: var(--red); }
+.rv-fact { grid-column: 1 / -1; font-size: 14px; color: var(--muted); font-weight: 600; }
+.rv-need { font-weight: 700; }
+
+/* ------------------------------------------------------------- fx */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+
+/* ------------------------------------------------------------- responsive */
+@media (hover: none) { .answer .a-key { display: none; } }
+@media (max-width: 560px) {
+  :root { --shadow: 5px; }
+  .sheet { box-shadow: 6px 6px 0 var(--ink); }
+  .intro-top { display: block; }
+  .intro-ref { position: absolute; bottom: 0; right: 0; width: clamp(68px, 20vw, 96px); }
+  .title { font-size: clamp(40px, 12.8vw, 72px); }
+  .mast-title { order: 1; font-size: 13px; }
+  .masthead { column-gap: 8px; }
+  .mast-ctrls { gap: 5px; }
+  .mast-ctrls { order: 2; margin-left: auto; }
+  .hud { order: 3; flex-basis: 100%; margin: 0; justify-content: space-between; }
+  .masthead { row-gap: 10px; }
+  .ref-strip { grid-template-columns: 50px 1fr auto; min-height: 50px; gap: 10px; }
+  .ref-slot { width: 50px; }
+  .caption { font-size: 13px; padding: 5px 8px; }
+  .stamp { font-size: 13px; border-width: 3px; padding: 3px 6px 2px; }
+  .answer { min-height: 116px; }
+  .rule { letter-spacing: .03em; }
+  .over-stats dd { font-size: 26px; }
+  .intro-actions .btn-primary { flex: 1 1 100%; }
+  .modes { flex: 1 1 100%; }
+  .mode-opt { flex: 1; }
+  .mode-opt span { justify-content: center; }
+}
+@media (max-height: 640px) and (min-width: 561px) {
+  .stage { min-height: 130px; }
+  .answer { min-height: 96px; }
+  .title { font-size: clamp(50px, 11vw, 104px); }
+}
+
+/* ------------------------------------------------------------- comfort */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+<main id="game" class="game" data-screen="intro" data-state="INTRO" data-rule="wrong" tabindex="-1" aria-label="Wrong Answers Only — game">
+
+  <!-- Referee: one SVG instance reused (moved) between screens -->
+  <template id="ref-template">
+    <svg class="ref" viewBox="0 0 120 120" data-mood="smug" aria-hidden="true" focusable="false">
+      <defs>
+        <clipPath id="shirt-clip"><path d="M14 120 C 18 99, 38 93, 60 93 C 82 93, 102 99, 106 120 Z"/></clipPath>
+      </defs>
+      <g class="ref-shirt">
+        <path d="M14 120 C 18 99, 38 93, 60 93 C 82 93, 102 99, 106 120 Z" fill="#FFF6E5"/>
+        <g clip-path="url(#shirt-clip)" fill="#24211E">
+          <rect x="22" y="90" width="9" height="32"/><rect x="41" y="90" width="9" height="32"/>
+          <rect x="70" y="90" width="9" height="32"/><rect x="89" y="90" width="9" height="32"/>
+        </g>
+        <path d="M14 120 C 18 99, 38 93, 60 93 C 82 93, 102 99, 106 120" fill="none" stroke="#24211E" stroke-width="3"/>
+        <path d="M50 93 L60 106 L70 93" fill="#FFF6E5" stroke="#24211E" stroke-width="3" stroke-linejoin="round"/>
+      </g>
+      <path class="ref-cord" d="M47 92 Q60 108 73 92" fill="none" stroke="#24211E" stroke-width="1.6"/>
+      <g class="ref-whistle">
+        <rect x="66" y="99" width="15" height="8" rx="2" fill="#3454D1" stroke="#24211E" stroke-width="2"/>
+        <circle cx="68" cy="103" r="1.6" fill="#24211E"/>
+      </g>
+      <g class="ref-head">
+        <path d="M27 58 C 22 58, 22 70, 28 70 M93 58 C 98 58, 98 70, 92 70" fill="#FFF6E5" stroke="#24211E" stroke-width="3"/>
+        <path d="M30 50 C 30 32, 44 24, 60 24 C 76 24, 90 32, 90 50 L 90 66 C 90 82, 77 92, 60 92 C 43 92, 30 82, 30 66 Z" fill="#FFF6E5" stroke="#24211E" stroke-width="3"/>
+        <path d="M31 42 C 33 23, 46 16, 60 16 C 74 16, 87 23, 89 42 Z" fill="#24211E"/>
+        <rect x="22" y="39" width="76" height="7" fill="#24211E"/>
+        <rect x="56" y="16" width="8" height="26" fill="#E7EF63"/>
+        <circle class="ref-cheek" cx="40" cy="74" r="4.5" fill="#E34B36"/>
+        <circle class="ref-cheek" cx="80" cy="74" r="4.5" fill="#E34B36"/>
+        <g class="brows" fill="#24211E">
+          <rect class="brow brow-l" x="37" y="51" width="17" height="4.5"/>
+          <rect class="brow brow-r" x="66" y="51" width="17" height="4.5"/>
+        </g>
+        <g class="eyes eyes-open" fill="#24211E"><circle cx="46" cy="63" r="4"/><circle cx="74" cy="63" r="4"/></g>
+        <g class="eyes eyes-happy" fill="none" stroke="#24211E" stroke-width="3.4" stroke-linecap="round"><path d="M41 65 Q46 58 51 65"/><path d="M69 65 Q74 58 79 65"/></g>
+        <g class="eyes eyes-lid"><path d="M40 63 a6 6 0 0 0 12 0 Z M68 63 a6 6 0 0 0 12 0 Z" fill="#24211E"/><path d="M39 62 H53 M67 62 H81" stroke="#24211E" stroke-width="3" stroke-linecap="round"/></g>
+        <g class="eyes eyes-wide"><circle cx="46" cy="63" r="6" fill="#FFF6E5" stroke="#24211E" stroke-width="2.6"/><circle cx="74" cy="63" r="6" fill="#FFF6E5" stroke="#24211E" stroke-width="2.6"/><circle cx="46" cy="63" r="2.4" fill="#24211E"/><circle cx="74" cy="63" r="2.4" fill="#24211E"/></g>
+        <g class="eyes eyes-shut" fill="none" stroke="#24211E" stroke-width="3" stroke-linecap="round"><path d="M40 64 Q46 67 52 64"/><path d="M68 64 Q74 67 80 64"/></g>
+        <path d="M61 64 L56 74 L63 74" fill="none" stroke="#24211E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <g fill="none" stroke="#24211E" stroke-width="3.2" stroke-linecap="round">
+          <path class="mouth m-neutral" d="M51 82 H69"/>
+          <path class="mouth m-smile" d="M47 79 Q60 91 73 79"/>
+          <path class="mouth m-flat" d="M50 84 Q60 79 70 84"/>
+          <path class="mouth m-smirk" d="M50 83 Q63 86 72 77"/>
+        </g>
+        <ellipse class="mouth m-o" cx="60" cy="83" rx="4" ry="5" fill="#24211E"/>
+      </g>
+    </svg>
+  </template>
+
+  <div class="sheet" id="sheet">
+
+    <!-- ============================== INTRO ============================== -->
+    <section class="screen screen-intro" id="screen-intro" aria-labelledby="title">
+      <div class="intro-top">
+        <h1 id="title" class="title">
+          <span class="t-line t-wrong">Wrong</span>
+          <span class="t-line t-answers">Answers</span>
+          <span class="t-line t-only">Only<span class="t-dot">.</span></span>
+        </h1>
+        <div class="intro-ref" data-ref-slot="intro"></div>
+      </div>
+      <p class="tagline">Being right is your biggest mistake.</p>
+      <p class="rule-line"><span class="mark mark-x" aria-hidden="true">✗</span> Pick the false answer. Unless <b class="nr-chip">NORMAL ROUND</b> appears.</p>
+
+      <div class="intro-actions">
+        <button class="btn btn-primary" id="start-btn" type="button">Let’s be wrong</button>
+        <fieldset class="modes">
+          <legend class="sr-only">Mode</legend>
+          <label class="mode-opt"><input type="radio" name="mode" value="timed" checked><span>Timed</span></label>
+          <label class="mode-opt"><input type="radio" name="mode" value="chill"><span>Chill <small>no clock</small></span></label>
+        </fieldset>
+      </div>
+
+      <div class="settings" role="group" aria-label="Sound and voice settings">
+        <button class="toggle" id="sound-toggle" type="button" aria-pressed="true"><span class="tg-box" aria-hidden="true"></span>Sound</button>
+        <button class="toggle" id="voice-toggle" type="button" aria-pressed="true"><span class="tg-box" aria-hidden="true"></span>Voice</button>
+        <button class="link-btn" id="voice-test" type="button">Test voice</button>
+        <span class="settings-note" id="voice-note" role="status"></span>
+      </div>
+      <p class="intro-foot"><span id="intro-best">Best — timed 0 · chill 0</span><button class="link-btn" id="practice-again" type="button" hidden>Practice again</button></p>
+    </section>
+
+    <!-- ============================== PLAY =============================== -->
+    <section class="screen screen-play" id="screen-play" aria-label="Game" tabindex="-1">
+      <header class="masthead">
+        <span class="mast-title" aria-hidden="true">Wrong Answers Only</span>
+        <dl class="hud">
+          <div class="hud-item"><dt>Score</dt><dd id="hud-score" class="hud-num">0</dd></div>
+          <div class="hud-item"><dt>Best</dt><dd id="hud-best" class="hud-num">0</dd></div>
+          <div class="hud-item"><dt class="sr-only">Lives</dt><dd class="lives" id="lives" role="img" aria-label="3 of 3 lives left">
+            <span class="life"></span><span class="life"></span><span class="life"></span></dd></div>
+        </dl>
+        <div class="mast-ctrls">
+          <button class="icon-btn" id="pause-btn" type="button" aria-label="Pause"><span aria-hidden="true">❚❚</span></button>
+          <button class="icon-btn" id="hud-sound" type="button" aria-pressed="true" aria-label="Sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="ico-on" d="M16 8.5c1.6 1.8 1.6 5.2 0 7M18.6 6c2.9 3.3 2.9 8.7 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ico-off" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn" id="hud-voice" type="button" aria-pressed="true" aria-label="Voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H10l-5 4v-4H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path class="ico-on" d="M8 10.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ico-off" d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+      </header>
+
+      <div class="rule" id="rule" aria-hidden="true">
+        <span class="rule-mark" id="rule-mark">✗</span>
+        <span class="rule-text" id="rule-text">PICK THE WRONG ANSWER</span>
+      </div>
+
+      <div class="ref-strip">
+        <div class="ref-slot" data-ref-slot="play"></div>
+        <p class="caption" id="caption"><span class="caption-text" id="caption-text"></span></p>
+        <span class="q-num" id="q-num">Q.01</span>
+        <div class="stamp" id="stamp" aria-hidden="true"></div>
+      </div>
+
+      <div class="stage" id="stage">
+        <h2 class="prompt" id="prompt">&nbsp;</h2>
+        <div class="visual" id="visual" aria-hidden="true"></div>
+        <div class="transition" id="transition" aria-hidden="true">
+          <span class="tr-kicker" id="tr-kicker">Round rules</span>
+          <span class="tr-big" id="tr-big">WRONG ANSWERS ONLY</span>
+          <span class="tr-small" id="tr-small"><span class="mark">✗</span> Pick the wrong answer</span>
+        </div>
+      </div>
+
+      <div class="timer" id="timer" aria-hidden="true"><div class="timer-fill" id="timer-fill"></div><span class="timer-label" id="timer-label"></span></div>
+
+      <div class="answers" id="answers">
+        <button class="answer" id="ans-left" type="button" data-side="left" aria-disabled="true" aria-label="Left answer"><span class="a-label" id="ans-left-label">—</span><span class="a-key" aria-hidden="true">← A</span></button>
+        <button class="answer" id="ans-right" type="button" data-side="right" aria-disabled="true" aria-label="Right answer"><span class="a-label" id="ans-right-label">—</span><span class="a-key" aria-hidden="true">D →</span></button>
+      </div>
+
+      <div class="foot">
+        <p class="feedback" id="feedback"></p>
+        <div class="practice-bar" id="practice-bar" hidden>
+          <span class="pr-tag" id="pr-tag">Practice 1 / 2 · untimed</span>
+          <button class="link-btn" id="skip-practice" type="button">Skip practice</button>
+          <button class="btn btn-small" id="practice-next" type="button" hidden>Next</button>
+        </div>
+      </div>
+
+      <!-- Pause overlay lives inside the play screen to keep one composition -->
+      <div class="pause" id="pause" hidden>
+        <div class="pause-inner" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+          <div class="pause-ref" data-ref-slot="pause"></div>
+          <p class="pause-kicker" id="pause-kicker">Game paused</p>
+          <h2 class="pause-title" id="pause-title">Paused.</h2>
+          <p class="pause-sub" id="pause-sub">The clock is frozen. Take your time being wrong.</p>
+          <button class="btn btn-primary" id="resume-btn" type="button">Resume</button>
+          <button class="link-btn" id="quit-btn" type="button">Quit to start</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ GAME OVER ============================ -->
+    <section class="screen screen-over" id="screen-over" aria-labelledby="over-title" tabindex="-1">
+      <div class="over-top">
+        <p class="over-mode" id="over-mode">Timed</p>
+        <div class="over-ref" data-ref-slot="over"></div>
+      </div>
+      <h2 class="over-title" id="over-title">Too right for your own&nbsp;good.</h2>
+      <div class="over-score">
+        <span class="over-num" id="over-score">0</span>
+        <span class="over-num-label" id="over-num-label">points</span>
+        <span class="best-stamp" id="best-stamp" hidden>New best</span>
+      </div>
+      <dl class="over-stats">
+        <div><dt>Best</dt><dd id="over-best">0</dd></div>
+        <div><dt>Longest streak</dt><dd id="over-streak">0</dd></div>
+        <div><dt>Mistakes</dt><dd id="over-mistakes">3</dd></div>
+      </dl>
+      <p class="over-survived" id="over-survived">You survived 0 questions.</p>
+      <div class="over-actions">
+        <button class="btn btn-primary" id="again-btn" type="button">Wrong again</button>
+        <button class="btn btn-secondary" id="review-btn" type="button">Review mistakes</button>
+      </div>
+      <p class="over-foot"><button class="link-btn" id="menu-btn" type="button">Change mode or settings</button></p>
+    </section>
+
+    <!-- ============================== REVIEW ============================= -->
+    <section class="screen screen-review" id="screen-review" aria-labelledby="review-title" tabindex="-1">
+      <header class="review-head">
+        <h2 class="review-title" id="review-title">Your mistakes</h2>
+        <button class="btn btn-small" id="review-back" type="button">Back to results</button>
+      </header>
+      <ol class="review-list" id="review-list"></ol>
+    </section>
+  </div>
+
+  <canvas class="fx" id="fx" aria-hidden="true"></canvas>
+  <div class="sr-only" id="live" aria-live="polite" aria-atomic="true"></div>
+</main>
+
+<script>
+/*
+ * WRONG ANSWERS ONLY — question system.
+ *
+ * Every question instance is plain data:
+ *   { id, category, prompt, options: [{id,label},{id,label}], correctId,
+ *     visual, explanation, meta }
+ *
+ * Factual truth lives ONLY in `correctId`. The active game rule (wrong/normal)
+ * is applied elsewhere (see winningOptionId). Correctness is never inferred
+ * from button position or display text.
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.WAOQuestions = api;
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const CATEGORIES = ['arithmetic', 'compare', 'shapes', 'dots', 'facts'];
+
+  function randInt(random, min, max) {
+    return min + Math.floor(random() * (max - min + 1));
+  }
+  function pick(random, list) {
+    return list[Math.floor(random() * list.length)];
+  }
+  function shuffle(list, random) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /** A nearby, plausible but definitely different integer. */
+  function nearMiss(correct, random, min, max, spread) {
+    const cands = [];
+    for (let d = -spread; d <= spread; d++) {
+      const v = correct + d;
+      if (d !== 0 && v >= min && v <= max) cands.push(v);
+    }
+    return pick(random, cands);
+  }
+
+  /** Build the two options. Which id is true is randomised so order means nothing. */
+  function makeOptions(id, trueLabel, falseLabel, random) {
+    const trueFirst = random() < 0.5;
+    const ids = [id + ':a', id + ':b'];
+    const options = [
+      { id: ids[0], label: String(trueFirst ? trueLabel : falseLabel) },
+      { id: ids[1], label: String(trueFirst ? falseLabel : trueLabel) }
+    ];
+    return { options, correctId: trueFirst ? ids[0] : ids[1] };
+  }
+
+  function build(base, trueLabel, falseLabel, random) {
+    const o = makeOptions(base.id, trueLabel, falseLabel, random);
+    return Object.assign({ visual: null }, base, o);
+  }
+
+  // ---------------------------------------------------------------- templates
+  const templates = [];
+  function add(t) { templates.push(t); }
+
+  // Arithmetic: answers computed, never typed in.
+  const OPS = {
+    add: { sym: '+', fn: (a, b) => a + b },
+    sub: { sym: '−', fn: (a, b) => a - b },
+    mul: { sym: '×', fn: (a, b) => a * b }
+  };
+  const ARITH = [
+    ['add', 2, 3], ['add', 3, 4], ['add', 4, 5], ['add', 5, 2], ['add', 6, 3], ['add', 2, 7],
+    ['add', 5, 5], ['add', 4, 4], ['add', 3, 6], ['add', 8, 1], ['add', 6, 6], ['add', 7, 2],
+    ['sub', 9, 4], ['sub', 7, 3], ['sub', 10, 6], ['sub', 8, 5], ['sub', 6, 2], ['sub', 12, 5], ['sub', 11, 3],
+    ['mul', 2, 3], ['mul', 3, 3], ['mul', 2, 5], ['mul', 4, 2], ['mul', 3, 4]
+  ];
+  ARITH.forEach(([op, a, b]) => {
+    const id = 'arith-' + op + '-' + a + '-' + b;
+    add({
+      id, category: 'arithmetic',
+      make(random) {
+        const value = OPS[op].fn(a, b);
+        const wrong = nearMiss(value, random, 0, 30, 3);
+        return build({
+          id, category: 'arithmetic',
+          prompt: 'What is ' + a + ' ' + OPS[op].sym + ' ' + b + '?',
+          explanation: a + ' ' + OPS[op].sym + ' ' + b + ' = ' + value + '.',
+          meta: { kind: 'arith', op, a, b }
+        }, value, wrong, random);
+      }
+    });
+  });
+
+  // Comparisons: always clearly distinct numbers (gap >= 3).
+  const LARGER = [[8, 3], [12, 5], [4, 9], [15, 7], [2, 11], [20, 13], [6, 1], [17, 10]];
+  const SMALLER = [[9, 2], [5, 14], [3, 8], [16, 9], [7, 18], [11, 4]];
+  LARGER.forEach(([a, b]) => {
+    const id = 'cmp-larger-' + a + '-' + b;
+    add({
+      id, category: 'compare',
+      make(random) {
+        const hi = Math.max(a, b), lo = Math.min(a, b);
+        return build({
+          id, category: 'compare', prompt: 'Which number is larger?',
+          explanation: hi + ' is larger than ' + lo + '.',
+          meta: { kind: 'larger', a, b }
+        }, hi, lo, random);
+      }
+    });
+  });
+  SMALLER.forEach(([a, b]) => {
+    const id = 'cmp-smaller-' + a + '-' + b;
+    add({
+      id, category: 'compare',
+      make(random) {
+        const hi = Math.max(a, b), lo = Math.min(a, b);
+        return build({
+          id, category: 'compare', prompt: 'Which number is smaller?',
+          explanation: lo + ' is smaller than ' + hi + '.',
+          meta: { kind: 'smaller', a, b }
+        }, lo, hi, random);
+      }
+    });
+  });
+
+  // Shapes: the drawing is rendered from `visual`, the same data used to score.
+  const POLYS = [[3, 'triangle'], [4, 'square'], [5, 'pentagon'], [6, 'hexagon']];
+  POLYS.forEach(([sides, name]) => {
+    const id = 'shape-sides-' + name;
+    add({
+      id, category: 'shapes',
+      make(random) {
+        const wrong = sides === 3 ? 4 : nearMiss(sides, random, 3, 8, 1);
+        return build({
+          id, category: 'shapes', prompt: 'How many sides?',
+          visual: { type: 'shape', shape: name, sides },
+          explanation: 'A ' + name + ' has ' + sides + ' sides.',
+          meta: { kind: 'sides' }
+        }, sides, wrong, random);
+      }
+    });
+  });
+  [['triangle', 3], ['square', 4]].forEach(([name, sides]) => {
+    const id = 'shape-text-' + name;
+    add({
+      id, category: 'shapes',
+      make(random) {
+        const wrong = sides === 3 ? 4 : pick(random, [3, 5]);
+        return build({
+          id, category: 'shapes', prompt: 'How many sides does a ' + name + ' have?',
+          explanation: 'A ' + name + ' has ' + sides + ' sides.',
+          meta: { kind: 'sidesText', sides }
+        }, sides, wrong, random);
+      }
+    });
+  });
+  const NAMES = { circle: 'Circle', square: 'Square', triangle: 'Triangle' };
+  Object.keys(NAMES).forEach((shape) => {
+    const id = 'shape-name-' + shape;
+    add({
+      id, category: 'shapes',
+      make(random) {
+        const other = pick(random, Object.keys(NAMES).filter((s) => s !== shape));
+        return build({
+          id, category: 'shapes', prompt: 'What shape is this?',
+          visual: { type: 'shape', shape, sides: shape === 'circle' ? 0 : (shape === 'square' ? 4 : 3) },
+          explanation: 'That is a ' + shape + '.',
+          meta: { kind: 'shapeName', trueName: NAMES[shape] }
+        }, NAMES[shape], NAMES[other], random);
+      }
+    });
+  });
+
+  // Dots: positions are generated and the count is the length of that array.
+  for (let n = 2; n <= 9; n++) {
+    const id = 'dots-' + n;
+    add({
+      id, category: 'dots',
+      make(random) {
+        const slots = shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], random).slice(0, n);
+        const dots = slots.map((s) => ({
+          x: 20 + (s % 3) * 30 + (random() * 6 - 3),
+          y: 20 + Math.floor(s / 3) * 30 + (random() * 6 - 3)
+        }));
+        const wrong = nearMiss(dots.length, random, 1, 10, 1);
+        return build({
+          id, category: 'dots', prompt: 'How many dots?',
+          visual: { type: 'dots', dots },
+          explanation: 'There are ' + dots.length + ' dots.',
+          meta: { kind: 'dots' }
+        }, dots.length, wrong, random);
+      }
+    });
+  }
+
+  // Familiar, universal, single-answer facts.
+  const FACTS = [
+    ['week', 'How many days are in a week?', '7', '8', 'A week has 7 days.'],
+    ['hour', 'How many minutes are in an hour?', '60', '100', 'An hour has 60 minutes.'],
+    ['day', 'How many hours are in a day?', '24', '30', 'A day has 24 hours.'],
+    ['year', 'How many months are in a year?', '12', '10', 'A year has 12 months.'],
+    ['spider', 'How many legs does a spider have?', '8', '6', 'Spiders have 8 legs.'],
+    ['insect', 'How many legs does an insect have?', '6', '8', 'Insects have 6 legs.'],
+    ['octopus', 'How many arms does an octopus have?', '8', '5', 'An octopus has 8 arms.'],
+    ['bicycle', 'How many wheels does a bicycle have?', '2', '3', 'A bicycle has 2 wheels.'],
+    ['ice', 'What is ice made of?', 'Water', 'Sand', 'Ice is frozen water.'],
+    ['star', 'Which one is a star?', 'The Sun', 'The Moon', 'The Sun is a star.'],
+    ['planet', 'Which planet do we live on?', 'Earth', 'Mars', 'We live on Earth.'],
+    ['bees', 'What do bees make?', 'Honey', 'Milk', 'Bees make honey.'],
+    ['dozen', 'How many is a dozen?', '12', '10', 'A dozen is 12.'],
+    ['alphabet', 'Which letter comes first in the alphabet?', 'A', 'D', 'A comes first.'],
+    ['heavier', 'Which is heavier?', '1 kilogram', '1 gram', 'A kilogram is 1000 grams.'],
+    ['longer', 'Which is longer?', '1 kilometre', '1 centimetre', 'A kilometre is far longer.'],
+    ['even', 'Which number is even?', '4', '7', '4 is even. 7 is odd.'],
+    ['fire', 'Is fire hot or cold?', 'Hot', 'Cold', 'Fire is hot.']
+  ];
+  FACTS.forEach(([key, prompt, truth, lie, explanation]) => {
+    const id = 'fact-' + key;
+    add({
+      id, category: 'facts',
+      make(random) {
+        return build({ id, category: 'facts', prompt, explanation, meta: { kind: 'fact', truth } }, truth, lie, random);
+      }
+    });
+  });
+
+  // ------------------------------------------------------------- verification
+  /** Independently recompute the true label for a question from its data. */
+  function computeTruth(q) {
+    const m = q.meta || {};
+    switch (m.kind) {
+      case 'arith': return String(OPS[m.op].fn(m.a, m.b));
+      case 'larger': return String(Math.max(m.a, m.b));
+      case 'smaller': return String(Math.min(m.a, m.b));
+      case 'sides': return String(q.visual.sides);
+      case 'sidesText': return String(m.sides);
+      case 'shapeName': return m.trueName;
+      case 'dots': return String(q.visual.dots.length);
+      case 'fact': return m.truth;
+      default: return null;
+    }
+  }
+
+  /** Returns a list of problems; empty means the question is valid. */
+  function validate(q) {
+    const errs = [];
+    if (!q || typeof q.id !== 'string' || !q.id) errs.push('missing id');
+    if (!q.prompt) errs.push('missing prompt');
+    if (!q.explanation) errs.push('missing explanation');
+    if (!Array.isArray(q.options) || q.options.length !== 2) { errs.push('needs exactly two options'); return errs; }
+    const [a, b] = q.options;
+    if (a.id === b.id) errs.push('duplicate option ids');
+    if (a.label === b.label) errs.push('duplicate option labels');
+    const matches = q.options.filter((o) => o.id === q.correctId);
+    if (matches.length !== 1) errs.push('correctId must match exactly one option');
+    const truth = computeTruth(q);
+    if (truth === null) errs.push('cannot verify truth');
+    else {
+      const trueOpts = q.options.filter((o) => o.label === truth);
+      if (trueOpts.length !== 1) errs.push('exactly one option must be factually true');
+      else if (trueOpts[0].id !== q.correctId) errs.push('correctId disagrees with computed truth');
+    }
+    if (m(q, 'larger') || m(q, 'smaller')) {
+      if (Math.abs(q.meta.a - q.meta.b) < 3) errs.push('comparison too close');
+    }
+    if (q.visual && q.visual.type === 'dots' && q.visual.dots.length > 9) errs.push('too many dots');
+    return errs;
+  }
+  function m(q, kind) { return q.meta && q.meta.kind === kind; }
+
+  /** The option the player must pick under a rule. Truth and rule are separate inputs. */
+  function winningOptionId(q, rule) {
+    if (rule === 'normal') return q.correctId;
+    if (rule === 'wrong') return q.options.find((o) => o.id !== q.correctId).id;
+    throw new Error('unknown rule: ' + rule);
+  }
+  function isFactuallyCorrect(q, optionId) { return optionId === q.correctId; }
+  function optionById(q, id) { return q.options.find((o) => o.id === id); }
+
+  // ------------------------------------------------------------------ picker
+  /**
+   * Shuffle-bag picker. Guarantees: no question id within the last `recentSize`
+   * picks, and no category more than `maxRun` times in a row.
+   */
+  function createPicker(random, options) {
+    const opts = Object.assign({ recentSize: 10, maxRun: 2, pool: templates }, options);
+    const byCat = {};
+    opts.pool.forEach((t) => { (byCat[t.category] = byCat[t.category] || []).push(t); });
+    const cats = Object.keys(byCat);
+    const bags = {};
+    const recent = [];
+    const catHistory = [];
+
+    function drawFrom(cat) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        if (!bags[cat] || !bags[cat].length) bags[cat] = shuffle(byCat[cat], random);
+        const idx = bags[cat].findIndex((t) => recent.indexOf(t.id) === -1);
+        if (idx !== -1) return bags[cat].splice(idx, 1)[0];
+        bags[cat] = []; // everything left was recent; refill once
+      }
+      return null;
+    }
+
+    function next() {
+      let allowed = cats;
+      const tail = catHistory.slice(-opts.maxRun);
+      if (tail.length === opts.maxRun && tail.every((c) => c === tail[0])) {
+        allowed = cats.filter((c) => c !== tail[0]);
+      }
+      let tpl = null;
+      for (const cat of shuffle(allowed, random)) { tpl = drawFrom(cat); if (tpl) break; }
+      if (!tpl) tpl = pick(random, opts.pool.filter((t) => t.id !== recent[recent.length - 1]));
+      recent.push(tpl.id);
+      if (recent.length > opts.recentSize) recent.shift();
+      catHistory.push(tpl.category);
+      if (catHistory.length > 10) catHistory.shift();
+      return tpl.make(random);
+    }
+    return { next };
+  }
+
+  // ---------------------------------------------------------------- practice
+  function practiceQuestions(random) {
+    return [
+      {
+        rule: 'wrong',
+        question: build({
+          id: 'practice-1', category: 'arithmetic', prompt: 'What is 2 + 2?',
+          explanation: '2 + 2 = 4.', meta: { kind: 'arith', op: 'add', a: 2, b: 2 }
+        }, 4, 7, random),
+        success: '7 is false. Picking the false answer is the whole job.',
+        failure: '4 is true. Here you pick the FALSE answer — try the other one next time.'
+      },
+      {
+        rule: 'normal',
+        question: build({
+          id: 'practice-2', category: 'shapes', prompt: 'How many sides does a triangle have?',
+          explanation: 'A triangle has 3 sides.', meta: { kind: 'sidesText', sides: 3 }
+        }, 3, 4, random),
+        success: 'Correct! A NORMAL ROUND wants the true answer.',
+        failure: '4 is false. A NORMAL ROUND wants the TRUE answer.'
+      }
+    ];
+  }
+
+  return {
+    CATEGORIES, templates, createPicker, validate, computeTruth,
+    winningOptionId, isFactuallyCorrect, optionById, practiceQuestions, shuffle
+  };
+});
+
+</script>
+<script>
+/*
+ * WRONG ANSWERS ONLY — authoritative game engine.
+ *
+ * Pure logic. Clock, timers, randomness, storage and side-effect hooks are
+ * injected so the whole thing runs deterministically under Node tests.
+ *
+ * Every answer and every timeout goes through resolve(), which is guarded by
+ * state + question token, so exactly one outcome is accepted per question.
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.WAOEngine = api;
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const S = Object.freeze({
+    INTRO: 'INTRO',
+    PRACTICE: 'PRACTICE',
+    RULE_TRANSITION: 'RULE_TRANSITION',
+    QUESTION_ACTIVE: 'QUESTION_ACTIVE',
+    FEEDBACK: 'FEEDBACK',
+    PAUSED: 'PAUSED',
+    GAME_OVER: 'GAME_OVER'
+  });
+
+  const MAX_LIVES = 3;
+  const STREAK_MESSAGES = {
+    5: 'Suspiciously good at this.',
+    10: 'Professional wrong person.',
+    15: 'Your teacher would be concerned.'
+  };
+  const SCORE_CONFETTI = [10, 20, 30];
+
+  /** Rule for scored question number n (1-based). */
+  function decideRule(n, prevRule, random) {
+    if (n <= 5) return 'wrong';
+    if (prevRule === 'normal') return 'wrong';
+    return random() < 0.2 ? 'normal' : 'wrong';
+  }
+
+  /** Time limit in ms for scored question n. Never below 2200. */
+  function timeLimitFor(n) {
+    if (n <= 5) return 3000;
+    if (n <= 15) return 2600;
+    return 2200;
+  }
+
+  function bestKey(mode) { return 'woa.best.' + (mode === 'chill' ? 'chill' : 'timed'); }
+
+  function createEngine(cfg) {
+    const Q = cfg.questions;
+    const now = cfg.now || (() => performance.now());
+    const setT = cfg.setTimeout || ((f, ms) => setTimeout(f, ms));
+    const clearT = cfg.clearTimeout || ((h) => clearTimeout(h));
+    const random = cfg.random || Math.random;
+    const storage = cfg.storage || { get: () => null, set: () => {} };
+    const emitHook = cfg.onEvent || function () {};
+    const isSpeaking = cfg.isSpeaking || (() => false);
+    const cancelSpeech = cfg.cancelSpeech || function () {};
+    const T = Object.assign({
+      success: 400, mistake: 950,
+      transitionMin: 950, transitionMax: 1800,
+      milestoneMin: 1000, milestoneMax: 1800,
+      readyCue: 750, poll: 100
+    }, cfg.timing);
+
+    let runId = 0;
+    let tokenSeq = 0;
+    const timers = new Set();
+    let s = freshState('timed');
+
+    function freshState(mode) {
+      return {
+        state: S.INTRO, mode, score: 0, lives: MAX_LIVES, streak: 0, longestStreak: 0,
+        resolved: 0, mistakes: [], prevRule: null, current: null, pending: null,
+        paused: null, practice: null, lastResult: null, summary: null
+      };
+    }
+
+    function emit(type, data) {
+      try { emitHook(type, data, api); } catch (e) { /* UI errors never break the game */ if (cfg.debug) throw e; }
+    }
+
+    function setState(next) {
+      const prev = s.state;
+      s.state = next;
+      emit('state', { from: prev, to: next });
+    }
+
+    // ---- timers: tagged with runId so callbacks from old runs are inert
+    function schedule(fn, ms) {
+      const myRun = runId;
+      const h = setT(() => {
+        timers.delete(h);
+        if (myRun !== runId) return;
+        fn();
+      }, ms);
+      timers.add(h);
+      return h;
+    }
+    function cancelTimers() {
+      timers.forEach((h) => clearT(h));
+      timers.clear();
+    }
+
+    /** Continue with a named action after ms, remembered so pause can defer it. */
+    function setPending(action, ms) {
+      s.pending = action;
+      schedule(() => runPending(action), ms);
+    }
+    /** Wait at least min, and while speech is playing up to max, then run action. */
+    function hold(action, min, max) {
+      s.pending = action;
+      const start = now();
+      const check = () => {
+        const elapsed = now() - start;
+        if (elapsed >= max || !isSpeaking()) runPending(action);
+        else schedule(check, Math.min(T.poll, max - elapsed));
+      };
+      schedule(check, min);
+    }
+    function runPending(action) {
+      if (s.pending !== action) return;
+      s.pending = null;
+      if (action === 'activate') activate();
+      else if (action === 'next') nextQuestion();
+      else if (action === 'gameover') gameOver();
+    }
+
+    // ------------------------------------------------------------ lifecycle
+    function start(opts) {
+      opts = opts || {};
+      cancelTimers();
+      runId++;
+      cancelSpeech();
+      const mode = opts.mode === 'chill' ? 'chill' : 'timed';
+      s = freshState(mode);
+      s.picker = Q.createPicker(random);
+      if (opts.practice) {
+        s.practice = { index: 0, items: Q.practiceQuestions(random), result: null };
+        presentPractice();
+      } else {
+        beginRun();
+      }
+    }
+
+    function toIntro() {
+      cancelTimers();
+      runId++;
+      cancelSpeech();
+      const mode = s.mode;
+      s = freshState(mode);
+      setState(S.INTRO);
+    }
+
+    function layoutFor(question) {
+      const [a, b] = question.options;
+      return random() < 0.5 ? [a.id, b.id] : [b.id, a.id];
+    }
+
+    // ------------------------------------------------------------- practice
+    function presentPractice() {
+      const item = s.practice.items[s.practice.index];
+      s.practice.result = null;
+      s.current = {
+        token: ++tokenSeq, n: s.practice.index + 1, rule: item.rule, question: item.question,
+        layout: layoutFor(item.question), timeLimit: null, deadline: Infinity,
+        activatedAt: now(), practice: true
+      };
+      setState(S.PRACTICE);
+      emit('practice', { index: s.practice.index, total: s.practice.items.length, current: s.current });
+    }
+
+    function practiceAnswer(side, token) {
+      if (s.state !== S.PRACTICE || !s.current || s.practice.result) return false;
+      if (token !== undefined && token !== s.current.token) return false;
+      const item = s.practice.items[s.practice.index];
+      const optionId = s.current.layout[side === 'right' ? 1 : 0];
+      const success = optionId === Q.winningOptionId(item.question, item.rule);
+      s.practice.result = { success, side, optionId, line: success ? item.success : item.failure };
+      emit('practiceResult', Object.assign({ index: s.practice.index, current: s.current }, s.practice.result));
+      return true;
+    }
+
+    function practiceNext() {
+      if (s.state !== S.PRACTICE || !s.practice.result) return false;
+      if (s.practice.index < s.practice.items.length - 1) {
+        s.practice.index++;
+        presentPractice();
+      } else finishPractice();
+      return true;
+    }
+
+    function skipPractice() {
+      if (s.state !== S.PRACTICE) return false;
+      finishPractice();
+      return true;
+    }
+
+    function finishPractice() {
+      storage.set('woa.practiceDone', '1');
+      s.practice = null;
+      beginRun();
+    }
+
+    // ------------------------------------------------------------- scored run
+    function beginRun() {
+      s.score = 0; s.lives = MAX_LIVES; s.streak = 0; s.longestStreak = 0;
+      s.resolved = 0; s.mistakes = []; s.prevRule = null;
+      emit('runStart', { mode: s.mode });
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      const n = s.resolved + 1;
+      const rule = decideRule(n, s.prevRule, random);
+      const question = s.picker.next();
+      const changed = rule !== s.prevRule;
+      const first = s.prevRule === null;
+      s.prevRule = rule;
+      s.current = {
+        token: ++tokenSeq, n, rule, question, layout: layoutFor(question),
+        timeLimit: s.mode === 'chill' ? null : timeLimitFor(n),
+        deadline: Infinity, startedAt: null, activatedAt: null
+      };
+      if (changed) {
+        setState(S.RULE_TRANSITION);
+        emit('transition', { rule, first, current: s.current });
+        hold('activate', first ? 1100 : T.transitionMin, T.transitionMax);
+      } else {
+        activate();
+      }
+    }
+
+    function activate() {
+      cancelSpeech(); // never let a line run into a timed question
+      setState(S.QUESTION_ACTIVE);
+      emit('question', { current: s.current }); // UI renders + enables synchronously
+      startClock(s.current.timeLimit);
+    }
+
+    function startClock(ms) {
+      const c = s.current;
+      const t = now();
+      c.activatedAt = t;
+      c.startedAt = t;
+      if (ms === null || ms === Infinity) { c.deadline = Infinity; return; }
+      c.deadline = t + ms;
+      const token = c.token;
+      schedule(() => timeout(token), ms);
+    }
+
+    function timeRemaining() {
+      const c = s.current;
+      if (!c || c.timeLimit === null) return null;
+      if (s.state === S.QUESTION_ACTIVE) return Math.max(0, c.deadline - now());
+      if (s.state === S.PAUSED && s.paused && s.paused.from === S.QUESTION_ACTIVE) return s.paused.remaining;
+      if (s.state === S.RULE_TRANSITION) return c.timeLimit;
+      return 0;
+    }
+
+    /** Player input. side: 'left' | 'right'. */
+    function answer(side, token) {
+      if (s.state === S.PRACTICE) return practiceAnswer(side, token);
+      if (s.state !== S.QUESTION_ACTIVE || !s.current) return false;
+      if (token !== undefined && token !== s.current.token) return false;
+      if (side !== 'left' && side !== 'right') return false;
+      if (now() >= s.current.deadline) return resolve({ kind: 'timeout' });
+      return resolve({ kind: 'choice', side });
+    }
+
+    function timeout(token) {
+      if (!s.current || token !== s.current.token) return false;
+      return resolve({ kind: 'timeout' });
+    }
+
+    /** Called each frame by the UI as a backstop to the scheduled timeout. */
+    function tick() {
+      if (s.state === S.QUESTION_ACTIVE && s.current && now() >= s.current.deadline) {
+        resolve({ kind: 'timeout' });
+      }
+    }
+
+    /** The single gate through which every scored outcome passes. */
+    function resolve(input) {
+      if (s.state !== S.QUESTION_ACTIVE || !s.current || s.current.resolved) return false;
+      const c = s.current;
+      c.resolved = true;
+      cancelTimers();
+      setState(S.FEEDBACK);
+
+      const q = c.question;
+      const winId = Q.winningOptionId(q, c.rule);
+      let optionId = null, success = false;
+      if (input.kind === 'choice') {
+        optionId = c.layout[input.side === 'right' ? 1 : 0];
+        success = optionId === winId;
+      }
+      s.resolved++;
+      const result = {
+        token: c.token, n: c.n, rule: c.rule, kind: input.kind, side: input.side || null,
+        optionId, success, winningId: winId,
+        factuallyCorrect: optionId ? Q.isFactuallyCorrect(q, optionId) : null,
+        question: q, milestone: null, scoreMilestone: null, gameOver: false
+      };
+
+      if (success) {
+        s.score++;
+        s.streak++;
+        if (s.streak > s.longestStreak) s.longestStreak = s.streak;
+        if (STREAK_MESSAGES[s.streak]) result.milestone = { streak: s.streak, text: STREAK_MESSAGES[s.streak] };
+        if (SCORE_CONFETTI.indexOf(s.score) !== -1) result.scoreMilestone = s.score;
+      } else {
+        s.lives = Math.max(0, s.lives - 1);
+        s.streak = 0;
+        s.mistakes.push({
+          n: c.n, prompt: q.prompt, rule: c.rule, kind: input.kind,
+          selected: optionId ? Q.optionById(q, optionId).label : null,
+          required: Q.optionById(q, winId).label, explanation: q.explanation
+        });
+        if (s.lives === 0) result.gameOver = true;
+      }
+      result.score = s.score; result.lives = s.lives; result.streak = s.streak;
+      s.lastResult = result;
+      emit('resolve', result);
+
+      if (result.gameOver) setPending('gameover', T.mistake);
+      else if (!success) setPending('next', T.mistake);
+      else if (result.milestone || result.scoreMilestone) hold('next', T.milestoneMin, T.milestoneMax);
+      else setPending('next', T.success);
+      return true;
+    }
+
+    function gameOver() {
+      const key = bestKey(s.mode);
+      const raw = storage.get(key);
+      const prev = raw === null || raw === undefined || raw === '' || !isFinite(Number(raw)) ? null : Math.max(0, Math.floor(Number(raw)));
+      const isNewBest = prev !== null && s.score > prev;
+      const best = prev === null ? s.score : Math.max(prev, s.score);
+      if (prev === null || s.score > prev) storage.set(key, String(best));
+      s.summary = {
+        mode: s.mode, score: s.score, best, previousBest: prev, isNewBest, firstRun: prev === null,
+        longestStreak: s.longestStreak, survived: s.resolved, mistakes: s.mistakes.slice()
+      };
+      s.current = null;
+      setState(S.GAME_OVER);
+      emit('gameover', s.summary);
+    }
+
+    // ------------------------------------------------------------ pause
+    const PAUSABLE = [S.QUESTION_ACTIVE, S.RULE_TRANSITION, S.FEEDBACK];
+
+    function pause(reason) {
+      if (s.state === S.PAUSED) {
+        if (s.paused.phase === 'ready') { // interrupted during the ready cue
+          cancelTimers();
+          s.paused.phase = 'paused';
+          emit('pause', { reason, from: s.paused.from });
+        }
+        return true;
+      }
+      if (PAUSABLE.indexOf(s.state) === -1) return false;
+      let remaining = null;
+      if (s.state === S.QUESTION_ACTIVE) {
+        if (now() >= s.current.deadline) { resolve({ kind: 'timeout' }); }
+        else remaining = s.current.timeLimit === null ? null : s.current.deadline - now();
+      }
+      const from = s.state;
+      const pending = s.pending;
+      cancelTimers();
+      cancelSpeech();
+      s.paused = { from, remaining, pending, phase: 'paused', reason };
+      setState(S.PAUSED);
+      emit('pause', { reason, from });
+      return true;
+    }
+
+    function resume() {
+      if (s.state !== S.PAUSED || s.paused.phase !== 'paused') return false;
+      s.paused.phase = 'ready';
+      emit('ready', { from: s.paused.from });
+      schedule(finishResume, T.readyCue);
+      return true;
+    }
+
+    function finishResume() {
+      const p = s.paused;
+      s.paused = null;
+      if (p.from === S.QUESTION_ACTIVE) {
+        setState(S.QUESTION_ACTIVE);
+        emit('resume', { current: s.current });
+        startClock(p.remaining);
+      } else if (p.from === S.RULE_TRANSITION) {
+        s.pending = null;
+        activate();
+      } else { // FEEDBACK
+        setState(S.FEEDBACK);
+        s.pending = p.pending;
+        runPending(p.pending || 'next');
+      }
+    }
+
+    function getState() { return s; }
+
+    const api = {
+      start, toIntro, answer, tick, pause, resume, timeRemaining,
+      practiceNext, skipPractice, getState,
+      _resolve: resolve, _timeout: timeout,
+      get state() { return s.state; }
+    };
+    return api;
+  }
+
+  return { createEngine, decideRule, timeLimitFor, bestKey, STATES: S, STREAK_MESSAGES, MAX_LIVES };
+});
+
+</script>
+<script>
+/*
+ * Keyboard mapping, kept pure so it can be tested.
+ * Returns 'left' | 'right' | null. Repeats and modified keys are ignored.
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.WAOInput = api;
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  function keyToSide(e) {
+    if (!e || e.repeat || e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return null;
+    switch (e.key) {
+      case 'ArrowLeft': case 'a': case 'A': return 'left';
+      case 'ArrowRight': case 'd': case 'D': return 'right';
+      default: return null;
+    }
+  }
+  /** True when a keydown on a focused button should be swallowed (held Enter/Space). */
+  function isRepeatActivation(e) {
+    return !!(e && e.repeat && (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'));
+  }
+  return { keyToSide, isRepeatActivation };
+});
+
+</script>
+<script>
+/*
+ * Synthesised sound effects (Web Audio API). No files.
+ * Every call is wrapped so audio failure never touches gameplay.
+ */
+(function (root) {
+  'use strict';
+
+  function createAudio(initialEnabled) {
+    let ctx = null, master = null;
+    let enabled = !!initialEnabled;
+    const live = new Set(); // active oscillators, so pause/mute can stop them
+
+    /** Must be called inside a user gesture (Start button). */
+    function unlock() {
+      try {
+        const AC = root.AudioContext || root.webkitAudioContext;
+        if (!AC) return false;
+        if (!ctx) {
+          ctx = new AC();
+          master = ctx.createGain();
+          master.gain.value = enabled ? 0.32 : 0;
+          const comp = ctx.createDynamicsCompressor();
+          comp.threshold.value = -18; comp.ratio.value = 4;
+          master.connect(comp); comp.connect(ctx.destination);
+        }
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function stopAll() {
+      live.forEach((o) => { try { o.stop(); } catch (e) { /* already stopped */ } });
+      live.clear();
+    }
+
+    function setEnabled(v) {
+      enabled = !!v;
+      try {
+        if (master) master.gain.setTargetAtTime(enabled ? 0.32 : 0, ctx.currentTime, 0.02);
+        if (!enabled) stopAll();
+      } catch (e) { /* ignore */ }
+    }
+
+    function suspend() { try { stopAll(); if (ctx && ctx.state === 'running') ctx.suspend(); } catch (e) { /* ignore */ } }
+    function wake() { try { if (ctx && ctx.state === 'suspended' && enabled) ctx.resume().catch(() => {}); } catch (e) { /* ignore */ } }
+
+    /** One enveloped note. t = offset in seconds from now. */
+    function note(freq, t, dur, opts) {
+      opts = opts || {};
+      const start = ctx.currentTime + t;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = opts.type || 'triangle';
+      osc.frequency.setValueAtTime(freq, start);
+      if (opts.to) osc.frequency.exponentialRampToValueAtTime(opts.to, start + dur);
+      const peak = opts.gain || 0.25;
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(peak, start + (opts.attack || 0.008));
+      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(start); osc.stop(start + dur + 0.02);
+      live.add(osc);
+      osc.onended = () => live.delete(osc);
+    }
+
+    const SOUNDS = {
+      click() { note(620, 0, 0.05, { type: 'sine', gain: 0.12 }); },
+      // Bright, playful two-note "ta-da" for a successful wrong answer.
+      wrongWin() { note(587, 0, 0.09, { type: 'square', gain: 0.07 }); note(880, 0.08, 0.16, { type: 'square', gain: 0.07 }); },
+      // Related interval, but a softer bell-like chime for NORMAL ROUND successes.
+      normalWin() { note(659, 0, 0.32, { type: 'sine', gain: 0.2 }); note(988, 0.05, 0.36, { type: 'sine', gain: 0.14 }); },
+      mistake() { note(392, 0, 0.12, { type: 'triangle', gain: 0.22 }); note(311, 0.12, 0.26, { type: 'triangle', gain: 0.22, to: 220 }); },
+      timeout() {
+        [0, 0.09, 0.18].forEach((t) => note(1100, t, 0.025, { type: 'sine', gain: 0.1 }));
+        note(180, 0.3, 0.22, { type: 'sine', gain: 0.25, to: 120 });
+      },
+      ruleSwitch() { note(330, 0, 0.12, { type: 'triangle', gain: 0.18, to: 784 }); note(784, 0.13, 0.08, { type: 'sine', gain: 0.15 }); },
+      streak() { [523, 659, 784, 1047].forEach((f, i) => note(f, i * 0.07, 0.14, { type: 'triangle', gain: 0.16 })); },
+      gameOver() { [523, 440, 370, 294].forEach((f, i) => note(f, i * 0.14, 0.22, { type: 'triangle', gain: 0.2 })); },
+      newBest() {
+        [523, 659, 784, 1047].forEach((f, i) => note(f, i * 0.06, 0.12, { type: 'square', gain: 0.05 }));
+        [523, 659, 784].forEach((f) => note(f, 0.3, 0.5, { type: 'sine', gain: 0.12 }));
+      },
+      ready() { note(880, 0, 0.06, { type: 'sine', gain: 0.1 }); }
+    };
+
+    function play(name) {
+      if (!enabled || !ctx || !master || ctx.state !== 'running' || !SOUNDS[name]) return;
+      try { SOUNDS[name](); } catch (e) { /* never interrupt gameplay */ }
+    }
+
+    return {
+      unlock, play, setEnabled, suspend, wake,
+      get enabled() { return enabled; },
+      get state() { return ctx ? ctx.state : 'none'; },
+      get supported() { return !!(root.AudioContext || root.webkitAudioContext); }
+    };
+  }
+
+  root.WAOAudio = { createAudio };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Referee voice via SpeechSynthesis. Captions are always shown by the caller;
+ * speech is an optional extra. Never queues, rate-limited, always cancellable,
+ * and isSpeaking() has a hard upper bound so nothing can wait on it forever.
+ */
+(function (root) {
+  'use strict';
+
+  function createVoice(initialEnabled) {
+    const synth = root.speechSynthesis;
+    const supported = !!(synth && typeof root.SpeechSynthesisUtterance === 'function');
+    let enabled = !!initialEnabled && supported;
+    let voice = null;
+    let current = null;
+    let busyUntil = 0;
+    let lastAt = -Infinity;
+    const MIN_GAP = 1400;
+
+    function loadVoices() {
+      if (!supported) return;
+      try {
+        const list = synth.getVoices() || [];
+        const en = list.filter((v) => /^en([-_]|$)/i.test(v.lang || ''));
+        voice = en.find((v) => v.localService && v.default) || en.find((v) => v.localService) || en[0] || null;
+      } catch (e) { voice = null; }
+    }
+    if (supported) {
+      loadVoices();
+      try {
+        if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices);
+        else synth.onvoiceschanged = loadVoices;
+      } catch (e) { /* ignore */ }
+    }
+
+    function cancel() {
+      current = null;
+      busyUntil = 0;
+      if (!supported) return;
+      try { synth.cancel(); } catch (e) { /* ignore */ }
+    }
+
+    /** Speak one short line, replacing anything in progress. Returns true if speech started. */
+    function say(text, opts) {
+      opts = opts || {};
+      if (!enabled || !supported) return false;
+      const t = root.performance.now();
+      if (!opts.force && t - lastAt < MIN_GAP) return false;
+      try {
+        synth.cancel();
+        const u = new root.SpeechSynthesisUtterance(text);
+        if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'en-US';
+        u.rate = 1.05; u.pitch = 1; u.volume = 0.9;
+        const done = () => { if (current === u) { current = null; busyUntil = 0; } };
+        u.onend = done; u.onerror = done;
+        current = u;
+        lastAt = t;
+        busyUntil = t + Math.min(2600, 500 + text.length * 65); // upper bound, not a wait
+        synth.speak(u);
+        return true;
+      } catch (e) { cancel(); return false; }
+    }
+
+    function isSpeaking() {
+      return !!current && root.performance.now() < busyUntil;
+    }
+
+    return {
+      say, cancel, isSpeaking,
+      setEnabled(v) { enabled = !!v && supported; if (!enabled) cancel(); },
+      get enabled() { return enabled; },
+      get supported() { return supported; }
+    };
+  }
+
+  root.WAOVoice = { createVoice };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Ink bursts and confetti on one pointer-transparent canvas.
+ * Capped particle count, ~1 s lifetime, fully independent of scoring.
+ */
+(function (root) {
+  'use strict';
+  const COLORS = ['#24211E', '#E34B36', '#3454D1', '#E7EF63'];
+  const MAX = 60;
+
+  function createEffects(canvas) {
+    const ctx = canvas.getContext('2d');
+    let parts = [];
+    let dpr = 1, w = 0, h = 0;
+    let enabled = true;
+
+    function resize() {
+      dpr = Math.min(2, root.devicePixelRatio || 1);
+      w = root.innerWidth; h = root.innerHeight;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    root.addEventListener('resize', resize);
+
+    function add(p) {
+      if (parts.length >= MAX) parts.shift();
+      parts.push(p);
+    }
+
+    /** Small ink splat from a point (button centre). */
+    function ink(x, y, color) {
+      if (!enabled) return;
+      for (let i = 0; i < 14; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const v = 140 + Math.random() * 220;
+        add({ kind: 'ink', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60,
+          r: 2 + Math.random() * 4, life: 0, max: 0.45 + Math.random() * 0.25,
+          color: Math.random() < 0.7 ? '#24211E' : color });
+      }
+    }
+
+    /** Confetti from the two lower page corners, travelling up the margins. */
+    function confetti(size) {
+      if (!enabled) return;
+      const n = size === 'big' ? 56 : 26;
+      for (let i = 0; i < n; i++) {
+        const left = i % 2 === 0;
+        add({ kind: 'paper', x: left ? -6 : w + 6, y: h * (0.55 + Math.random() * 0.45),
+          vx: (left ? 1 : -1) * (160 + Math.random() * 260), vy: -(380 + Math.random() * 380),
+          r: 4 + Math.random() * 4, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 14,
+          life: 0, max: 0.8 + Math.random() * 0.25, color: COLORS[i % COLORS.length] });
+      }
+    }
+
+    function update(dt) {
+      if (!parts.length) return false;
+      ctx.clearRect(0, 0, w, h);
+      parts = parts.filter((p) => (p.life += dt) < p.max);
+      for (const p of parts) {
+        p.vy += (p.kind === 'ink' ? 700 : 900) * dt;
+        p.vx *= p.kind === 'ink' ? 0.9 : 0.985;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        const k = 1 - p.life / p.max;
+        ctx.globalAlpha = Math.min(1, k * 1.6);
+        ctx.fillStyle = p.color;
+        if (p.kind === 'ink') {
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (0.6 + 0.4 * k), 0, Math.PI * 2); ctx.fill();
+        } else {
+          p.rot += p.vr * dt;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillRect(-p.r, -p.r * 0.45, p.r * 2, p.r * 0.9);
+          ctx.restore();
+        }
+      }
+      ctx.globalAlpha = 1;
+      if (!parts.length) ctx.clearRect(0, 0, w, h);
+      return true;
+    }
+
+    function clear() { parts = []; ctx.clearRect(0, 0, w, h); }
+
+    return {
+      ink, confetti, update, clear, resize,
+      setEnabled(v) { enabled = !!v; if (!enabled) clear(); },
+      get count() { return parts.length; }
+    };
+  }
+
+  root.WAOEffects = { createEffects };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * WRONG ANSWERS ONLY — UI controller.
+ * The engine owns all game state; this file only renders it and forwards input.
+ */
+(function () {
+  'use strict';
+
+  const Q = window.WAOQuestions;
+  const E = window.WAOEngine;
+  const I = window.WAOInput;
+  const S = E.STATES;
+  const $ = (id) => document.getElementById(id);
+
+  // -------------------------------------------------------------- storage
+  const store = {
+    get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* storage unavailable: keep playing */ } }
+  };
+
+  const reducedMotionMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  const reduced = () => reducedMotionMq.matches;
+
+  // -------------------------------------------------------------- services
+  const audio = window.WAOAudio.createAudio(store.get('woa.sound') !== '0');
+  const voice = window.WAOVoice.createVoice(store.get('woa.voice') !== '0');
+  const fx = window.WAOEffects.createEffects($('fx'));
+  fx.setEnabled(!reduced());
+  if (reducedMotionMq.addEventListener) reducedMotionMq.addEventListener('change', () => fx.setEnabled(!reduced()));
+
+  // -------------------------------------------------------------- elements
+  const game = $('game');
+  const el = {
+    play: $('screen-play'), over: $('screen-over'), review: $('screen-review'),
+    rule: $('rule'), ruleMark: $('rule-mark'), ruleText: $('rule-text'),
+    caption: $('caption'), captionText: $('caption-text'), qNum: $('q-num'),
+    prompt: $('prompt'), visual: $('visual'), stamp: $('stamp'),
+    tr: $('transition'), trKicker: $('tr-kicker'), trBig: $('tr-big'), trSmall: $('tr-small'),
+    timer: $('timer'), timerFill: $('timer-fill'), timerLabel: $('timer-label'),
+    left: $('ans-left'), right: $('ans-right'), leftLabel: $('ans-left-label'), rightLabel: $('ans-right-label'),
+    feedback: $('feedback'), practiceBar: $('practice-bar'), prTag: $('pr-tag'), practiceNext: $('practice-next'),
+    score: $('hud-score'), best: $('hud-best'), lives: $('lives'),
+    pause: $('pause'), pauseKicker: $('pause-kicker'), pauseTitle: $('pause-title'), pauseSub: $('pause-sub'),
+    live: $('live')
+  };
+
+  // One referee, moved between slots so it keeps a single identity.
+  const ref = $('ref-template').content.firstElementChild.cloneNode(true);
+  function placeRef(slot) {
+    const target = document.querySelector('[data-ref-slot="' + slot + '"]');
+    if (target && ref.parentNode !== target) target.appendChild(ref);
+  }
+  function mood(m) { ref.setAttribute('data-mood', m); }
+  placeRef('intro');
+
+  // -------------------------------------------------------------- engine
+  const engine = E.createEngine({
+    questions: Q,
+    storage: store,
+    isSpeaking: () => voice.isSpeaking(),
+    cancelSpeech: () => voice.cancel(),
+    onEvent: handle
+  });
+
+  // -------------------------------------------------------------- helpers
+  let captionTimer = 0;
+  function caption(text, speak, opts) {
+    clearTimeout(captionTimer);
+    el.captionText.textContent = text ? '“' + text + '”' : '';
+    el.caption.classList.toggle('on', !!text);
+    if (speak && text) voice.say(text, opts);
+    if (text) captionTimer = setTimeout(() => el.caption.classList.remove('on'), 2600);
+  }
+  function announce(text) {
+    el.live.textContent = '';
+    // Re-set on next frame so repeated messages are still announced.
+    requestAnimationFrame(() => { el.live.textContent = text; });
+  }
+  function restartAnim(node, cls) {
+    node.classList.remove(cls);
+    void node.offsetWidth; // reflow so the animation replays
+    node.classList.add(cls);
+  }
+  function showScreen(name) {
+    game.dataset.screen = name;
+    if (name === 'intro') placeRef('intro');
+    else if (name === 'over' || name === 'review') placeRef('over');
+    else placeRef('play');
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function bestFor(mode) {
+    const v = Number(store.get(E.bestKey(mode)));
+    return isFinite(v) && v > 0 ? Math.floor(v) : 0;
+  }
+
+  const RULES = {
+    wrong: { mark: '✗', text: 'PICK THE WRONG ANSWER', sr: 'Pick the wrong answer.' },
+    normal: { mark: '✓', text: 'NORMAL ROUND · PICK THE CORRECT ANSWER', sr: 'Normal round. Pick the correct answer.' }
+  };
+  function setRule(rule) {
+    game.dataset.rule = rule;
+    el.ruleMark.textContent = RULES[rule].mark;
+    el.ruleText.textContent = RULES[rule].text;
+  }
+
+  function setAnswersEnabled(on) {
+    [el.left, el.right].forEach((b) => {
+      b.setAttribute('aria-disabled', on ? 'false' : 'true');
+      b.classList.remove('is-picked', 'pop', 'wobble');
+      b.removeAttribute('data-mark');
+    });
+  }
+  function clearAnswers() {
+    el.leftLabel.textContent = '—'; el.rightLabel.textContent = '—';
+    el.left.setAttribute('aria-label', 'Left answer'); el.right.setAttribute('aria-label', 'Right answer');
+    setAnswersEnabled(false);
+  }
+
+  /** Render a question exactly from its data. */
+  function renderQuestion(current) {
+    const q = current.question;
+    const left = Q.optionById(q, current.layout[0]);
+    const right = Q.optionById(q, current.layout[1]);
+    el.prompt.textContent = q.prompt;
+    el.visual.innerHTML = '';
+    if (q.visual) el.visual.appendChild(renderVisual(q.visual));
+    el.visual.classList.toggle('has', !!q.visual);
+    el.leftLabel.textContent = left.label;
+    el.rightLabel.textContent = right.label;
+    el.left.setAttribute('aria-label', 'Left answer: ' + left.label);
+    el.right.setAttribute('aria-label', 'Right answer: ' + right.label);
+    el.left.dataset.token = el.right.dataset.token = String(current.token);
+    clearStamp();
+    el.feedback.textContent = '';
+    el.feedback.className = 'feedback';
+    el.tr.classList.remove('on');
+    setAnswersEnabled(true);
+  }
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function renderVisual(v) {
+    const svg = svgEl('svg', { viewBox: '0 0 100 100', class: 'vis vis-' + v.type });
+    if (v.type === 'dots') {
+      v.dots.forEach((d) => svg.appendChild(svgEl('circle', { cx: d.x.toFixed(1), cy: d.y.toFixed(1), r: 8.5, class: 'dot' })));
+    } else if (v.type === 'shape') {
+      if (v.shape === 'circle') svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 36, class: 'shape' }));
+      else if (v.shape === 'square') svg.appendChild(svgEl('rect', { x: 18, y: 18, width: 64, height: 64, class: 'shape' }));
+      else {
+        const pts = [];
+        const n = v.sides;
+        const r = 40, cy = n === 3 ? 58 : 50;
+        for (let i = 0; i < n; i++) {
+          const a = -Math.PI / 2 + i * 2 * Math.PI / n;
+          pts.push((50 + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1));
+        }
+        svg.appendChild(svgEl('polygon', { points: pts.join(' '), class: 'shape' }));
+      }
+    }
+    return svg;
+  }
+
+  function renderLives(lives) {
+    const spans = el.lives.querySelectorAll('.life');
+    spans.forEach((s, i) => s.classList.toggle('lost', i >= lives));
+    el.lives.setAttribute('aria-label', lives + ' of ' + E.MAX_LIVES + ' lives left');
+  }
+  function renderHud() {
+    const st = engine.getState();
+    el.score.textContent = st.score;
+    el.best.textContent = Math.max(bestFor(st.mode), 0);
+    renderLives(st.lives);
+  }
+
+  // -------------------------------------------------------------- lines
+  const LINES = {
+    start: 'Finally. A game for bad decisions.',
+    success: 'Beautifully wrong.',
+    mistake: 'Unfortunately, that was correct.',
+    normal: 'Plot twist. Be right.',
+    backToWrong: 'Back to being wrong.',
+    scoreMilestone: 'You’re getting worse. Excellent.',
+    gameOver: 'Too much common sense.',
+    newBest: 'A new personal worst. I mean best.',
+    test: 'Testing. One, two, wrong.'
+  };
+
+  // -------------------------------------------------------------- events
+  function handle(type, d) {
+    switch (type) {
+      case 'state': onState(d); break;
+      case 'practice': onPractice(d); break;
+      case 'practiceResult': onPracticeResult(d); break;
+      case 'runStart': onRunStart(d); break;
+      case 'transition': onTransition(d); break;
+      case 'question': onQuestion(d); break;
+      case 'resolve': onResolve(d); break;
+      case 'pause': onPause(d); break;
+      case 'ready': onReady(d); break;
+      case 'resume': onResume(d); break;
+      case 'gameover': onGameOver(d); break;
+    }
+  }
+
+  function onState(d) {
+    game.dataset.state = d.to;
+    if (d.to !== S.PAUSED) { el.pause.hidden = true; if (game.dataset.screen === 'play') placeRef('play'); }
+    if (d.to !== S.QUESTION_ACTIVE && d.to !== S.PRACTICE) {
+      [el.left, el.right].forEach((b) => b.setAttribute('aria-disabled', 'true'));
+    }
+  }
+
+  function onPractice(d) {
+    showScreen('play');
+    const c = d.current;
+    el.practiceBar.hidden = false;
+    el.practiceNext.hidden = true;
+    el.prTag.textContent = 'Practice ' + (d.index + 1) + ' / ' + d.total + ' · untimed';
+    game.dataset.timed = 'practice';
+    el.timerLabel.textContent = 'Practice · no clock';
+    el.qNum.textContent = 'P.' + pad(d.index + 1);
+    const prevRule = game.dataset.rule;
+    setRule(c.rule);
+    renderQuestion(c);
+    el.feedback.textContent = c.rule === 'wrong' ? 'Pick the answer that is false.' : 'NORMAL ROUND: this time pick the answer that is true.';
+    el.feedback.className = 'feedback hint';
+    if (c.rule === 'normal') {
+      restartAnim(el.rule, 'flip');
+      audio.play('ruleSwitch');
+      mood('surprised');
+      caption(LINES.normal, true, { force: true });
+    } else {
+      mood('smug');
+      if (prevRule === 'normal') restartAnim(el.rule, 'flip');
+    }
+    announce('Practice. ' + RULES[c.rule].sr + ' ' + c.question.prompt);
+    focusPlay();
+    renderHud();
+  }
+
+  function onPracticeResult(d) {
+    const btn = d.side === 'right' ? el.right : el.left;
+    markButtons(d.current, d.optionId);
+    if (d.success) {
+      restartAnim(btn, 'pop');
+      burstFrom(btn);
+      audio.play(d.current.rule === 'normal' ? 'normalWin' : 'wrongWin');
+      mood('approve');
+      if (d.index === 0) caption(LINES.success, true, { force: true });
+    } else {
+      if (!reduced()) restartAnim(btn, 'wobble');
+      audio.play('mistake');
+      mood('disappointed');
+      if (d.index === 0) caption(LINES.mistake, true, { force: true });
+    }
+    showStamp(d.success ? (d.current.rule === 'normal' ? 'Correct. Oddly.' : 'Beautifully wrong') : (d.current.rule === 'normal' ? 'Wrong moment' : 'Too correct'),
+      d.success ? 'good-' + d.current.rule : 'bad');
+    el.feedback.textContent = d.line;
+    el.feedback.className = 'feedback ' + (d.success ? 'good' : 'bad');
+    [el.left, el.right].forEach((b) => b.setAttribute('aria-disabled', 'true'));
+    el.practiceNext.hidden = false;
+    el.practiceNext.textContent = d.index === 0 ? 'Next' : 'Start for real';
+    el.practiceNext.focus({ preventScroll: true });
+    announce(d.line);
+  }
+
+  function onRunStart(d) {
+    showScreen('play');
+    el.practiceBar.hidden = true;
+    game.dataset.timed = d.mode === 'chill' ? 'chill' : 'timed';
+    el.timerLabel.textContent = d.mode === 'chill' ? 'Chill mode · no clock' : '';
+    el.timerFill.style.transform = 'scaleX(1)';
+    renderHud();
+    focusPlay();
+  }
+
+  function onTransition(d) {
+    setRule(d.rule);
+    clearAnswers();
+    el.prompt.innerHTML = '&nbsp;';
+    el.visual.innerHTML = '';
+    el.visual.classList.remove('has');
+    clearStamp();
+    el.feedback.textContent = '';
+    el.qNum.textContent = 'Q.' + pad(d.current.n);
+    el.timerFill.style.transform = 'scaleX(1)';
+    el.timerFill.classList.remove('low');
+    if (d.rule === 'normal') {
+      el.trKicker.textContent = 'Plot twist';
+      el.trBig.textContent = 'NORMAL ROUND';
+      el.trSmall.innerHTML = '<span class="mark">✓</span> Pick the correct answer';
+      mood('surprised');
+      caption(LINES.normal, true, { force: true });
+    } else {
+      el.trKicker.textContent = d.first ? 'The rule' : 'Back to normal (abnormal)';
+      el.trBig.textContent = d.first ? 'WRONG ANSWERS ONLY' : 'WRONG AGAIN';
+      el.trSmall.innerHTML = '<span class="mark">✗</span> Pick the wrong answer';
+      mood('smug');
+      if (!d.first) caption(LINES.backToWrong, true, { force: true });
+    }
+    el.tr.dataset.rule = d.rule;
+    restartAnim(el.tr, 'on');
+    restartAnim(el.rule, 'flip');
+    audio.play('ruleSwitch');
+    announce((d.rule === 'normal' ? 'Normal round! ' : '') + RULES[d.rule].sr);
+  }
+
+  function onQuestion(d) {
+    const c = d.current;
+    el.qNum.textContent = 'Q.' + pad(c.n);
+    renderQuestion(c);
+    if (ref.getAttribute('data-mood') !== 'surprised' || c.rule !== 'normal') mood('neutral');
+    // Keep the rule reminder visible on NORMAL ROUND; otherwise clear stale lines.
+    if (!(c.rule === 'normal' && el.captionText.textContent.indexOf(LINES.normal) !== -1)) caption('');
+    el.timerFill.classList.remove('low');
+    el.timerFill.style.transform = 'scaleX(1)';
+    const q = c.question;
+    announce(RULES[c.rule].sr + ' ' + q.prompt + ' Left: ' + el.leftLabel.textContent + '. Right: ' + el.rightLabel.textContent + '.');
+  }
+
+  function markButtons(current, chosenId) {
+    const winId = Q.winningOptionId(current.question, current.rule);
+    [el.left, el.right].forEach((b, i) => {
+      const id = current.layout[i];
+      if (id === chosenId) b.classList.add('is-picked');
+      if (id === winId) b.setAttribute('data-mark', id === chosenId ? 'yes' : 'needed');
+      else if (id === chosenId) b.setAttribute('data-mark', 'no');
+    });
+  }
+
+  function clearStamp() {
+    el.stamp.className = 'stamp';
+    el.stamp.textContent = '';
+    el.stamp.parentNode.classList.remove('stamped');
+  }
+  function showStamp(text, kind) {
+    el.stamp.textContent = text;
+    el.stamp.className = 'stamp ' + kind;
+    restartAnim(el.stamp, 'on');
+    el.stamp.parentNode.classList.add('stamped');
+  }
+
+  function burstFrom(btn) {
+    const r = btn.getBoundingClientRect();
+    fx.ink(r.left + r.width / 2, r.top + r.height / 2, game.dataset.rule === 'normal' ? '#3454D1' : '#E34B36');
+  }
+
+  function onResolve(r) {
+    const st = engine.getState();
+    const current = st.current;
+    const btn = r.side === 'right' ? el.right : r.side === 'left' ? el.left : null;
+    markButtons(current, r.optionId);
+    renderLives(r.lives);
+    el.score.textContent = r.score;
+
+    if (r.success) {
+      restartAnim(btn, 'pop');
+      restartAnim(el.score, 'bump');
+      burstFrom(btn);
+      audio.play(r.rule === 'normal' ? 'normalWin' : 'wrongWin');
+      mood('approve');
+      showStamp(r.rule === 'normal' ? 'Correct. Oddly.' : 'Beautifully wrong', 'good-' + r.rule);
+      el.feedback.textContent = '';
+      if (r.milestone) {
+        audio.play('streak');
+        caption(r.milestone.text, true, { force: true });
+        el.feedback.textContent = 'Streak ' + r.milestone.streak + '. ' + r.milestone.text;
+        el.feedback.className = 'feedback good';
+        announce('Streak ' + r.milestone.streak + '. ' + r.milestone.text);
+      }
+      if (r.scoreMilestone) {
+        fx.confetti('small');
+        if (!r.milestone) {
+          audio.play('streak');
+          caption(LINES.scoreMilestone, true, { force: true });
+          el.feedback.textContent = r.scoreMilestone + ' points. ' + LINES.scoreMilestone;
+          el.feedback.className = 'feedback good';
+        }
+      }
+      if (!r.milestone) announce('Yes. Score ' + r.score + '.');
+    } else {
+      if (btn && !reduced()) restartAnim(btn, 'wobble');
+      const life = el.lives.querySelectorAll('.life')[r.lives];
+      if (life) restartAnim(life, 'cross');
+      mood('disappointed');
+      let line, stamp;
+      if (r.kind === 'timeout') { line = 'Overthinking counts too.'; stamp = 'Time’s up'; audio.play('timeout'); }
+      else if (r.rule === 'normal') { line = 'Normal round! This time, choose the true answer.'; stamp = 'Wrong moment'; audio.play('mistake'); }
+      else { line = 'Too correct. You needed the false answer.'; stamp = 'Too correct'; audio.play('mistake'); }
+      showStamp(stamp, 'bad');
+      el.feedback.innerHTML = '';
+      const strong = document.createElement('strong'); strong.textContent = line;
+      const fact = document.createElement('span'); fact.textContent = ' ' + r.question.explanation;
+      el.feedback.append(strong, fact);
+      el.feedback.className = 'feedback bad';
+      announce(line + ' ' + r.question.explanation + ' ' + r.lives + (r.lives === 1 ? ' life' : ' lives') + ' left.');
+    }
+    if (st.state === S.FEEDBACK) el.timerFill.classList.remove('low');
+  }
+
+  let pauseFromBtn = false;
+  function onPause(d) {
+    el.pause.hidden = false;
+    el.pauseKicker.textContent = d.reason === 'hidden' || d.reason === 'blur' ? 'You wandered off' : 'Game paused';
+    el.pauseTitle.textContent = 'Paused.';
+    el.pauseSub.textContent = 'The clock is frozen. Take your time being wrong.';
+    $('resume-btn').hidden = false;
+    $('quit-btn').hidden = false;
+    placeRef('pause');
+    mood('sleepy');
+    audio.suspend();
+    clearHeld();
+    if (pauseFromBtn || d.reason === 'key') $('resume-btn').focus({ preventScroll: true });
+    pauseFromBtn = false;
+    announce('Paused. Press Resume to continue.');
+  }
+  function onReady() {
+    audio.wake();
+    el.pauseKicker.textContent = 'Back in';
+    el.pauseTitle.textContent = 'Ready…';
+    el.pauseSub.textContent = 'Clock restarts in a moment.';
+    $('resume-btn').hidden = true;
+    $('quit-btn').hidden = true;
+    mood('neutral');
+    setTimeout(() => audio.play('ready'), 30);
+    announce('Ready.');
+    focusPlay();
+  }
+  function onResume() {
+    el.pause.hidden = true;
+    placeRef('play');
+    setAnswersEnabled(true);
+    clearHeld();
+  }
+
+  function onGameOver(sum) {
+    showScreen('over');
+    mood(sum.isNewBest ? 'approve' : 'disappointed');
+    $('over-mode').textContent = sum.mode === 'chill' ? 'Chill mode · untimed' : 'Timed mode';
+    $('over-score').textContent = sum.score;
+    $('over-num-label').textContent = sum.score === 1 ? 'point' : 'points';
+    $('over-best').textContent = sum.best;
+    $('over-streak').textContent = sum.longestStreak;
+    $('over-mistakes').textContent = sum.mistakes.length;
+    $('over-survived').textContent = 'You survived ' + sum.survived + (sum.survived === 1 ? ' question.' : ' questions.');
+    $('best-stamp').hidden = !sum.isNewBest;
+    $('review-btn').disabled = sum.mistakes.length === 0;
+    if (sum.isNewBest) {
+      restartAnim($('best-stamp'), 'on');
+      audio.play('newBest');
+      fx.confetti('big');
+      caption(LINES.newBest, true, { force: true });
+    } else {
+      audio.play('gameOver');
+      caption(LINES.gameOver, true, { force: true });
+    }
+    renderReview(sum);
+    announce('Game over. Score ' + sum.score + '. Best ' + sum.best + '.' + (sum.isNewBest ? ' New best!' : ''));
+    $('again-btn').focus({ preventScroll: true });
+    updateIntroBest();
+  }
+
+  function renderReview(sum) {
+    const list = $('review-list');
+    list.innerHTML = '';
+    sum.mistakes.forEach((m) => {
+      const li = document.createElement('li');
+      li.className = 'rv rv-' + m.rule;
+      li.innerHTML =
+        '<span class="rv-n"></span><span class="rv-rule"></span>' +
+        '<span class="rv-prompt"></span>' +
+        '<span class="rv-row"><span class="rv-k">You</span><span class="rv-you"></span></span>' +
+        '<span class="rv-row"><span class="rv-k">Needed</span><span class="rv-need"></span></span>' +
+        '<span class="rv-fact"></span>';
+      li.querySelector('.rv-n').textContent = 'Q.' + pad(m.n);
+      li.querySelector('.rv-rule').textContent = m.rule === 'normal' ? '✓ Normal round · pick true' : '✗ Pick the false one';
+      li.querySelector('.rv-prompt').textContent = m.prompt;
+      li.querySelector('.rv-you').textContent = m.kind === 'timeout' ? 'Timed out' : m.selected;
+      li.querySelector('.rv-need').textContent = m.required;
+      li.querySelector('.rv-fact').textContent = 'Fact: ' + m.explanation;
+      list.appendChild(li);
+    });
+  }
+
+  // -------------------------------------------------------------- input
+  // Held-input guard: a pointer press must begin on the question it answers.
+  let downToken = null;
+  function clearHeld() { downToken = null; }
+  function currentToken() { const c = engine.getState().current; return c ? c.token : null; }
+  function answerable() {
+    const st = engine.getState();
+    return st.state === S.QUESTION_ACTIVE || (st.state === S.PRACTICE && st.practice && !st.practice.result);
+  }
+
+  [el.left, el.right].forEach((btn) => {
+    btn.addEventListener('pointerdown', () => {
+      downToken = answerable() ? currentToken() : null;
+    });
+    btn.addEventListener('click', (e) => {
+      if (btn.getAttribute('aria-disabled') === 'true' || !answerable()) return;
+      const token = Number(btn.dataset.token);
+      // Pointer clicks (detail > 0) must have started on this very question.
+      if (e.detail > 0 && downToken !== token) return;
+      submit(btn.dataset.side, token);
+    });
+    btn.addEventListener('keydown', (e) => { if (I.isRepeatActivation(e)) e.preventDefault(); });
+  });
+
+  function submit(side, token) {
+    audio.play('click');
+    engine.answer(side, token);
+  }
+
+  // Shortcuts are scoped to the game: events from inside the game root, or from the
+  // bare document body when focus was dropped (e.g. a control was hidden). Keys typed
+  // into anything else on the page are never intercepted.
+  function inGameScope(target) {
+    return target === document.body || target === document.documentElement || game.contains(target);
+  }
+  document.addEventListener('keydown', (e) => {
+    if (!inGameScope(e.target)) return;
+    if (I.isRepeatActivation(e)) { e.preventDefault(); return; }
+    const st = engine.getState().state;
+    if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && !e.repeat &&
+        (st === S.QUESTION_ACTIVE || st === S.RULE_TRANSITION || st === S.FEEDBACK)) {
+      e.preventDefault();
+      engine.pause('key');
+      return;
+    }
+    const side = I.keyToSide(e);
+    if (!side) {
+      // swallow repeats of answer keys so they never leak into the next question
+      if (e.repeat && /^(ArrowLeft|ArrowRight|a|A|d|D)$/.test(e.key) && game.dataset.screen === 'play') e.preventDefault();
+      return;
+    }
+    if (game.dataset.screen !== 'play') return;
+    if (!answerable()) { if (st !== S.INTRO) e.preventDefault(); return; }
+    e.preventDefault();
+    const btn = side === 'left' ? el.left : el.right;
+    btn.classList.add('kbd');
+    setTimeout(() => btn.classList.remove('kbd'), 120);
+    submit(side, currentToken());
+  });
+
+  function focusPlay() {
+    const a = document.activeElement;
+    if (a && el.play.contains(a) && a.getClientRects().length && !a.closest('.pause')) return;
+    el.play.focus({ preventScroll: true });
+  }
+
+  // -------------------------------------------------------------- buttons
+  function selectedMode() {
+    const r = document.querySelector('input[name="mode"]:checked');
+    return r && r.value === 'chill' ? 'chill' : 'timed';
+  }
+  document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener('change', () => {
+    store.set('woa.mode', selectedMode());
+  }));
+  if (store.get('woa.mode') === 'chill') document.querySelector('input[value="chill"]').checked = true;
+
+  function startGame(practice) {
+    audio.unlock(); // inside the click: creates/resumes the AudioContext
+    fx.clear();
+    const mode = selectedMode();
+    caption(LINES.start, true, { force: true });
+    mood('smug');
+    engine.start({ mode, practice });
+  }
+
+  $('start-btn').addEventListener('click', () => startGame(store.get('woa.practiceDone') !== '1'));
+  $('practice-again').addEventListener('click', () => startGame(true));
+  $('skip-practice').addEventListener('click', () => { audio.play('click'); caption(''); engine.skipPractice(); });
+  el.practiceNext.addEventListener('click', () => {
+    audio.play('click');
+    if (engine.getState().practice && engine.getState().practice.index === 1) caption('');
+    engine.practiceNext();
+  });
+  $('pause-btn').addEventListener('click', () => { pauseFromBtn = true; engine.pause('button'); });
+  $('resume-btn').addEventListener('click', () => { audio.unlock(); engine.resume(); });
+  $('quit-btn').addEventListener('click', () => { engine.toIntro(); toIntro(); });
+  $('again-btn').addEventListener('click', () => {
+    audio.unlock(); fx.clear(); voice.cancel(); caption('');
+    engine.start({ mode: engine.getState().mode, practice: false });
+  });
+  $('review-btn').addEventListener('click', () => { showScreen('review'); $('review-back').focus({ preventScroll: true }); });
+  $('review-back').addEventListener('click', () => { showScreen('over'); $('review-btn').focus({ preventScroll: true }); });
+  $('menu-btn').addEventListener('click', () => { engine.toIntro(); toIntro(); });
+
+  function toIntro() {
+    voice.cancel(); fx.clear(); caption('');
+    showScreen('intro');
+    mood('smug');
+    updateIntroBest();
+    $('start-btn').focus({ preventScroll: true });
+  }
+
+  function updateIntroBest() {
+    $('intro-best').textContent = 'Best — timed ' + bestFor('timed') + ' · chill ' + bestFor('chill');
+    $('practice-again').hidden = store.get('woa.practiceDone') !== '1';
+  }
+
+  // Sound + voice toggles (start screen and HUD stay in sync)
+  function syncToggles() {
+    ['sound-toggle', 'hud-sound'].forEach((id) => $(id).setAttribute('aria-pressed', String(audio.enabled)));
+    ['voice-toggle', 'hud-voice'].forEach((id) => $(id).setAttribute('aria-pressed', String(voice.enabled)));
+    $('hud-sound').setAttribute('aria-label', audio.enabled ? 'Sound on' : 'Sound off');
+    $('hud-voice').setAttribute('aria-label', voice.enabled ? 'Voice on' : 'Voice off');
+    if (!voice.supported) {
+      ['voice-toggle', 'hud-voice', 'voice-test'].forEach((id) => { $(id).disabled = true; });
+      $('voice-note').textContent = 'Voice isn’t available in this browser — captions only.';
+    }
+  }
+  function toggleSound() {
+    audio.unlock();
+    audio.setEnabled(!audio.enabled);
+    store.set('woa.sound', audio.enabled ? '1' : '0');
+    if (audio.enabled) { audio.wake(); audio.play('click'); }
+    syncToggles();
+  }
+  function toggleVoice() {
+    voice.setEnabled(!voice.enabled);
+    store.set('woa.voice', voice.enabled ? '1' : '0');
+    syncToggles();
+  }
+  $('sound-toggle').addEventListener('click', toggleSound);
+  $('hud-sound').addEventListener('click', toggleSound);
+  $('voice-toggle').addEventListener('click', toggleVoice);
+  $('hud-voice').addEventListener('click', toggleVoice);
+  $('voice-test').addEventListener('click', () => {
+    if (!voice.supported) return;
+    if (!voice.enabled) { voice.setEnabled(true); store.set('woa.voice', '1'); syncToggles(); }
+    const started = voice.say(LINES.test, { force: true });
+    el.captionText.textContent = '';
+    $('voice-note').textContent = started ? '“' + LINES.test + '”' : 'Couldn’t start speech — captions will still appear.';
+  });
+  syncToggles();
+  updateIntroBest();
+
+  // -------------------------------------------------------------- interruptions
+  function interrupt(reason) {
+    voice.cancel();
+    clearHeld();
+    engine.pause(reason);
+    if (engine.getState().state !== S.PAUSED) audio.suspend();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) interrupt('hidden');
+    else if (engine.getState().state !== S.PAUSED) audio.wake();
+  });
+  window.addEventListener('blur', () => interrupt('blur'));
+  window.addEventListener('focus', () => { if (engine.getState().state !== S.PAUSED) audio.wake(); });
+  window.addEventListener('pagehide', () => { voice.cancel(); audio.suspend(); });
+
+  // -------------------------------------------------------------- frame loop
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    engine.tick();
+    const st = engine.getState();
+    if (st.current && st.current.timeLimit) {
+      const rem = engine.timeRemaining();
+      if (st.state === S.QUESTION_ACTIVE || st.state === S.PAUSED) {
+        const frac = Math.max(0, Math.min(1, rem / st.current.timeLimit));
+        el.timerFill.style.transform = 'scaleX(' + frac.toFixed(4) + ')';
+        el.timerFill.classList.toggle('low', frac < 0.34);
+      }
+    }
+    fx.update(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Test hook (read-only access for automated browser checks).
+  window.__WAO = { engine, audio, voice, fx, Q };
+})();
+
+</script>
+</body>
+</html>
