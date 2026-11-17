@@ -42,3 +42,7 @@ npm test
 ```
 
 This runs deterministic tests with `node:test`: tilt direction, frame-rate independence, collisions, edge falls, splash cooldowns, pause/resume, rewards, banking once, losing only unbanked tips, the cup cap, bump scheduling, and restart.
+
+## Single-file build
+
+`npm run build` writes `dist/do-not-spill.html`, a standalone copy of the game with the CSS and JS inlined. Rebuild it after you change the source.
