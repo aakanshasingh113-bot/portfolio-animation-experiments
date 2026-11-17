@@ -27,7 +27,7 @@
     HUB_GAP: 8,            // gap between hub and the top of a gripped prize
     EMPTY_REACH: 58,       // how far above the floor the hub stops on a miss
     AIM_MIN: 56, AIM_MAX: 584, START_X: 320, CHUTE_X: 78,
-    SLOTS: [172, 284, 400, 516], JITTER: 2,
+    SLOTS: [206, 316, 426, 536], JITTER: 1,   // first slot leaves clear floor beside the chute
 
     ATTEMPTS: 3,
     PRESS_UP: 70, PRESS_DOWN: 45,          // pressure units per second
