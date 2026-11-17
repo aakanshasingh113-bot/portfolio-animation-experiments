@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>DO NOT SPILL</title>
+  <meta name="description" content="A small café arcade game: tilt the tray, keep every cup aboard.">
+  <meta name="theme-color" content="#FFF3D8">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='19' width='28' height='7' rx='3' fill='%23C83C32' stroke='%23332921' stroke-width='1.5'/%3E%3Cpath d='M9 8h13l-1.5 11h-10z' fill='%23FFF3D8' stroke='%23332921' stroke-width='1.5'/%3E%3Crect x='9.6' y='11' width='11.8' height='2.6' fill='%23C83C32'/%3E%3Cpath d='M22 10c4 0 4 5 0 5' fill='none' stroke='%23332921' stroke-width='1.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="ticket">
+      <div class="ticket-meta" aria-hidden="true">
+        <span>Order Nº 0012</span><span>Floor staff</span><span>1× tray</span>
+      </div>
+      <h1 class="title"><span>DO NOT SPILL</span></h1>
+      <p class="tagline">Steady hands. Questionable career choice.</p>
+    </header>
+
+    <section class="game" id="game" tabindex="-1"
+      aria-label="Do Not Spill. Hold the left and right arrow keys, or A and D, to tilt the tray. P pauses.">
+      <div class="status">
+        <p class="stat"><span class="stat-label">Delivery</span> <b id="stat-delivery">1</b></p>
+        <p class="stat"><span class="stat-label">Tips</span> <b id="stat-tips">0</b></p>
+        <div class="distance">
+          <span class="stat-label" id="dist-label">To table</span>
+          <div class="track" id="progress" role="progressbar" aria-labelledby="dist-label"
+            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span class="track-fill" id="progress-fill"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage" id="stage">
+        <canvas id="canvas" role="img"
+          aria-label="Overhead view of a café. A red tray of striped coffee cups is carried between tables."></canvas>
+
+        <div class="panel" id="panel-intro" role="group" aria-labelledby="intro-title">
+          <p class="kicker">Tonight's shift</p>
+          <h2 id="intro-title">Tilt the tray. Keep every cup aboard.</h2>
+          <p class="rule">Little splashes cost your bonus. A dropped cup ends the shift.</p>
+          <p class="keys">Hold <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd>, or the tilt buttons.</p>
+          <button class="btn primary" id="btn-start" type="button">Start shift</button>
+          <p class="note" id="intro-note">Sound and voice on · adjustable anytime.</p>
+        </div>
+
+        <div class="panel panel-slim" id="panel-tutorial" role="group" aria-labelledby="tut-prompt" hidden>
+          <p class="kicker">Practice · one cup · nothing at risk</p>
+          <h2 id="tut-prompt">Hold left, then right. Release to level.</h2>
+          <ul class="checks">
+            <li id="chk-left">Tilt left</li>
+            <li id="chk-right">Tilt right</li>
+            <li id="chk-level">Level</li>
+          </ul>
+          <button class="btn small" id="btn-skip" type="button">Skip practice</button>
+        </div>
+
+        <div class="panel" id="panel-ready" role="group" aria-labelledby="ready-title" hidden>
+          <p class="kicker">Practice done</p>
+          <h2 id="ready-title">Ready for your first table?</h2>
+          <button class="btn primary" id="btn-go" type="button">Let’s go</button>
+        </div>
+
+        <div class="panel panel-card" id="panel-table" aria-hidden="true" hidden>
+          <p class="card-title" id="table-title">Delivery 1 · Two cups</p>
+          <p class="card-sub" id="table-sub">Tilt with ← → or A / D</p>
+        </div>
+
+        <div class="panel" id="panel-result" role="group" aria-labelledby="result-title" hidden>
+          <span class="stamp" aria-hidden="true">Served</span>
+          <h2 id="result-title">Table served.</h2>
+          <dl class="lines">
+            <div class="line"><dt>Delivery tips</dt><dd id="res-base">+100</dd></div>
+            <div class="line" id="res-perfect-row"><dt>Perfect delivery</dt><dd id="res-perfect">+50</dd></div>
+            <div class="line muted" id="res-splash-row" hidden><dt id="res-splash">Little splashes</dt><dd>no bonus</dd></div>
+            <div class="line total"><dt>Unbanked tips</dt><dd id="res-unbanked">150</dd></div>
+          </dl>
+          <p class="next" id="res-next">Next: Delivery 2 · Three cups</p>
+          <div class="choices">
+            <button class="btn primary" id="btn-more" type="button">One more table</button>
+            <button class="btn" id="btn-finish" type="button">Finish shift</button>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-pause" role="group" aria-labelledby="pause-title" hidden>
+          <h2 id="pause-title">Paused</h2>
+          <p class="rule" id="pause-reason">The café will wait.</p>
+          <button class="btn primary" id="btn-resume" type="button">Resume</button>
+        </div>
+
+        <div class="panel receipt" id="panel-shift" role="group" aria-labelledby="shift-title" hidden>
+          <div class="printer" aria-hidden="true"></div>
+          <h2 id="shift-title">Shift complete.</h2>
+          <dl class="lines" id="shift-lines"></dl>
+          <p class="banked" id="shift-banked">Tips banked: 0</p>
+          <p class="best" id="shift-best"></p>
+          <button class="btn primary" id="btn-again" type="button">Start another shift</button>
+        </div>
+
+        <div class="panel" id="panel-fail" role="group" aria-labelledby="fail-title" hidden>
+          <h2 id="fail-title">That’s on the floor.</h2>
+          <dl class="lines">
+            <div class="line lost"><dt>Unbanked tips lost</dt><dd id="fail-lost">0</dd></div>
+            <div class="line"><dt>Previously banked this session</dt><dd id="fail-banked">0</dd></div>
+          </dl>
+          <button class="btn primary" id="btn-retry" type="button">New tray, new me</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn tilt" id="btn-left" type="button" aria-label="Tilt left. Press and hold.">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          <span>Tilt left</span>
+        </button>
+        <button class="btn pause" id="btn-pause" type="button" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12" /></svg>
+          <span>Pause</span>
+        </button>
+        <button class="btn tilt" id="btn-right" type="button" aria-label="Tilt right. Press and hold.">
+          <span>Tilt right</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
+      <p class="caption" id="caption"><span class="caption-who">Manager</span><span id="caption-text">…</span></p>
+    </section>
+
+    <footer class="settings" aria-label="Settings">
+      <button class="btn small" id="toggle-sound" type="button" aria-pressed="true">Sound: on</button>
+      <button class="btn small" id="toggle-voice" type="button" aria-pressed="true">Voice: on</button>
+      <button class="btn small" id="test-voice" type="button">Test voice</button>
+      <p class="voice-status" id="voice-status">Voice not yet confirmed.</p>
+      <p class="ledger">Banked this session <b id="ledger-session">0</b> · Best shift <b id="ledger-best">0</b></p>
+    </footer>
+
+    <p class="sr-only" id="announcer" aria-live="polite"></p>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/rng.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

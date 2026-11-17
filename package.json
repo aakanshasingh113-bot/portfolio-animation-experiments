@@ -1,0 +1,11 @@
+{
+  "name": "do-not-spill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DO NOT SPILL — a browser arcade game about carrying a tray of drinks through a café.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "python3 -m http.server 8080"
+  },
+  "license": "UNLICENSED"
+}
