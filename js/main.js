@@ -17,7 +17,7 @@
     plate: doc.querySelector('.plate'), plateMsg: $('plateMsg'), attempt: $('attemptVal'), score: $('scoreVal'), best: $('bestVal'),
     meter: $('meter'), band: $('band'), needle: $('needle'), fill: $('meterFill'), zone: $('zoneLabel'),
     slip: $('slipFill'), crush: $('crushFill'),
-    card: $('card'), cardMsg: $('cardMsg'), cardScore: $('cardScore'), cardMinis: $('cardMinis'), cardBest: $('cardBest'),
+    card: $('card'), cardStars: $('cardStars'), cardMsg: $('cardMsg'), cardScore: $('cardScore'), cardMinis: $('cardMinis'), cardBest: $('cardBest'),
     pause: $('pause'), resume: $('resumeBtn'), live: $('live')
   };
 
@@ -28,7 +28,8 @@
   DCI.sound = audio;
 
   var COPY = {
-    aim: 'Aim above a prize, then drop.',
+    aim: 'Tap a prize to drop the claw on it.',
+    aimDesk: 'Click a prize to drop the claw on it.',
     firstGrip: 'Hold to squeeze. Release to loosen.',
     grip: 'Squeeze into the safe band.',
     lift: 'Keep it in the band.',
@@ -253,20 +254,34 @@
 
   // aiming with the pointer: hover with a mouse, drag with a finger
   var dragging = {};
+  var finePointer = !!(root.matchMedia && root.matchMedia('(pointer: fine)').matches);
+  var tap = null;   // a press in the chamber that may become a "drop here"
+  function canTapDrop() { syncMode(); return mode === 'drop' && !anyPress(); }
   function aimFromEvent(e) {
     var r = el.scene.getBoundingClientRect();
     if (r.width > 0) game.aim((e.clientX - r.left) / r.width * C.W);
   }
   el.scene.addEventListener('pointerdown', function (e) {
+    if (e.button > 0) return;
     dragging[e.pointerId] = true;
+    tap = { id: e.pointerId, x: e.clientX, y: e.clientY, t: root.performance.now() };
     try { el.scene.setPointerCapture(e.pointerId); } catch (err) {}
     aimFromEvent(e);
   });
   el.scene.addEventListener('pointermove', function (e) {
     if (e.pointerType === 'mouse' || dragging[e.pointerId]) aimFromEvent(e);
   });
-  function endDrag(e) { delete dragging[e.pointerId]; }
-  el.scene.addEventListener('pointerup', endDrag);
+  function endDrag(e) { delete dragging[e.pointerId]; if (tap && tap.id === e.pointerId) tap = null; }
+  // A short press without dragging drops the claw where it was pressed. Dragging only aims.
+  el.scene.addEventListener('pointerup', function (e) {
+    var t = tap;
+    endDrag(e);
+    if (!t || t.id !== e.pointerId) return;
+    var moved = Math.abs(e.clientX - t.x) + Math.abs(e.clientY - t.y);
+    if (moved > 12 || root.performance.now() - t.t > 450 || !canTapDrop()) return;
+    aimFromEvent(e);
+    if (game.drop()) { audio.click(); syncMode(); }
+  });
   el.scene.addEventListener('pointercancel', endDrag);
 
   // pausing: any time-based phase stops when the tab is hidden and needs an explicit resume
@@ -276,7 +291,7 @@
     return false;
   }
   doc.addEventListener('visibilitychange', function () {
-    if (doc.hidden) { pauseGame(); audio.halt(); sound.motor = { hum: false, lift: false }; }
+    if (doc.hidden) { pauseGame(); audio.halt(); }
     else audio.wake();
     lastFrame = 0;
   });
@@ -332,7 +347,6 @@
   el.soundBtn.addEventListener('click', function () {
     if (audio.status() !== 'unavailable') {
       audio.setMuted(!audio.isMuted());
-      sound.motor = { hum: false, lift: false };   // let the loops re-sync with the game
       audio.click();
     }
     refreshSoundBtn();
@@ -342,39 +356,37 @@
   el.resume.addEventListener('click', function () { audio.click(); });
 
   // Sound bookkeeping. Everything is triggered by a change in game state:
-  // a loop turning on or off, a ratchet tooth passed, a warning pulse coming due.
-  var sound = { motor: { hum: false, lift: false }, moving: false, tooth: 0, nextWarn: 0 };
+  // a few pixels of travel, a ratchet tooth passed, a lift step reached, a warning due.
+  var sound = { travel: 0, tooth: 0, liftStep: -1, nextWarn: 0 };
+  function resetSound() { sound.travel = 0; sound.tooth = 0; sound.liftStep = -1; sound.nextWarn = 0; }
 
-  function setMotor(name, on, progress, remaining) {
-    if (sound.motor[name] === on) return;
-    sound.motor[name] = on;
-    audio.loop(name, on, progress, remaining);
-  }
-
-  function syncSound(speed) {
+  function syncSound(moved) {
     var st = game.state, gripping = !!game.target && (st === S.GRIPPING || st === S.LIFTING);
 
-    // carriage motor: only while the claw is actually travelling
+    // carriage: a soft gear tick for every 22 px it travels
     var travelling = st === S.READY || st === S.AIMING || (st === S.RETURNING && game.carrying);
-    if (!travelling) sound.moving = false;
-    else if (speed > 30) sound.moving = true;
-    else if (speed < 8) sound.moving = false;
-    setMotor('hum', sound.moving);
+    if (travelling) {
+      sound.travel += moved;
+      if (sound.travel >= 22) { sound.travel = 0; audio.tick(); }
+    } else sound.travel = 0;
 
-    // winch: runs for the lift, rising in pitch
-    setMotor('lift', st === S.LIFTING, game.t / C.LIFT_TIME, C.LIFT_TIME - game.t);
-
-    // ratchet: one soft click per tooth as the grip tightens
-    var tooth = gripping ? Math.floor(game.pressure / 7) : 0;
+    // ratchet: one tick per tooth as the grip tightens, climbing in pitch
+    var tooth = gripping ? Math.floor(game.pressure / 9) : 0;
     if (gripping && game.hold && tooth > sound.tooth) audio.ratchet(tooth);
     sound.tooth = tooth;
 
-    // warning pulse while damage builds, quicker the nearer it is to failing
+    // lift: a rising scale, one note per eighth of the climb
+    if (st === S.LIFTING) {
+      var step = Math.floor(game.t / (C.LIFT_TIME / 8));
+      if (step > sound.liftStep) { sound.liftStep = step; audio.liftNote(step); }
+    } else if (st !== S.PAUSED) sound.liftStep = -1;
+
+    // warning tick-tock while damage builds, quicker the nearer it is to failing
     if (st === S.LIFTING && game.zone() !== 'safe') {
       if (view.time >= sound.nextWarn) {
         var z = game.zone(), dmg = z === 'high' ? game.crush : game.slip;
         audio.warn(z);
-        sound.nextWarn = view.time + sim.lerp(0.44, 0.13, sim.clamp(dmg, 0, 1));
+        sound.nextWarn = view.time + sim.lerp(0.5, 0.16, sim.clamp(dmg, 0, 1));
       }
     } else {
       sound.nextWarn = 0;
@@ -399,11 +411,25 @@
   function setStyle(node, key, prop, value) { if (ui[key] !== value) { ui[key] = value; node.style[prop] = value; } }
   function announce(text) { el.live.textContent = text; }
 
+  var GRADE = { perfect: 'Perfect grip!', gentle: 'Gentle hands!', ok: 'Got it!' };
   function outcomeText(o) {
     if (!o) return '';
     if (!o.ok) return COPY.fail[o.cause];
-    var name = PRIZES[o.type].name;
-    return name + ' +' + o.points + (o.bonus ? ' · Gentle hands +' + o.bonus : '');
+    return GRADE[o.grade] + ' +' + o.total;
+  }
+  /** Full breakdown, for screen readers. */
+  function outcomeDetail(o) {
+    if (!o || !o.ok) return outcomeText(o);
+    var parts = [PRIZES[o.type].name + ' ' + o.points];
+    if (o.bonus) parts.push((o.grade === 'perfect' ? 'perfect grip ' : 'gentle hands ') + o.bonus);
+    if (o.aim) parts.push('bullseye ' + o.aim);
+    if (o.streakBonus) parts.push(o.streak + ' in a row ' + o.streakBonus);
+    return GRADE[o.grade] + ' ' + parts.join(', plus ') + '. Total ' + o.total + ' points.';
+  }
+  function aimText() {
+    var base = finePointer ? COPY.aimDesk : COPY.aim;
+    if (game.streak > 0) return game.streak + ' in a row! Keep the streak going.';
+    return base;
   }
 
   function instruction(phase) {
@@ -418,7 +444,7 @@
         return [COPY.carry, 'good'];
       case S.ATTEMPT_RESULT: return [outcomeText(game.outcome), game.outcome && game.outcome.ok ? 'good' : 'bad'];
       case S.ROUND_OVER: return [COPY.round[game.captured.length], ''];
-      default: return [COPY.aim, ''];
+      default: return [aimText(), game.streak > 0 ? 'good' : ''];
     }
   }
 
@@ -471,6 +497,17 @@
     best = res.best;
     writeBest(best);
 
+    var stars = sim.stars(game.score);
+    el.cardStars.textContent = '';
+    el.cardStars.setAttribute('aria-label', stars + ' of 3 stars');
+    for (var k = 0; k < 3; k++) {
+      var svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+      if (k < stars) svg.setAttribute('class', 'is-on');
+      var path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.8 6.3 20l1.4-6.3L2.9 9.4l6.4-.7z');
+      svg.appendChild(path); el.cardStars.appendChild(svg);
+    }
     el.cardMsg.textContent = COPY.round[n];
     el.cardScore.textContent = String(game.score);
     el.cardBest.textContent = res.isNew ? 'New personal best!' : res.first ? 'That’s your score to beat.' : 'Personal best ' + best;
@@ -487,7 +524,7 @@
     el.card.hidden = false;
     if (n === C.ATTEMPTS || res.isNew) { fireConfetti(); audio.flourish(); }   // together
     else audio.closing();
-    announce('Round over. ' + COPY.round[n] + ' Score ' + game.score + '.' + (res.isNew ? ' New personal best.' : '') + ' Press Play again for another round.');
+    announce('Round over. ' + COPY.round[n] + ' Score ' + game.score + ', ' + stars + ' of 3 stars.' + (res.isNew ? ' New personal best.' : '') + ' Press Play again for another round.');
   }
 
   function handleEvent(ev) {
@@ -495,11 +532,11 @@
     switch (ev.type) {
       case 'restart':
         trayItems.length = 0; el.card.hidden = true; el.pause.hidden = true; stopConfetti();
-        audio.stopAll(); sound.motor = { hum: false, lift: false }; sound.tooth = 0; sound.nextWarn = 0;
-        announce('New round. Attempt 1 of ' + C.ATTEMPTS + '. ' + COPY.aim);
+        audio.stopAll(); resetSound();
+        announce('New round. Attempt 1 of ' + C.ATTEMPTS + '. ' + aimText());
         break;
       case 'next':
-        announce('Attempt ' + game.attempt + ' of ' + C.ATTEMPTS + '. ' + COPY.aim);
+        announce('Attempt ' + game.attempt + ' of ' + C.ATTEMPTS + '. ' + aimText());
         break;
       case 'drop': audio.lower(); break;
       case 'touch':
@@ -515,15 +552,16 @@
       case 'collected':
         trayItems.push({ type: ev.prize.type, at: view.time });
         audio.landed();
-        audio.points(ev.outcome.bonus > 0);
+        audio.points(ev.outcome);
+        if (ev.outcome.grade === 'perfect') audio.sparkle();
         break;
       case 'result':
         hintThisGrip = false;
-        announce(outcomeText(ev.outcome) + (game.attempt < C.ATTEMPTS ? ' Press Next grab.' : ''));
+        announce(outcomeDetail(ev.outcome) + (game.attempt < C.ATTEMPTS ? ' Press Next grab.' : ''));
         break;
       case 'round-over': showRoundOver(); break;
       case 'pause':
-        audio.stopAll(); sound.motor = { hum: false, lift: false };
+        audio.stopAll();
         announce('Paused. Press Resume to continue.'); break;
       default: break;
     }
@@ -558,7 +596,7 @@
       view.sway += view.swayV * dt;
     }
 
-    syncSound(dt > 0 ? Math.abs(view.x - prevX) / dt : 0);
+    syncSound(Math.abs(view.x - prevX));
 
     renderer.draw(game, view);
     DCI.render.drawTray(el.tray, trayItems, view.time, reduced);

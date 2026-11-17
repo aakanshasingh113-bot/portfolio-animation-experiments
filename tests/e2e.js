@@ -27,6 +27,9 @@ const st = (page) => page.evaluate(() => {
     target: g.target && g.target.type, outcome: g.outcome, captured: g.captured.slice(), aimX: g.aimX, dropX: g.dropX,
     results: g.results.length, round: g.round, lineupT: g.lineupT };
 });
+const sumResults = (page) => page.evaluate(() => DCI.game.results.reduce((a, o) => a + o.total, 0));
+const GRADE = { perfect: 'Perfect grip!', gentle: 'Gentle hands!', ok: 'Got it!' };
+let firstBest = null;
 const waitState = (page, states, timeout = 8000) =>
   page.waitForFunction((s) => s.includes(DCI.game.state), [].concat(states), { timeout, polling: 16 });
 async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, name + '.png') }); }
@@ -104,7 +107,11 @@ async function grab(page, type, opts) {
     await page.waitForTimeout(700);
     const s = await st(page);
     assert.equal(s.state, 'READY'); assert.equal(s.attempt, 1); assert.equal(s.score, 0);
-    assert.equal(await page.textContent('#plateMsg'), 'Aim above a prize, then drop.');
+    assert.equal(await page.textContent('#plateMsg'), 'Click a prize to drop the claw on it.');
+    const egg = await page.evaluate(() => DCI.game.prizes.find((p) => p.type === 'egg').x);
+    const ep = await chamberPoint(page, egg + 3, 200);
+    await page.mouse.move(ep.x, ep.y); await page.waitForTimeout(200);
+    await shot(page, 'desktop-0-lock-on');
     assert.equal(await page.textContent('#action'), 'Drop claw');
     assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Mute sound');
     assert.equal(await page.evaluate(() => DCI.sound.debug.state()), 'none', 'no audio before any interaction');
@@ -145,10 +152,13 @@ async function grab(page, type, opts) {
     await gripWithMouse(page, { shotAt: 1.0, shotName: 'desktop-2-lifting' });
     await waitState(page, 'ATTEMPT_RESULT');
     const s = await st(page);
-    assert.equal(s.outcome.ok, true); assert.equal(s.score, 200); assert.deepEqual(s.captured, ['cake']);
-    assert.equal(await page.textContent('#plateMsg'), 'Strawberry cake +150 · Gentle hands +50');
+    assert.equal(s.outcome.ok, true); assert.deepEqual(s.captured, ['cake']);
+    assert.equal(s.outcome.total, 150 + s.outcome.bonus + s.outcome.aim + s.outcome.streakBonus);
+    assert.ok(s.outcome.bonus >= 50, 'controlled grip earns a grip bonus');
+    assert.equal(s.score, s.outcome.total, 'scored once');
+    assert.equal(await page.textContent('#plateMsg'), GRADE[s.outcome.grade] + ' +' + s.outcome.total);
     assert.equal(await page.textContent('#action'), 'Next grab');
-    assert.equal(await page.textContent('#scoreVal'), '200');
+    assert.equal(await page.textContent('#scoreVal'), String(s.score));
     await page.waitForTimeout(250);
     await shot(page, 'desktop-3-success');
   });
@@ -165,22 +175,25 @@ async function grab(page, type, opts) {
 
   await check('egg: captured with a light touch', async () => {
     const s = await grab(page, 'egg');
-    assert.equal(s.outcome.ok, true); assert.equal(s.outcome.type, 'egg'); assert.equal(s.score, 450);
+    assert.equal(s.outcome.ok, true); assert.equal(s.outcome.type, 'egg'); assert.equal(s.score, await sumResults(page));
+    assert.equal(s.outcome.streak, 2); assert.equal(s.outcome.streakBonus, 50);
     await clickAction(page);
   });
 
   await check('soap: captured with a firm grip; third result leads to the summary', async () => {
     const s = await grab(page, 'soap');
-    assert.equal(s.outcome.ok, true); assert.equal(s.score, 600);
+    assert.equal(s.outcome.ok, true); assert.equal(s.score, await sumResults(page));
+    firstBest = String(s.score);
     assert.equal(await page.textContent('#action'), 'See score');
     await waitState(page, 'ROUND_OVER');
     await page.waitForTimeout(500);
     assert.equal(await page.textContent('#cardMsg'), 'Claw machine whisperer.');
-    assert.equal(await page.textContent('#cardScore'), '600');
+    assert.equal(await page.textContent('#cardScore'), firstBest);
+    assert.equal(await page.locator('#cardStars svg.is-on').count(), 3, 'three stars');
     assert.equal(await page.locator('#cardMinis canvas').count(), 3);
     assert.equal(await page.textContent('#cardBest'), 'That’s your score to beat.');
     assert.equal(await page.textContent('#action'), 'Play again');
-    assert.equal(await page.evaluate(() => localStorage.getItem('dont-crush-it.best')), '600');
+    assert.equal(await page.evaluate(() => localStorage.getItem('dont-crush-it.best')), firstBest);
     await shot(page, 'desktop-4-round-over');
     const s2 = await st(page);
     assert.equal(s2.results, 3); assert.equal(s2.attempt, 3);
@@ -193,12 +206,12 @@ async function grab(page, type, opts) {
     assert.equal(s.state, 'READY'); assert.equal(s.attempt, 1); assert.equal(s.score, 0); assert.deepEqual(s.captured, []);
     assert.equal(await page.isHidden('#card'), true);
     assert.equal(await page.textContent('#scoreVal'), '0');
-    assert.equal(await page.textContent('#bestVal'), '600');
+    assert.equal(await page.textContent('#bestVal'), firstBest);
   });
 
   await check('cactus: captured; its wiggle changes nothing', async () => {
     const s = await grab(page, 'cactus');
-    assert.equal(s.outcome.ok, true); assert.equal(s.outcome.total, 175);
+    assert.equal(s.outcome.ok, true); assert.equal(s.outcome.total, 125 + s.outcome.bonus + s.outcome.aim);
     await clickAction(page);
   });
 
@@ -212,7 +225,7 @@ async function grab(page, type, opts) {
     assert.equal(await page.textContent('#plateMsg'), 'Too tight.');
     await waitState(page, 'ATTEMPT_RESULT');
     const s = await st(page);
-    assert.equal(s.outcome.cause, 'crush'); assert.equal(s.score, 175); assert.equal(s.results, 2);
+    assert.equal(s.outcome.cause, 'crush'); assert.equal(s.score, await sumResults(page)); assert.equal(s.results, 2);
     const p = await page.evaluate(() => DCI.game.pressure);
     assert.ok(p >= 0 && p <= 100);
     await clickAction(page);
@@ -226,7 +239,7 @@ async function grab(page, type, opts) {
     assert.equal(await page.textContent('#plateMsg'), 'Missed it.');
     await waitState(page, 'ROUND_OVER');
     assert.equal(await page.textContent('#cardMsg'), 'One safe landing.');
-    assert.equal(await page.textContent('#cardBest'), 'Personal best 600');
+    assert.equal(await page.textContent('#cardBest'), 'Personal best ' + firstBest);
     await clickAction(page);
   });
 
@@ -437,7 +450,7 @@ async function grab(page, type, opts) {
       for (let i = 3; i < d.length; i += 4) if (d[i]) return false; return true;
     });
     assert.ok(cleared, 'gone within 1.5 s');
-    assert.equal(await page.evaluate(() => localStorage.getItem('dont-crush-it.best')), '250');
+    assert.equal(await page.evaluate(() => localStorage.getItem('dont-crush-it.best')), await page.textContent('#cardScore'));
   });
   await page.context().close();
 
@@ -570,6 +583,52 @@ async function grab(page, type, opts) {
     });
     await page.context().close();
   }
+
+  // ------------------------------------------------------- tap to drop --
+  page = await open();
+  await check('clicking a prize drops the claw on it; clicking the gap misses', async () => {
+    await page.waitForFunction(() => DCI.game.lineupT >= 1);
+    const x = await page.evaluate(() => DCI.game.prizes.find((p) => p.type === 'soap').x + 20);   // off-centre, still on it
+    const pt = await chamberPoint(page, x, 380);
+    await page.mouse.click(pt.x, pt.y);
+    let s = await st(page);
+    assert.equal(s.state, 'LOWERING'); assert.equal(s.target, 'soap');
+    await page.mouse.click(pt.x + 30, pt.y);                 // clicking again while lowering does nothing
+    assert.equal((await st(page)).dropX, s.dropX);
+    await waitState(page, ['ATTEMPT_RESULT'], 9000);
+    await clickAction(page);
+    await page.waitForFunction(() => DCI.game.lineupT >= 1);
+    const gap = await page.evaluate(() => (DCI.game.prizes[1].x + DCI.game.prizes[2].x) / 2);
+    const g = await chamberPoint(page, gap, 380);
+    await page.mouse.click(g.x, g.y);
+    s = await st(page);
+    assert.equal(s.state, 'LOWERING'); assert.equal(s.target, null);
+    await waitState(page, ['ATTEMPT_RESULT'], 9000);
+    assert.equal((await st(page)).outcome.cause, 'miss');
+  });
+  await page.context().close();
+
+  page = await open({ viewport: { width: 375, height: 700 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
+  await check('mobile: tapping a prize drops on it, dragging only aims', async () => {
+    await page.waitForFunction(() => DCI.game.lineupT >= 1);
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type, pt) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pt ? [{ x: pt.x, y: pt.y }] : [] });
+    const a = await chamberPoint(page, 120, 200), b = await chamberPoint(page, 520, 200);
+    await touch('touchStart', a);
+    for (let i = 1; i <= 6; i++) await touch('touchMove', { x: a.x + (b.x - a.x) * i / 6, y: a.y });
+    await touch('touchEnd');
+    await page.waitForTimeout(60);
+    assert.equal((await st(page)).state, 'AIMING', 'a drag does not drop');
+    const x = await page.evaluate(() => DCI.game.prizes.find((p) => p.type === 'egg').x);
+    const pt = await chamberPoint(page, x, 370);
+    await touch('touchStart', pt); await touch('touchEnd');
+    await page.waitForTimeout(60);
+    const s = await st(page);
+    assert.equal(s.state, 'LOWERING'); assert.equal(s.target, 'egg');
+    assert.equal(await page.textContent('#plateMsg') !== null, true);
+    await shot(page, 'mobile-tap-drop');
+  });
+  await page.context().close();
 
   // -------------------------------------------------------------- iframe --
   page = await open();

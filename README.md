@@ -18,9 +18,13 @@ then visit `http://localhost:8765/`. To embed it in a portfolio page, point an `
 
 ### Controls
 
-- **Mouse:** move over the chamber to aim, click **Drop claw**, then press and hold **Hold to grip**.
-- **Touch:** drag across the chamber to aim, tap to drop, press and hold to grip.
+- **Mouse:** click a prize to drop the claw on it (or hover to aim and click **Drop claw**), then press and hold **Hold to grip**.
+- **Touch:** tap a prize to drop on it (dragging only aims), then press and hold **Hold to grip**.
 - **Keyboard:** focus the chamber or the main button, ← → to aim, Space to drop, hold Space to grip.
+
+### Scoring
+
+Prize points, plus **Perfect** (+100, grip never left the band) or **Gentle** (+50), **Bullseye** (+25, dropped dead centre) and **Streak** (+50 for each capture in a row after the first). Rounds earn up to three stars.
 
 ### Files
 

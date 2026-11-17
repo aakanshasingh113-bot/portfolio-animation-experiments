@@ -27,7 +27,7 @@
     HUB_GAP: 8,            // gap between hub and the top of a gripped prize
     EMPTY_REACH: 58,       // how far above the floor the hub stops on a miss
     AIM_MIN: 56, AIM_MAX: 584, START_X: 320, CHUTE_X: 78,
-    SLOTS: [172, 284, 400, 516], JITTER: 4,
+    SLOTS: [172, 284, 400, 516], JITTER: 2,
 
     ATTEMPTS: 3,
     PRESS_UP: 70, PRESS_DOWN: 45,          // pressure units per second
@@ -35,6 +35,10 @@
     CRUSH_RATE: 0.75, SLIP_RATE: 0.85, RECOVER_RATE: 0.35,
     FIRST_ATTEMPT_EASE: 0.75,
     GENTLE_MAX: 0.15, GENTLE_BONUS: 50,
+    PERFECT_MAX: 0.05, PERFECT_BONUS: 100,   // never left the band (or barely)
+    BULLSEYE: 8, BULLSEYE_BONUS: 25,         // dropped within 8 px of the prize centre
+    STREAK_BONUS: 50,                        // per capture in a row after the first
+    STARS: [150, 450, 800],                  // round score for 1, 2, 3 stars
 
     LOWER_TIME: 0.8, EMPTY_TIME: 0.45, RISE_TIME: 0.7, CARRY_TIME: 0.9,
     DROP_TIME: 0.75, INTRO_TIME: 0.45, FINAL_HOLD: 1.8,
@@ -45,10 +49,10 @@
   // halfW / h describe the silhouette; capture is the half-width of the zone
   // the claw centre must land in; soft is how far the material gives when squeezed.
   var PRIZES = {
-    cake:   { name: 'Strawberry cake', short: 'cake',   min: 30, max: 55, points: 150, halfW: 36, h: 68, capture: 28, soft: 0.34 },
-    soap:   { name: 'Slippery soap',   short: 'soap',   min: 55, max: 80, points: 100, halfW: 38, h: 44, capture: 30, soft: 0.10 },
-    egg:    { name: 'Egg',             short: 'egg',    min: 20, max: 40, points: 200, halfW: 26, h: 64, capture: 22, soft: 0.06 },
-    cactus: { name: 'Cactus toy',      short: 'cactus', min: 45, max: 70, points: 125, halfW: 32, h: 82, capture: 26, soft: 0.28 }
+    cake:   { name: 'Strawberry cake', short: 'cake',   min: 30, max: 55, points: 150, halfW: 36, h: 68, capture: 42, soft: 0.34 },
+    soap:   { name: 'Slippery soap',   short: 'soap',   min: 55, max: 80, points: 100, halfW: 38, h: 44, capture: 44, soft: 0.10 },
+    egg:    { name: 'Egg',             short: 'egg',    min: 20, max: 40, points: 200, halfW: 26, h: 64, capture: 38, soft: 0.06 },
+    cactus: { name: 'Cactus toy',      short: 'cactus', min: 45, max: 70, points: 125, halfW: 32, h: 82, capture: 40, soft: 0.28 }
   };
   var TYPES = ['cake', 'soap', 'egg', 'cactus'];
 
@@ -62,6 +66,12 @@
   }
 
   /** Personal-best rule: the first finished round only establishes a best. */
+  function stars(score) {
+    var n = 0;
+    for (var i = 0; i < C.STARS.length; i++) if (score >= C.STARS[i]) n = i + 1;
+    return n;
+  }
+
   function evaluateBest(prev, score) {
     var hasPrev = typeof prev === 'number' && isFinite(prev);
     if (!hasPrev) return { best: score, isNew: false, first: true };
@@ -105,7 +115,7 @@
 
     g.restart = function () {
       g.round += 1; g.attempt = 1; g.score = 0;
-      g.captured = []; g.results = [];
+      g.captured = []; g.results = []; g.streak = 0;
       g.events.length = 0;
       resetAttempt();
       emit('restart');
@@ -204,7 +214,8 @@
 
     function fail(cause) {
       var p = g.target;
-      g.outcome = { ok: false, cause: cause, type: p ? p.type : null, points: 0, bonus: 0, total: 0 };
+      g.outcome = { ok: false, cause: cause, type: p ? p.type : null, points: 0, grade: null, bonus: 0, aim: 0, streak: 0, streakBonus: 0, total: 0 };
+      g.streak = 0;
       g.hold = false; g.retFrom = g.depth;
       if (p) {
         var lifted = g.state === S.LIFTING ? (1 - g.depth) * (grabHubY(p.type) - C.TOP_HUB_Y) : 0;
@@ -320,9 +331,14 @@
           g.pressure = clamp(g.pressure - 300 * dt, 0, 100);
           if (g.t >= C.DROP_TIME) {
             d = PRIZES[p.type];
-            var gentle = g.maxCrush <= C.GENTLE_MAX && g.maxSlip <= C.GENTLE_MAX;
-            var bonus = gentle ? C.GENTLE_BONUS : 0;
-            g.outcome = { ok: true, cause: null, type: p.type, points: d.points, bonus: bonus, total: d.points + bonus };
+            var worst = Math.max(g.maxCrush, g.maxSlip);
+            var grade = worst <= C.PERFECT_MAX ? 'perfect' : worst <= C.GENTLE_MAX ? 'gentle' : 'ok';
+            var bonus = grade === 'perfect' ? C.PERFECT_BONUS : grade === 'gentle' ? C.GENTLE_BONUS : 0;
+            var aim = Math.abs(g.dropX - p.x) <= C.BULLSEYE ? C.BULLSEYE_BONUS : 0;
+            g.streak += 1;
+            var streakBonus = (g.streak - 1) * C.STREAK_BONUS;
+            g.outcome = { ok: true, cause: null, type: p.type, points: d.points, grade: grade, bonus: bonus,
+              aim: aim, streak: g.streak, streakBonus: streakBonus, total: d.points + bonus + aim + streakBonus };
             g.score += g.outcome.total;
             g.captured.push(p.type);
             p.status = 'collected';
@@ -361,7 +377,7 @@
 
   return {
     S: S, C: C, PRIZES: PRIZES, TYPES: TYPES,
-    createGame: createGame, evaluateBest: evaluateBest, grabHubY: grabHubY,
+    createGame: createGame, evaluateBest: evaluateBest, stars: stars, grabHubY: grabHubY,
     clamp: clamp, lerp: lerp, easeInOut: easeInOut, easeOut: easeOut
   };
 });

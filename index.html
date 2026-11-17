@@ -38,6 +38,7 @@
             <div class="card" id="card" hidden>
               <div class="card__paper">
                 <p class="card__eyebrow">Round over</p>
+                <p class="card__stars" id="cardStars"></p>
                 <p class="card__msg" id="cardMsg"></p>
                 <p class="card__score"><span>Score</span> <strong id="cardScore">0</strong></p>
                 <div class="card__minis" id="cardMinis" aria-hidden="true"></div>
@@ -60,7 +61,7 @@
               <span class="stat__label">Attempt</span>
               <span class="stat__value" id="attemptVal">1 / 3</span>
             </div>
-            <p class="plate__msg" id="plateMsg">Aim above a prize, then drop.</p>
+            <p class="plate__msg" id="plateMsg">Tap a prize to drop the claw on it.</p>
             <div class="stat stat--right">
               <span class="stat__label">Score</span>
               <span class="stat__value" id="scoreVal">0</span>
@@ -122,9 +123,9 @@
     <dialog class="help" id="help" aria-labelledby="helpTitle">
       <h2 id="helpTitle">How to play</h2>
       <ol>
-        <li><strong>Aim and drop.</strong> Line the claw up over a prize.</li>
+        <li><strong>Aim and drop.</strong> Click or tap a prize, or line the claw up and press Drop claw.</li>
         <li><strong>Keep pressure in the marked band.</strong> Hold to squeeze, release to loosen. Every prize likes a different grip.</li>
-        <li><strong>Bring home three prizes.</strong> You get three grabs a round.</li>
+        <li><strong>Bring home three prizes.</strong> Bonuses for a dead-centre drop (Bullseye), a grip that never leaves the band (Perfect), and captures in a row (Streak).</li>
       </ol>
       <p class="help__keys"><strong>Keyboard:</strong> focus the chamber or the main button, then use ← → to aim, Space to drop, and hold Space to grip.</p>
       <p class="help__note">Grip pressure is shown on a visual meter, so the game needs sight to play well. Results and turn changes are announced to screen readers.</p>

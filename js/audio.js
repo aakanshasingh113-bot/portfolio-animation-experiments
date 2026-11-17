@@ -20,7 +20,6 @@
     var unlocked = false;    // a user gesture has started audio
     var halted = false;      // tab hidden
     var voices = [];         // active one-shot sounds
-    var loops = {};          // name -> running motor loop (at most one each)
     var lastAt = {};         // name -> context time of the last trigger
     var log = [];            // names of triggered sounds, for the automated checks
 
@@ -143,81 +142,43 @@
       } catch (e) {}
     }
 
-    // ------------------------------------------------------------- loops --
-
-    var LOOPS = {
-      // carriage travelling along the rail
-      hum: { f: 58, lp: 420, gain: 0.03 },
-      // winch hauling a prize up; pitch climbs a little as it goes
-      lift: { f: 82, lp: 560, gain: 0.038, rise: 1.4 }
-    };
-
-    /** Turn a motor loop on or off. Idempotent: there is never more than one of each. */
-    function loop(name, on, progress, remaining) {
-      try {
-        var cur = loops[name], def = LOOPS[name], now;
-        if (!on) {
-          if (!cur) return;
-          delete loops[name];
-          now = ctx.currentTime;
-          cur.g.gain.cancelScheduledValues(now);
-          cur.g.gain.setValueAtTime(cur.g.gain.value, now);
-          cur.g.gain.linearRampToValueAtTime(0, now + 0.03);        // stops at once, without a click
-          cur.oscs.forEach(function (o) { try { o.stop(now + 0.05); } catch (e) {} });
-          return;
-        }
-        if (cur || !can() || !def) return;
-        now = ctx.currentTime;
-        var g = ctx.createGain(), lp = ctx.createBiquadFilter();
-        lp.type = 'lowpass'; lp.frequency.value = def.lp;
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(def.gain, now + 0.05);
-        var a = ctx.createOscillator(), b = ctx.createOscillator();
-        a.type = 'sawtooth'; b.type = 'triangle';
-        var p = Math.max(0, Math.min(1, progress || 0)), start = def.f * (1 + ((def.rise || 1) - 1) * p);
-        a.frequency.setValueAtTime(start, now); b.frequency.setValueAtTime(start * 2.01, now);
-        if (def.rise && remaining > 0) {
-          a.frequency.linearRampToValueAtTime(def.f * def.rise, now + remaining);
-          b.frequency.linearRampToValueAtTime(def.f * def.rise * 2.01, now + remaining);
-        }
-        a.connect(lp); b.connect(lp); lp.connect(g); g.connect(master);
-        a.start(now); b.start(now);
-        loops[name] = { g: g, oscs: [a, b] };
-        log.push('loop:' + name); if (log.length > 400) log.shift();
-      } catch (e) {}
-    }
-
     /** Silence everything that is sounding or scheduled. */
     function stopAll(hard) {
       if (!ctx) return;
-      var now = ctx.currentTime, k;
+      var now = ctx.currentTime;
       for (var i = 0; i < voices.length; i++) silence(voices[i], now, hard);
       voices.length = 0;
-      for (k in loops) {
-        var l = loops[k];
-        try {
-          if (hard) l.g.disconnect();
-          else { l.g.gain.cancelScheduledValues(now); l.g.gain.setValueAtTime(l.g.gain.value, now); l.g.gain.linearRampToValueAtTime(0, now + 0.03); }
-          l.oscs.forEach(function (o) { try { o.stop(now + (hard ? 0 : 0.05)); } catch (e) {} });
-        } catch (e) {}
-      }
-      loops = {};
     }
 
     // ------------------------------------------------------------ sounds --
 
-    var C5 = 523.25, E5 = 659.25, G5 = 783.99, B5 = 987.77, C6 = 1046.5;
+    // Bright, toy-like palette: wooden mallets, little bells, ticks and bloops.
+    // Nothing sustains, and nothing sits low enough to rumble.
+    var C5 = 523.25, D5 = 587.33, E5 = 659.25, G5 = 783.99, A5 = 880, C6 = 1046.5, D6 = 1174.66, E6 = 1318.51, G6 = 1567.98;
+    var LIFT_NOTES = [C5, D5, E5, G5, A5, C6, D6, E6];
+
+    /** A marimba-ish mallet: a sine with a quick, brighter overtone. */
+    function mallet(v, t, f, at, peak, dur) {
+      dur = dur || 0.22;
+      tone(v, t, { f: f, at: at, dur: dur, peak: peak, attack: 0.003 });
+      tone(v, t, { f: f * 4, at: at, dur: dur * 0.28, peak: peak * 0.22, attack: 0.002 });
+    }
+    /** A small bell: inharmonic partial gives it shimmer. */
+    function bell(v, t, f, at, peak, dur) {
+      dur = dur || 0.5;
+      tone(v, t, { f: f, at: at, dur: dur, peak: peak, attack: 0.004 });
+      tone(v, t, { f: f * 2.76, at: at, dur: dur * 0.45, peak: peak * 0.28, attack: 0.003 });
+    }
 
     var api = {
       available: !!Ctor,
       unlock: unlock,
-      loop: loop,
       stopAll: function () { stopAll(false); },
 
       /** 'unavailable' | 'muted' | 'on' */
       status: function () { return (!Ctor || broken) ? 'unavailable' : muted ? 'muted' : 'on'; },
       isMuted: function () { return muted; },
-      /** Call from a user gesture. Muting silences current loops and all future sounds. */
+      /** Call from a user gesture. Muting silences everything sounding and all future sounds. */
       setMuted: function (m) {
         muted = !!m;
         writePref(muted ? 'off' : 'on');
@@ -236,66 +197,81 @@
         if (unlocked && !muted) resumeCtx();
       },
 
-      // button press: a short mechanical click
+      // any game button: a crisp little tick
       click: function () {
         play('click', 0.04, function (v, t) {
-          hiss(v, t, { f: 1900, q: 1.3, dur: 0.022, peak: 0.13 });
-          tone(v, t, { type: 'square', f: [[150, 0], [85, 0.035]], dur: 0.04, peak: 0.07, lp: 900 });
+          hiss(v, t, { f: 3400, q: 2, dur: 0.014, peak: 0.09 });
+          mallet(v, t, 1400, 0, 0.045, 0.05);
         });
       },
-      // claw lowering: a descending mechanical whirr
+      // carriage gliding along the rail: soft gear ticks, one per few pixels travelled
+      tick: function () {
+        play('tick', 0.035, function (v, t) {
+          hiss(v, t, { f: 2800, q: 4, dur: 0.009, peak: 0.035 });
+          tone(v, t, { f: 1900, dur: 0.014, peak: 0.012 });
+        });
+      },
+      // claw going down: a quick descending mallet run with a gentle glide underneath
       lower: function () {
         play('lower', 0.3, function (v, t) {
-          tone(v, t, { type: 'sawtooth', f: [[250, 0], [118, 0.78]], dur: 0.8, peak: 0.055, attack: 0.04, lp: 760 });
-          tone(v, t, { type: 'triangle', f: [[125, 0], [59, 0.78]], dur: 0.8, peak: 0.05, attack: 0.04 });
+          [G5, E5, D5, C5].forEach(function (f, i) { mallet(v, t, f, i * 0.13, 0.055, 0.18); });
+          tone(v, t, { f: [[880, 0], [520, 0.7]], dur: 0.72, peak: 0.018, attack: 0.05 });
         });
       },
-      // grip closing: one soft ratchet tooth; `step` nudges the pitch as the grip tightens
+      // grip tightening: ticks that climb in pitch with the pressure
       ratchet: function (step) {
         play('ratchet', 0.03, function (v, t) {
-          hiss(v, t, { f: 2100 + step * 55, q: 4, dur: 0.014, peak: 0.07 });
-          tone(v, t, { type: 'triangle', f: 290 + step * 16, dur: 0.022, peak: 0.045 });
+          hiss(v, t, { f: 2200 + step * 110, q: 5, dur: 0.01, peak: 0.055 });
+          tone(v, t, { type: 'triangle', f: 620 + step * 55, dur: 0.025, peak: 0.035 });
         });
       },
-      // claw closing on nothing
+      // closing on nothing: two wood blocks and a little "aww"
       clack: function () {
         play('clack', 0.2, function (v, t) {
-          tone(v, t, { type: 'square', f: [[130, 0], [88, 0.04]], dur: 0.05, peak: 0.07, lp: 700 });
-          tone(v, t, { type: 'square', f: [[118, 0], [80, 0.04]], dur: 0.05, peak: 0.06, lp: 700, at: 0.1 });
+          mallet(v, t, 880, 0, 0.07, 0.08);
+          mallet(v, t, 740, 0.09, 0.07, 0.08);
+          tone(v, t, { f: [[620, 0], [440, 0.28]], at: 0.2, dur: 0.32, peak: 0.045, attack: 0.03, vib: [6, 8] });
         });
       },
-      // safe grip established: a small bright confirmation
+      // safe grip established: a bright two-bell "got it"
       safe: function () {
         play('safe', 0.2, function (v, t) {
-          tone(v, t, { f: 880, dur: 0.16, peak: 0.1 });
-          tone(v, t, { f: 1318.5, dur: 0.24, peak: 0.09, at: 0.07 });
+          bell(v, t, C6, 0, 0.07, 0.3);
+          bell(v, t, G6, 0.075, 0.06, 0.45);
         });
       },
-      // dangerous pressure: one restrained pulse; the game spaces them closer as failure nears
+      // lifting: one note of a rising scale per step of the climb
+      liftNote: function (i) {
+        play('liftNote', 0.05, function (v, t) {
+          mallet(v, t, LIFT_NOTES[Math.max(0, Math.min(LIFT_NOTES.length - 1, i))], 0, 0.045, 0.2);
+        });
+      },
+      // dangerous pressure: a light tick-tock; the game spaces them closer near failure
       warn: function (zone) {
-        play('warn', 0.09, function (v, t) {
-          var f = zone === 'high' ? 233 : 175;
-          tone(v, t, { type: 'triangle', f: [[f, 0], [f * 0.9, 0.08]], dur: 0.09, peak: 0.075, attack: 0.006 });
+        play('warn', 0.08, function (v, t) {
+          var f = zone === 'high' ? 1046.5 : 698.46;
+          tone(v, t, { type: 'triangle', f: f, dur: 0.06, peak: 0.055, attack: 0.003 });
+          tone(v, t, { type: 'triangle', f: f * 0.75, at: 0.065, dur: 0.06, peak: 0.04, attack: 0.003 });
         });
       },
-      // prize slipping: a short descending whistle
+      // prize slipping: a slide whistle going down
       whistle: function () {
         play('whistle', 0.2, function (v, t) {
-          tone(v, t, { f: [[1040, 0], [360, 0.32]], dur: 0.34, peak: 0.085, attack: 0.02 });
+          tone(v, t, { f: [[1400, 0], [520, 0.36]], dur: 0.38, peak: 0.06, attack: 0.02, vib: [7, 14] });
         });
       },
-      // cake crushed: a soft squish
+      // cake crushed: a soft, bright splat
       squish: function () {
         play('squish', 0.2, function (v, t) {
-          hiss(v, t, { type: 'lowpass', f: [1100, 240], q: 0.8, dur: 0.24, peak: 0.17, attack: 0.03 });
-          tone(v, t, { f: [[190, 0], [78, 0.2]], dur: 0.22, peak: 0.1, attack: 0.02 });
+          hiss(v, t, { f: [2600, 900], q: 1.4, dur: 0.15, peak: 0.12, attack: 0.008 });
+          tone(v, t, { f: [[980, 0], [520, 0.11]], dur: 0.12, peak: 0.05, attack: 0.005 });
         });
       },
       // soap escaping: bubbly pops
       pops: function () {
         play('pops', 0.2, function (v, t) {
-          var f = [420, 560, 380, 640, 500], at = [0, 0.06, 0.11, 0.19, 0.25];
-          for (var i = 0; i < f.length; i++) tone(v, t, { f: [[f[i], 0], [f[i] * 1.75, 0.045]], dur: 0.055, peak: 0.09, at: at[i], attack: 0.004 });
+          var f = [720, 940, 660, 1060, 860], at = [0, 0.06, 0.11, 0.19, 0.25];
+          for (var i = 0; i < f.length; i++) tone(v, t, { f: [[f[i], 0], [f[i] * 1.7, 0.04]], dur: 0.05, peak: 0.07, at: at[i], attack: 0.003 });
         });
       },
       // egg breaking: a delicate crack
@@ -303,61 +279,69 @@
         play('crack', 0.2, function (v, t) {
           var at = [0, 0.032, 0.05, 0.115];
           for (var i = 0; i < at.length; i++) hiss(v, t, { f: 3000 - i * 240, q: 2.6, dur: 0.012, peak: i ? 0.07 : 0.1, at: at[i], attack: 0.002 });
-          tone(v, t, { type: 'triangle', f: [[880, 0], [560, 0.03]], dur: 0.035, peak: 0.03 });
+          tone(v, t, { type: 'triangle', f: [[1180, 0], [760, 0.03]], dur: 0.035, peak: 0.03 });
         });
       },
-      // cactus compressed: a rubbery squeak
+      // cactus toy squashed: a squeaky-toy "eep"
       squeak: function () {
         play('squeak', 0.2, function (v, t) {
-          tone(v, t, { type: 'triangle', f: [[470, 0], [850, 0.1], [420, 0.28]], dur: 0.3, peak: 0.1, attack: 0.015, vib: [27, 26] });
+          tone(v, t, { f: [[980, 0], [1560, 0.07], [1180, 0.2]], dur: 0.22, peak: 0.07, attack: 0.01, vib: [16, 22] });
+          tone(v, t, { f: [[1960, 0], [3120, 0.07], [2360, 0.2]], dur: 0.16, peak: 0.012, attack: 0.01 });
         });
       },
-      // a loose prize hitting the chamber floor
+      // a loose prize landing on the chamber floor: a light wooden "tok"
       thud: function () {
         play('thud', 0.1, function (v, t) {
-          tone(v, t, { f: [[140, 0], [68, 0.11]], dur: 0.12, peak: 0.11 });
+          mallet(v, t, 560, 0, 0.07, 0.07);
+          hiss(v, t, { f: 1600, q: 1.5, dur: 0.02, peak: 0.04 });
         });
       },
-      // prize landing in the tray: a soft plop, then a cheerful chime
+      // prize lands in the tray: a water-drop bloop, then a cheerful chime
       landed: function () {
         play('landed', 0.3, function (v, t) {
-          tone(v, t, { f: [[340, 0], [108, 0.12]], dur: 0.14, peak: 0.16, attack: 0.006 });
-          tone(v, t, { f: G5, dur: 0.36, peak: 0.1, at: 0.17 });
-          tone(v, t, { type: 'triangle', f: G5 / 2, dur: 0.3, peak: 0.04, at: 0.17 });
-          tone(v, t, { f: C6, dur: 0.46, peak: 0.09, at: 0.26 });
+          tone(v, t, { f: [[520, 0], [1240, 0.07]], dur: 0.09, peak: 0.09, attack: 0.004 });
+          bell(v, t, G5, 0.14, 0.07, 0.35);
+          bell(v, t, C6, 0.23, 0.07, 0.5);
         });
       },
-      // points awarded: brief ascending notes (one more for the gentle-hands bonus)
-      points: function (bonus) {
+      /** Points: a rising run whose length grows with the bonuses earned. */
+      points: function (o) {
         play('points', 0.3, function (v, t) {
-          var notes = bonus ? [C5, E5, G5, B5] : [C5, E5, G5];
-          for (var i = 0; i < notes.length; i++) tone(v, t, { type: 'triangle', f: notes[i], dur: 0.12, peak: 0.075, at: 0.66 + i * 0.075 });
+          var run = [C5, E5, G5];
+          if (o && o.aim) run.push(A5);
+          if (o && o.grade === 'perfect') run.push(C6);
+          if (o && o.streak > 1) run.push(E6);
+          if (o && o.streak > 2) run.push(G6);
+          for (var i = 0; i < run.length; i++) mallet(v, t, run[i], 0.62 + i * 0.07, 0.055, 0.16);
+        });
+      },
+      // perfect grip: a quick twinkle on top of the landing
+      sparkle: function () {
+        play('sparkle', 0.3, function (v, t) {
+          [G6, 2093, 2637.02, 2093].forEach(function (f, i) { tone(v, t, { f: f, at: 1.0 + i * 0.05, dur: 0.18, peak: 0.022, attack: 0.003 }); });
         });
       },
       // perfect round or new personal best: a short flourish, started with the confetti
       flourish: function () {
         play('flourish', 0.5, function (v, t) {
-          var run = [C5, E5, G5, C6];
-          for (var i = 0; i < run.length; i++) {
-            tone(v, t, { type: 'triangle', f: run[i], dur: 0.16, peak: 0.085, at: i * 0.085 });
-            tone(v, t, { f: run[i], dur: 0.8, peak: 0.05, at: 0.42, attack: 0.02 });
-          }
-          tone(v, t, { type: 'triangle', f: C5 / 2, dur: 0.8, peak: 0.06, at: 0.42, attack: 0.02 });
+          var run = [C5, E5, G5, C6, E6];
+          for (var i = 0; i < run.length; i++) mallet(v, t, run[i], i * 0.075, 0.06, 0.18);
+          [C5, E5, G5, C6].forEach(function (f) { bell(v, t, f, 0.42, 0.04, 0.9); });
         });
       },
       // ordinary round ending: a short, gentle close
       closing: function () {
         play('closing', 0.5, function (v, t) {
-          tone(v, t, { f: 392, dur: 0.3, peak: 0.08, attack: 0.02 });
-          tone(v, t, { f: 329.63, dur: 0.3, peak: 0.08, at: 0.16, attack: 0.02 });
-          tone(v, t, { f: 261.63, dur: 0.6, peak: 0.085, at: 0.32, attack: 0.02 });
+          mallet(v, t, G5, 0, 0.06, 0.3);
+          mallet(v, t, E5, 0.16, 0.06, 0.3);
+          bell(v, t, C5, 0.32, 0.06, 0.7);
         });
       },
 
       // read-only view for the automated checks
       debug: {
         log: log,
-        loops: function () { return Object.keys(loops); },
+        loops: function () { return []; },   // no continuous sounds any more
         voices: function () { return ctx ? voices.filter(function (v) { return v.end >= ctx.currentTime; }).length : 0; },
         state: function () { return ctx ? ctx.state : 'none'; },
         peak: function () {

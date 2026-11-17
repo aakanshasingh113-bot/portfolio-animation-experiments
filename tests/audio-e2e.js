@@ -6,7 +6,7 @@
  *   node tests/audio-e2e.js
  *
  * These check that each sound is triggered by the right game transition, that
- * loops start and stop, that muting/pausing/restarting silences everything, and
+ * nothing drones or rumbles, that muting/pausing/restarting silences everything, and
  * that the mixed signal is non-silent and below clipping (read from an
  * AnalyserNode). They cannot tell whether anything sounds good: that needs ears.
  */
@@ -93,7 +93,21 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     return page;
   }
 
-  let page = await open();
+  const recordPitches = () => {
+    window.__pitch = { min: Infinity, types: {} };
+    const orig = BaseAudioContext.prototype.createOscillator;
+    BaseAudioContext.prototype.createOscillator = function () {
+      const o = orig.call(this), f = o.frequency;
+      const note = (v) => { if (v < window.__pitch.min) window.__pitch.min = v; };
+      const sv = f.setValueAtTime.bind(f), er = f.exponentialRampToValueAtTime.bind(f);
+      f.setValueAtTime = (v, t) => { note(v); return sv(v, t); };
+      f.exponentialRampToValueAtTime = (v, t) => { note(v); return er(v, t); };
+      const start = o.start.bind(o);
+      o.start = (t) => { window.__pitch.types[o.type] = true; return start(t); };
+      return o;
+    };
+  };
+  let page = await open(recordPitches);
 
   await check('no audio is created before the player interacts', async () => {
     const pt = await point(page, 'scene', 200, 200);
@@ -114,37 +128,35 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     assert.ok(l.includes('lower'), 'lowering whirr');
   });
 
-  await check('cake: ratchet, safe note, rising lift motor, plop+chime, points', async () => {
+  await check('cake: ratchet, safe note, rising lift scale, bloop+chime, points, sparkle', async () => {
     await waitState(page, 'GRIPPING');
-    let liftLoops = null, liftPeak = 0;
+    let liftPeak = 0;
     await grip(page, gentle, async (g) => {
-      if (g.s === 'LIFTING' && g.t > 1 && liftLoops === null) {
-        liftLoops = await loops(page); liftPeak = await peak(page);
-      }
+      if (g.s === 'LIFTING') liftPeak = Math.max(liftPeak, await peak(page));
     });
-    assert.deepEqual(liftLoops, ['lift'], 'exactly one motor loop during the lift');
     assert.ok(liftPeak > 0.002, 'audible-level signal during the lift: ' + liftPeak);
     await waitState(page, 'ATTEMPT_RESULT');
     await page.waitForTimeout(150);
     const l = await log(page);
     assert.ok(count(l, 'ratchet') >= 3, 'ratchet clicks: ' + count(l, 'ratchet'));
     assert.equal(count(l, 'safe'), 1);
-    assert.equal(count(l, 'loop:lift'), 1);
+    assert.equal(count(l, 'liftNote'), 8, 'one note per step of the climb');
     assert.equal(count(l, 'landed'), 1);
     assert.equal(count(l, 'points'), 1);
-    assert.deepEqual(await loops(page), [], 'lift motor stopped');
+    assert.equal(count(l, 'sparkle'), (await page.evaluate(() => DCI.game.outcome.grade)) === 'perfect' ? 1 : 0);
   });
 
-  await check('carriage hum runs only while the claw is moving', async () => {
+  await check('carriage ticks only while the claw is moving', async () => {
     await next(page);
     await page.waitForFunction(() => DCI.game.lineupT >= 1);
     const a = await point(page, 'scene', 120, 200), b = await point(page, 'scene', 560, 200);
-    await page.mouse.move(a.x, a.y); await page.waitForTimeout(250);
+    await page.mouse.move(a.x, a.y); await page.waitForTimeout(350);
+    const t0 = count(await log(page), 'tick');
     await page.mouse.move(b.x, b.y, { steps: 20 });
-    await page.waitForTimeout(30);
-    assert.deepEqual(await loops(page), ['hum'], 'humming while moving');
-    await page.waitForTimeout(350);
-    assert.deepEqual(await loops(page), [], 'stops when movement ends');
+    await page.waitForTimeout(300);
+    const t1 = count(await log(page), 'tick');
+    assert.ok(t1 - t0 >= 8, 'ticks while travelling: ' + (t1 - t0));
+    await page.waitForTimeout(200);
     const before = (await log(page)).length;
     await page.waitForTimeout(1000);
     assert.equal((await log(page)).length, before, 'nothing plays while idle (no per-frame sounds)');
@@ -163,13 +175,13 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     assert.ok(gaps[gaps.length - 1] < gaps[0], 'pulses get closer: ' + gaps.join(','));
     assert.equal(count(l, 'crack'), 1, 'egg crack');
     assert.equal(count(l, 'squish'), 0);
-    assert.deepEqual(await loops(page), []);
   });
 
   await check('ordinary round end plays the closing sound, no flourish', async () => {
     await next(page);
-    await aimAt(page, 60);   // nothing there
-    await press(page);
+    await page.waitForFunction(() => DCI.game.lineupT >= 1);
+    const empty = await point(page, 'scene', 60, 300);
+    await page.mouse.click(empty.x, empty.y);           // click-to-drop on empty floor
     await waitState(page, 'ROUND_OVER');
     await page.waitForTimeout(200);
     const l = await log(page);
@@ -239,18 +251,17 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     assert.equal(count(await log(page), 'flourish'), f0 + 1);
   });
 
-  await check('mute mid-lift silences the loop at once and all later sounds', async () => {
+  await check('mute mid-lift silences everything at once and all later sounds', async () => {
     await next(page);
     await aimAt(page, 'cactus'); await press(page);
     await waitState(page, 'GRIPPING');
     let muted = false;
     await grip(page, gentle, async (g) => {
       if (!muted && g.s === 'LIFTING' && g.t > 0.6) {
-        assert.deepEqual(await loops(page), ['lift']);
         muted = true;
         await page.mouse.up();                        // a real mouse can't press two buttons at once
         await page.click('#soundBtn');
-        assert.deepEqual(await loops(page), [], 'loop gone immediately');
+        assert.equal(await page.evaluate(() => DCI.sound.debug.voices()), 0, 'sounding notes cut immediately');
         assert.equal(await page.getAttribute('#soundBtn', 'aria-label'), 'Enable sound');
         await page.waitForTimeout(150);
         assert.ok((await peak(page)) < 0.0005, 'output silent: ' + (await peak(page)));
@@ -289,14 +300,14 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     await page.mouse.move(a.x, a.y); await page.mouse.down();
     await waitState(page, 'LIFTING');
     await page.waitForTimeout(150);
-    assert.deepEqual(await loops(page), ['lift']);
+    const notesBefore = count(await log(page), 'liftNote');
+    assert.ok(notesBefore >= 1);
     await page.evaluate(() => {
       Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
       document.dispatchEvent(new Event('visibilitychange'));
     });
     await page.mouse.up();
     await page.waitForTimeout(150);
-    assert.deepEqual(await loops(page), []);
     assert.equal(await ctxState(page), 'suspended');
     assert.equal(await page.evaluate(() => DCI.sound.debug.voices()), 0);
     const n = (await log(page)).length;
@@ -308,18 +319,17 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     });
     await page.waitForTimeout(200);
     assert.equal(await ctxState(page), 'running');
-    assert.deepEqual(await loops(page), [], 'still quiet while paused');
+    assert.equal(count(await log(page), 'liftNote'), notesBefore, 'still quiet while paused');
     await page.click('#resumeBtn');
     await waitState(page, 'LIFTING');
-    await page.waitForTimeout(80);
-    assert.deepEqual(await loops(page), ['lift'], 'motor resumes once, with the game');
     await grip(page, gentle);
     await waitState(page, 'ATTEMPT_RESULT');
     await page.waitForTimeout(100);
-    assert.deepEqual(await loops(page), []);
+    const lifted = count(await log(page), 'liftNote') - notesBefore;
+    assert.ok(lifted >= 1 && lifted + 1 <= 8, 'scale continues after resume without repeating: ' + lifted);
   });
 
-  await check('restarting mid-lift stops every sound; no duplicate loops', async () => {
+  await check('restarting mid-lift stops every sound', async () => {
     await next(page);
     await aimAt(page, 'soap'); await press(page);
     await waitState(page, 'GRIPPING');
@@ -330,25 +340,22 @@ async function next(page) { await press(page); await page.waitForTimeout(60); }
     await page.evaluate(() => DCI.game.restart());
     await page.mouse.up();
     await page.waitForTimeout(80);
-    // the lift motor is gone; the carriage gliding back to centre may hum, which is correct
-    assert.ok(!(await loops(page)).includes('lift'), 'lift motor stopped');
-    assert.equal(await page.evaluate(() => DCI.sound.debug.voices()), 0);
+    const n0 = count(await log(page), 'liftNote');
     await page.waitForTimeout(500);
-    assert.deepEqual(await loops(page), [], 'silent once the carriage settles');
-    // hammer the toggle: still at most one loop per motor
-    await page.waitForFunction(() => DCI.game.lineupT >= 1);
-    const p1 = await point(page, 'scene', 100, 200), p2 = await point(page, 'scene', 580, 200);
-    await page.mouse.move(p1.x, p1.y, { steps: 10 });
-    for (let i = 0; i < 6; i++) { await page.click('#soundBtn'); }
-    await page.mouse.move(p2.x, p2.y, { steps: 10 });
-    const l = await loops(page);
-    assert.ok(l.length <= 1 && l.every((n) => n === 'hum'), 'loops: ' + l);
+    assert.equal(count(await log(page), 'liftNote'), n0, 'the lift scale stopped with the round');
+    assert.deepEqual(await loops(page), [], 'nothing continuous anywhere');
+  });
+
+  await check('nothing low or buzzy: every pitch ≥ 250 Hz, sine/triangle only', async () => {
+    const p = await page.evaluate(() => ({ min: window.__pitch.min, types: Object.keys(window.__pitch.types) }));
+    assert.ok(p.min >= 250, 'lowest pitch scheduled all session: ' + p.min.toFixed(1) + ' Hz');
+    assert.deepEqual(p.types.filter((t) => t !== 'sine' && t !== 'triangle'), [], 'waveforms: ' + p.types);
   });
 
   await check('mixed output never clips during a busy moment', async () => {
     let max = 0;
     const id = setInterval(async () => { try { max = Math.max(max, await peak(page)); } catch (e) {} }, 15);
-    await page.evaluate(() => { const s = DCI.sound; s.landed(); s.points(true); s.flourish(); s.squish(); s.pops(); s.crack(); s.squeak(); });
+    await page.evaluate(() => { const s = DCI.sound; s.landed(); s.points({ aim: 25, grade: 'perfect', streak: 3 }); s.sparkle(); s.flourish(); s.squish(); s.pops(); s.crack(); s.squeak(); });
     await page.waitForTimeout(1200);
     clearInterval(id);
     assert.ok(max > 0.01 && max < 0.99, 'peak ' + max.toFixed(3));

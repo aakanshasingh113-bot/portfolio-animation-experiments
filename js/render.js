@@ -16,7 +16,7 @@
     floor: '#C3D9CE', floorLine: '#8FB2A5', lip: '#A9C7BB',
     hole: '#2C3D3A', rail: '#4B443F', metal: '#FFF4DC', metalBack: '#E4D6B6'
   };
-  var OPEN = 40, TIP_DY = 50, MAX_PARTICLES = 40;
+  var OPEN = 40, TIP_DY = 50, MAX_PARTICLES = 40, POP_LIFE = 1.9;
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -187,7 +187,10 @@
       var p = ev.prize, d, y;
       if (ev.type === 'restart' || ev.type === 'next') { reset(); return; }
       if (ev.type === 'collected') {
-        popups.push({ text: '+' + ev.outcome.total, x: C.CHUTE_X + 4, y: 330, age: 0 });
+        var o = ev.outcome, extras = [];
+        if (o.aim) extras.push('BULLSEYE +' + o.aim);
+        if (o.streakBonus) extras.push('STREAK \u00d7' + o.streak + ' +' + o.streakBonus);
+        popups.push({ text: '+' + o.total, grade: { perfect: 'PERFECT!', gentle: 'GENTLE!', ok: 'GOT IT!' }[o.grade], extras: extras, x: 215, y: 215, age: 0 });
         return;
       }
       if (reduced) return;
@@ -215,7 +218,7 @@
         p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
         if (p.kind !== 'bubble' && p.kind !== 'spark' && p.y > C.FLOOR_Y + 6) { p.y = C.FLOOR_Y + 6; p.vy = 0; p.vx *= 0.8; p.vr = 0; }
       }
-      for (var j = popups.length - 1; j >= 0; j--) { popups[j].age += dt; if (popups[j].age > 1.3) popups.splice(j, 1); }
+      for (var j = popups.length - 1; j >= 0; j--) { popups[j].age += dt; if (popups[j].age > POP_LIFE) popups.splice(j, 1); }
       if (jolt > 0) jolt = Math.max(0, jolt - dt / 0.22);
     }
 
@@ -247,15 +250,33 @@
       }
     }
 
+    function label(text, x, y, size, fill, line) {
+      ctx.font = '900 ' + size + 'px ' + FONT;
+      ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(4, size * 0.24); ctx.strokeStyle = K.ink;
+      ctx.strokeText(text, x, y);
+      ctx.fillStyle = fill; ctx.fillText(text, x, y);
+    }
+
     function drawPopups(reduced) {
       for (var i = 0; i < popups.length; i++) {
-        var p = popups[i], t = p.age / 1.3;
-        var y = p.y - (reduced ? 0 : 34 * (1 - (1 - t) * (1 - t)));
+        var p = popups[i], t = p.age / POP_LIFE;
+        var rise = reduced ? 0 : 30 * (1 - (1 - t) * (1 - t));
+        var pop = reduced ? 1 : Math.min(1, easeOutBack(p.age / 0.28));
         ctx.save();
-        ctx.globalAlpha = clamp((1.3 - p.age) / 0.3, 0, 1);
-        ctx.font = '900 26px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.lineJoin = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = K.ink; ctx.strokeText(p.text, p.x, y);
-        ctx.fillStyle = K.yellow; ctx.fillText(p.text, p.x, y);
+        ctx.globalAlpha = clamp((POP_LIFE - p.age) / 0.35, 0, 1);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.translate(p.x, p.y - rise);
+        ctx.scale(pop, pop);
+        if (p.grade) {
+          ctx.save(); ctx.rotate(-0.06);
+          label(p.grade, 0, -36, 24, p.grade === 'PERFECT!' ? K.pink : K.ivory);
+          ctx.restore();
+        }
+        label(p.text, 0, 0, 34, K.yellow);
+        for (var k = 0; k < p.extras.length; k++) {
+          var show = reduced || p.age > 0.25 + k * 0.18;
+          if (show) label(p.extras[k], 0, 32 + k * 22, 15, K.ivory);
+        }
         ctx.restore();
       }
     }
@@ -330,7 +351,29 @@
         var a = (p.status === 'idle' ? clamp(game.lineupT * 1.6 - i * 0.18, 0, 1) : 1) * 0.16 * k;
         shadow(p.x, d.halfW * (p.status === 'crushed' ? 1.15 : 0.95) * k, a);
       }
-      // the claw's own shadow: an aiming aid, not a promise
+      // lock-on: the prize the claw would grab if dropped now
+      var aiming = phase === S.READY || phase === S.AIMING;
+      var locked = aiming && game.lineupT >= 1 ? game.pick(game.aimX) : null;
+      if (locked) {
+        var dd = PRIZES[locked.type], bull = Math.abs(game.aimX - locked.x) <= C.BULLSEYE;
+        ctx.save();
+        ctx.lineWidth = 2.6; ctx.strokeStyle = K.ink;
+        ctx.setLineDash(bull ? [] : [7, 6]);
+        ctx.lineDashOffset = reduced ? 0 : -view.time * 22;
+        ctx.fillStyle = bull ? 'rgba(242,203,101,.75)' : 'rgba(242,203,101,.35)';
+        ctx.beginPath(); ctx.ellipse(locked.x, C.FLOOR_Y + 3, dd.halfW + 10, (dd.halfW + 10) * 0.24, 0, 0, TAU);
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+        if (bull) {   // tiny sparkle marks at the ring's ends
+          ctx.fillStyle = K.ink;
+          [-1, 1].forEach(function (sd) {
+            var sx = locked.x + sd * (dd.halfW + 18), sy = C.FLOOR_Y - 4, r = 5;
+            ctx.beginPath(); ctx.moveTo(sx, sy - r); ctx.quadraticCurveTo(sx, sy, sx + r, sy); ctx.quadraticCurveTo(sx, sy, sx, sy + r);
+            ctx.quadraticCurveTo(sx, sy, sx - r, sy); ctx.quadraticCurveTo(sx, sy, sx, sy - r); ctx.fill();
+          });
+        }
+      }
+      // the claw's own shadow: an aiming aid
       if (!game.carrying) shadow(x, 22 + 10 * game.depth, 0.1 + 0.1 * game.depth);
 
       // back finger (behind whatever is being held)
@@ -350,7 +393,9 @@
         if (p.status === 'idle') {
           var local = clamp(game.lineupT * 1.6 - i * 0.18, 0, 1);
           ctx.globalAlpha = clamp(local * 2, 0, 1);
-          ctx.translate(p.x, C.FLOOR_Y + (reduced ? 0 : (1 - easeOutBack(local)) * 26));
+          var hop = (p === locked && !reduced) ? Math.abs(Math.sin(view.time * 7)) * 5 : 0;
+          ctx.translate(p.x, C.FLOOR_Y + (reduced ? 0 : (1 - easeOutBack(local)) * 26) - hop);
+          if (p === locked) o.expr = 'happy';
         } else if (p.status === 'gripped' || p.status === 'held' || p.status === 'carried') {
           var sx = clamp((visSpread - 3) / d.halfW, 0.55, 1), sy = 1 + (1 - sx) * 0.45;
           var slide = game.slip * 16;

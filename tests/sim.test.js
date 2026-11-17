@@ -166,8 +166,11 @@ test('every prize can be captured with controlled input, on every seed and attem
       playUntilResult(g, gentle);
       assert.equal(g.outcome.ok, true, type + ' seed ' + seed);
       assert.equal(g.outcome.points, PRIZES[type].points);
-      assert.equal(g.outcome.bonus, C.GENTLE_BONUS);
-      assert.equal(g.score - before, PRIZES[type].points + C.GENTLE_BONUS);
+      assert.equal(g.outcome.grade, 'perfect', 'never left the band');
+      assert.equal(g.outcome.bonus, C.PERFECT_BONUS);
+      assert.equal(g.outcome.aim, C.BULLSEYE_BONUS, 'dropped dead centre');
+      assert.equal(g.outcome.streak, 1, 'missed attempts reset the streak');
+      assert.equal(g.score - before, PRIZES[type].points + C.PERFECT_BONUS + C.BULLSEYE_BONUS);
       assert.equal(g.captured[g.captured.length - 1], type);
     }
   }
@@ -239,7 +242,8 @@ test('brief deviations are recoverable', () => {
   });
   assert.equal(g.outcome.ok, true);
   assert.ok(g.maxCrush > C.GENTLE_MAX, 'the wobble registered as damage');
-  assert.equal(g.outcome.bonus, 0, 'and cost the gentle-hands bonus');
+  assert.equal(g.outcome.bonus, 0, 'and cost the grip bonus');
+  assert.equal(g.outcome.grade, 'ok');
 });
 
 test('the first attempt accumulates damage at 0.75x', () => {
@@ -279,7 +283,9 @@ test('a round is exactly three attempts, each counted once', () => {
     dropOn(g, 'soap');
     playUntilResult(g, gentle);
     assert.equal(g.results.length, a);
-    assert.equal(g.score, a * 150);
+    // soap 100 + perfect 100 + bullseye 25, plus 50 for each capture in a row after the first
+    assert.equal(g.outcome.streakBonus, (a - 1) * 50);
+    assert.equal(g.score, a * 225 + [0, 0, 50, 150][a]);
     assert.equal(g.next(), true);
     assert.equal(g.next(), false, 'double "next" does nothing');
   }
@@ -289,7 +295,7 @@ test('a round is exactly three attempts, each counted once', () => {
   assert.equal(g.drop(), false);
   assert.equal(g.next(), false);
   run(g, 3);
-  assert.equal(g.score, 450);
+  assert.equal(g.score, 825);
   assert.equal(g.events.filter((e) => e.type === 'collected').length, 3);
 });
 
@@ -352,4 +358,46 @@ test('personal best: first round establishes, only a higher score celebrates', (
   assert.deepEqual(evaluateBest(300, 300), { best: 300, isNew: false, first: false });
   assert.deepEqual(evaluateBest(300, 250), { best: 300, isNew: false, first: false });
   assert.deepEqual(evaluateBest(300, 350), { best: 350, isNew: true, first: false });
+});
+
+test('grades, bullseye and streak bonuses add up; a failure breaks the streak', () => {
+  const g = createGame({ rng: rngFrom(31) });
+  // off-centre but inside the zone: no bullseye
+  settle(g);
+  g.aim(prizeOf(g, 'cake').x + C.BULLSEYE + 6); g.drop(); run(g, C.LOWER_TIME + 0.05);
+  assert.equal(g.target.type, 'cake');
+  playUntilResult(g, gentle);
+  assert.equal(g.outcome.aim, 0);
+  assert.equal(g.outcome.total, 150 + 100);
+  g.next();
+  // gentle but not perfect: a short over-squeeze mid-lift
+  dropOn(g, 'cactus');
+  let t = 0;
+  playUntilResult(g, (gm) => { if (gm.state === S.LIFTING) { t += DT; if (t > 0.5 && t < 0.73) { gm.setHold(true); return; } } gentle(gm); });
+  assert.ok(g.maxCrush > C.PERFECT_MAX && g.maxCrush <= C.GENTLE_MAX, 'maxCrush ' + g.maxCrush);
+  assert.equal(g.outcome.grade, 'gentle');
+  assert.equal(g.outcome.streak, 2);
+  assert.equal(g.outcome.total, 125 + 50 + 25 + 50);
+  g.next();
+  dropOn(g, 'egg');
+  playUntilResult(g, (gm) => gm.setHold(true));
+  assert.equal(g.outcome.ok, false);
+  assert.equal(g.streak, 0);
+  assert.equal(g.score, 250 + 250);
+});
+
+test('the claw locks on anywhere across a prize body, but gaps still miss', () => {
+  for (let seed = 1; seed <= 20; seed++) {
+    const g = createGame({ rng: rngFrom(seed) });
+    for (const p of g.prizes) {
+      const d = PRIZES[p.type];
+      assert.ok(d.capture >= d.halfW, p.type + ' zone covers its whole silhouette');
+      assert.equal(g.pick(p.x - d.halfW), p); assert.equal(g.pick(p.x + d.halfW), p);
+    }
+  }
+});
+
+test('stars follow the round score', () => {
+  assert.equal(sim.stars(0), 0); assert.equal(sim.stars(149), 0); assert.equal(sim.stars(150), 1);
+  assert.equal(sim.stars(450), 2); assert.equal(sim.stars(799), 2); assert.equal(sim.stars(800), 3);
 });
