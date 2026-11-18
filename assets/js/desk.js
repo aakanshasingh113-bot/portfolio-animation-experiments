@@ -109,15 +109,6 @@
     discover('receipt');
   });
 
-  /* photos: shuffle the top one to the back */
-  var stack = $('photoStack'), shuffling = false;
-  draggable($('pPhotos'), function(){
-    if(shuffling) return; shuffling = true;
-    var topPol = stack.lastElementChild; topPol.classList.add('out'); snd.whoosh();
-    setTimeout(function(){ stack.insertBefore(topPol, stack.firstElementChild); requestAnimationFrame(function(){ topPol.classList.remove('out'); shuffling = false; }); }, 380);
-    discover('photos');
-  });
-
   /* cassette: lo-fi on and off */
   draggable($('pTape'), function(){
     var t = $('pTape'); snd.click();

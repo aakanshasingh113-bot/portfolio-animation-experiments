@@ -6,7 +6,7 @@ A static portfolio site (no build step).
 
 **Play / Tidy up:** the switch at the bottom of the desk. Tidy up sweeps every object to the edges for a calm, focused intro; clicking any object (or Play) brings the desk back. The choice is remembered.
 
-**The desk:** eleven objects you can drag anywhere. Each one does something when clicked:
+**The desk:** ten objects you can drag anywhere. Each one does something when clicked:
 
 | Object | Click |
 | --- | --- |
@@ -14,7 +14,6 @@ A static portfolio site (no build step).
 | Coffee | take a sip (then refill) |
 | Sticky notes | peel off a user quote |
 | Receipt | prints another skill |
-| Photos | shuffle the stack |
 | Cassette | plays lo-fi music |
 | Folder | fans out the work, click again to jump to it |
 | Plant | water it to grow a new version |
@@ -69,7 +68,6 @@ Some content is still sample text. Replace:
 
 - **Email and links** in the contact section of `index.html`
 - **Postcard back** (`[your city]`) and the badge text
-- **Photos**: the three polaroids in `#photoStack` use drawn placeholders; swap in `<img>` tags
 - **Case studies** ("Featured work"): Legrand Arteor and Oman Vision 2040 are real; slots 03 and 04 are "coming soon" placeholders. Preview images live in `assets/work/`.
   Featured work details: a list on the left, one project open at a time, and a large preview on the right. It auto-advances until a visitor picks a project.
   - Each project's text (tags, title, description, 3 metrics, button) is in its `<li class="fw-item">` in `index.html`; its colour is the `--c` value.

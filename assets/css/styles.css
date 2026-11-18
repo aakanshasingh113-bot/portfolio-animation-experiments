@@ -953,3 +953,54 @@ body.leaving{opacity:0; transition:opacity .25s}
   .stamps li:last-child{border-bottom:1px solid var(--line)}
   .foot-bar{flex-direction:column; align-items:flex-start; gap:6px; padding-bottom:100px}
 }
+
+/* =========================================================
+   Side B: a hand-written mixtape insert (J-card) and its liner notes.
+   Paper, pen and a strip of tape. Flat, square-cornered, written in
+   blue ballpoint, not boxed in UI cards.
+   ========================================================= */
+#offclock{--pen:#2A44A4}
+.mix{display:grid; grid-template-columns:minmax(0,430px) minmax(0,1fr); gap:clamp(40px,8vw,120px); align-items:start; margin-top:clamp(24px,4vw,48px)}
+.jcard{position:relative; display:grid; grid-template-columns:52px 1fr; color:var(--pen); transform:rotate(-1.4deg);
+  background:#FCFAF4 repeating-linear-gradient(180deg, transparent 0 39px, rgba(42,68,164,.13) 39px 40px);
+  background-position:0 22px; box-shadow:0 1px 0 rgba(0,0,0,.05), 0 22px 26px -24px rgba(50,35,15,.45)}
+.jc-tape{position:absolute; top:-14px; left:44%; width:110px; height:28px; background:rgba(236,223,180,.72); transform:rotate(3deg); box-shadow:0 1px 1px rgba(0,0,0,.05)}
+.jc-spine{margin:0; writing-mode:vertical-rl; transform:rotate(180deg); display:flex; align-items:center; justify-content:center; font:700 19px var(--hand); letter-spacing:.06em; border-left:1px dashed rgba(42,68,164,.35); background:rgba(42,68,164,.035)}
+.jc-face{padding:26px 26px 22px 24px}
+.jc-title{margin:0 0 14px; font:700 50px/.9 var(--hand); color:var(--pen); transform:rotate(-2deg); transform-origin:left}
+.jc-title small{display:block; font-size:21px; color:rgba(42,68,164,.7); margin-top:6px}
+.jc-list{list-style:none; margin:0; padding:0}
+.jc-list li{line-height:40px}
+.mix .trk, .mix .trk:hover, .mix .trk.on{width:auto; grid-template-columns:none; border:0; border-radius:0; box-shadow:none; background:none; color:var(--pen); padding:0 8px 0 0; white-space:nowrap}
+.trk{position:relative; display:inline-flex; gap:10px; align-items:baseline; background:none; border:0; padding:0 8px 0 0; margin:0; font:600 29px/40px var(--hand); color:var(--pen); cursor:pointer; text-align:left}
+.trk .n{font-size:22px; opacity:.6; min-width:20px}
+.trk s{opacity:.55; text-decoration-thickness:2px; margin-right:4px}
+.trk:hover .trk-t{text-decoration:underline wavy rgba(42,68,164,.4) 1.5px; text-underline-offset:6px}
+.trk:focus-visible{outline:2px solid var(--pen); outline-offset:4px}
+.ring{position:absolute; left:-14px; right:-16px; top:-6px; width:calc(100% + 30px); height:calc(100% + 12px); overflow:visible; pointer-events:none}
+.ring path{fill:none; stroke:#D9482F; stroke-width:2.6; stroke-linecap:round; stroke-dasharray:1 1; stroke-dashoffset:1; vector-effect:non-scaling-stroke}
+.trk.on .ring path{stroke-dashoffset:0; transition:stroke-dashoffset .6s ease-out}
+.jc-foot{margin:16px 0 0; font:600 18px var(--hand); color:rgba(42,68,164,.6)}
+.liner{position:relative; padding-top:clamp(0px,3vw,40px); max-width:520px}
+.liner-k{margin:0 0 10px; font-size:14px; font-weight:600; color:var(--muted)}
+.liner-body h3{margin:0; padding-right:clamp(80px,10vw,130px); font-size:clamp(40px,5vw,64px); font-weight:800; letter-spacing:-.04em; line-height:.95}
+.liner-body p{font-size:18px; line-height:1.55; color:#4E483F; margin:18px 0 0; max-width:38ch}
+.liner-body .aside{font:700 25px/1.15 var(--hand); color:var(--pen); margin-top:16px; transform:rotate(-1.5deg); transform-origin:left}
+.liner-body .aside::before{content:"↳ "; opacity:.7}
+.liner-body svg{position:absolute; right:0; top:clamp(0px,3vw,40px); width:clamp(70px,9vw,110px); fill:none; stroke:var(--pen); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; opacity:.8; transform:rotate(6deg)}
+.liner-body.in > *{animation:linerIn .45s ease-out both}
+.liner-body.in > p{animation-delay:.06s} .liner-body.in > .aside{animation-delay:.14s}
+@keyframes linerIn{from{opacity:0; transform:translateY(6px)}}
+.liner-play{margin-top:28px; background:none; border:0; padding:0 0 3px; font:600 16px var(--display); color:var(--ink); border-bottom:1.5px solid currentColor; cursor:pointer; display:inline-flex; align-items:center; gap:8px}
+.liner-play::before{content:""; width:0; height:0; border-left:9px solid currentColor; border-top:6px solid transparent; border-bottom:6px solid transparent}
+.playing .liner-play::before{width:9px; height:10px; border:0; border-left:3px solid currentColor; border-right:3px solid currentColor}
+.liner-play:hover{color:#D9482F}
+.playing .trk.on .n{animation:nudge .5s ease-in-out infinite alternate}
+@keyframes nudge{to{transform:translateY(-3px)}}
+@media (max-width:860px){
+  .mix{grid-template-columns:1fr}
+  .jcard{max-width:440px; transform:rotate(-1deg)}
+  .liner-body svg{width:64px}
+  .liner-body h3{padding-right:70px}
+}
+@media (prefers-reduced-motion:reduce){ .trk.on .ring path{transition:none} .liner-body.in > *{animation:none} .playing .trk.on .n{animation:none} }
