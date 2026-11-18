@@ -435,74 +435,30 @@
     </div>
   </section>
 
-  <!-- ================= OFF THE CLOCK: Side B =================
-       What I do when I'm not designing. Each hobby is a track on the B-side.
-       Edit the list below: the track name in .trk-t, and its details in the
-       matching <template data-track>. --lc is the record label colour. -->
-  <section class="wrap reveal band" id="offclock" aria-labelledby="offTitle">
-    <div class="sec-head">
-      <div>
-        <p class="eyebrow-no"><i></i><b>04</b>Off the clock</p>
-        <h2 id="offTitle">Side B: when I'm not designing.</h2>
-        <p class="hand-note">pick a track ↓</p>
-      </div>
-      <p>The stuff that keeps me curious, and quietly makes me a better designer.</p>
+  <!-- ================= OFF THE CLOCK =================
+       Move the cursor over this section and the photos follow it.
+       To add a photo: put it in assets/offclock/ and add an <img> to #trailPics. -->
+  <section class="offclock" id="offclock" aria-labelledby="offTitle">
+    <div class="oc-inner">
+      <p class="eyebrow-no"><i></i><b>04</b>Off the clock</p>
+      <h2 id="offTitle">When I'm not designing.</h2>
+      <p class="oc-sub">Head in the clouds, mostly. The rest of the time I'm upside down on a yoga mat, flour up to my elbows, or three chapters past bedtime.</p>
+      <p class="oc-hint"><span class="m">move around to see</span><span class="t">scroll or drag to see</span></p>
     </div>
-    <div class="mix" id="sideb">
-      <div class="jcard">
-        <span class="jc-tape" aria-hidden="true"></span>
-        <p class="jc-spine" aria-hidden="true">side b · a.s. · c-60</p>
-        <div class="jc-face">
-          <p class="jc-title">side b<small>for when the laptop's shut</small></p>
-          <ol class="jc-list">
-            <li><button class="trk on" type="button" data-i="0" aria-pressed="false"><span class="n">1.</span><span class="trk-t">baking</span><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M30 12 C80 2 170 4 188 22 C204 40 150 56 90 55 C30 54 4 44 10 28 C15 16 48 10 70 9"/></svg></button></li>
-            <li><button class="trk" type="button" data-i="1" aria-pressed="false"><span class="n">2.</span><span class="trk-t">yoga</span><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M30 12 C80 2 170 4 188 22 C204 40 150 56 90 55 C30 54 4 44 10 28 C15 16 48 10 70 9"/></svg></button></li>
-            <li><button class="trk" type="button" data-i="2" aria-pressed="false"><span class="n">3.</span><span class="trk-t"><s>people watching</s> café sketching</span><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M30 12 C80 2 170 4 188 22 C204 40 150 56 90 55 C30 54 4 44 10 28 C15 16 48 10 70 9"/></svg></button></li>
-            <li><button class="trk" type="button" data-i="3" aria-pressed="false"><span class="n">4.</span><span class="trk-t">pani puri runs</span><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M30 12 C80 2 170 4 188 22 C204 40 150 56 90 55 C30 54 4 44 10 28 C15 16 48 10 70 9"/></svg></button></li>
-            <li><button class="trk" type="button" data-i="4" aria-pressed="false"><span class="n">5.</span><span class="trk-t">lo-fi &amp; long walks</span><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M30 12 C80 2 170 4 188 22 C204 40 150 56 90 55 C30 54 4 44 10 28 C15 16 48 10 70 9"/></svg></button></li>
-          </ol>
-          <p class="jc-foot">recorded 2022 – now, mostly on sundays</p>
-        </div>
-      </div>
-      <div class="liner" id="now" aria-live="polite">
-        <p class="liner-k" id="nowK">track 1</p>
-        <div class="liner-body" id="nowBody"></div>
-        <button class="liner-play" id="nowPlay" type="button">play its little tune</button>
-      </div>
-      <div class="old-player" hidden>
-        <div class="tt" aria-hidden="true">
-          <div class="platter"><div class="vinyl" id="vinyl"><div class="label" id="vLabel"><span id="vLabelT">Side B</span><i></i></div></div></div>
-          <svg class="arm" id="arm" viewBox="0 0 120 220"><circle cx="90" cy="26" r="16" fill="#D8D0C0"/><circle cx="90" cy="26" r="7" fill="#9C9384"/><path d="M90 26 L84 150 L58 192" fill="none" stroke="#B9B0A0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="44" y="184" width="26" height="16" rx="3" transform="rotate(-38 57 192)" fill="#3B3631"/></svg>
-          <span class="knob"></span>
-        </div>
-        <div class="now" id="now" aria-live="polite">
-          <span class="now-k" id="nowK">Side B · track 1</span>
-          <div class="now-body" id="nowBody"></div>
-          <button class="now-play" id="nowPlay" type="button" aria-label="Play">▶ <span>Play</span></button>
-        </div>
-      </div>
-      <ol class="tracks">
-          <li><button class="trk on" type="button" data-i="0" style="--lc:#D9482F" aria-pressed="false">
-            <span class="trk-no">B1</span><span class="trk-t">Baking</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
-          </button></li>
-          <li><button class="trk" type="button" data-i="1" style="--lc:#2D74B5" aria-pressed="false">
-            <span class="trk-no">B2</span><span class="trk-t">Yoga</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
-          </button></li>
-          <li><button class="trk" type="button" data-i="2" style="--lc:#2F8F4E" aria-pressed="false">
-            <span class="trk-no">B3</span><span class="trk-t">Café sketching</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
-          </button></li>
-          <li><button class="trk" type="button" data-i="3" style="--lc:#E0A92A" aria-pressed="false">
-            <span class="trk-no">B4</span><span class="trk-t">Street food: pani puri</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
-          </button></li>
-          <li><button class="trk" type="button" data-i="4" style="--lc:#7A54D8" aria-pressed="false">
-            <span class="trk-no">B5</span><span class="trk-t">Lo-fi & long walks</span><span class="trk-eq" aria-hidden="true"><i></i><i></i><i></i></span>
-          </button></li>
-      </ol>
-        <template data-track="0"><h3>Baking</h3><p>Weekend bakes, weighed to the gram. A recipe is just a spec, and I iterate on mine the way I iterate on screens.</p><p class="aside">currently losing to: the croissant</p><svg viewBox="0 0 80 70"><path d="M14 30 h52 v28 a6 6 0 0 1 -6 6 h-40 a6 6 0 0 1 -6 -6 Z"/><path d="M10 30 h60"/><path d="M24 30 c0 -10 32 -10 32 0"/><path d="M30 18 c-2 -4 2 -6 0 -10 M40 16 c-2 -4 2 -6 0 -10 M50 18 c-2 -4 2 -6 0 -10"/></svg></template>
-        <template data-track="1"><h3>Yoga</h3><p>The one hour of the day with no screens and no notifications. Balance on the mat first, everywhere else slowly after.</p><p class="aside">favourite pose: still deciding</p><svg viewBox="0 0 80 70"><circle cx="40" cy="12" r="6"/><path d="M40 18 v22"/><path d="M40 26 L22 18 M40 26 L58 18"/><path d="M40 40 L28 58 M40 40 L52 58"/><path d="M12 62 h56"/></svg></template>
-        <template data-track="2"><h3>Café sketching</h3><p>A pocket sketchbook, a pen I'm scared to lose, and whoever sits by the window. It started as people watching; the sketchbook just made it less weird.</p><p class="aside">sketchbook no. 6, half full</p><svg viewBox="0 0 80 70"><rect x="14" y="10" width="44" height="56" rx="3"/><path d="M14 18 h-4 M14 30 h-4 M14 42 h-4 M14 54 h-4"/><path d="M26 44 C30 30 40 30 44 40 S54 46 50 30"/><path d="M62 14 L72 60" /><path d="M70 54 l2 6 l-5 -3"/></svg></template>
-        <template data-track="3"><h3>Pani puri runs</h3><p>I will walk forty minutes for the right tangy water, and I have opinions about every stall on the way.</p><p class="aside">order: one more plate, extra teekha</p><svg viewBox="0 0 80 70"><path d="M10 40 h60 C68 56 56 64 40 64 S12 56 10 40 Z"/><circle cx="26" cy="32" r="10"/><circle cx="46" cy="30" r="11"/><circle cx="60" cy="34" r="8"/><ellipse cx="26" cy="27" rx="4" ry="2"/><ellipse cx="46" cy="25" rx="4.5" ry="2"/><path d="M46 12 c-2 -4 2 -6 0 -9"/></svg></template>
-        <template data-track="4"><h3>Lo-fi &amp; long walks</h3><p>Headphones on, no destination. Most of my good ideas show up somewhere around the second kilometre.</p><p class="aside">avg. walk: 6,000 steps, 3 ideas</p><svg viewBox="0 0 80 70"><path d="M16 44 V36 a24 24 0 0 1 48 0 V44"/><rect x="10" y="42" width="12" height="18" rx="4"/><rect x="58" y="42" width="12" height="18" rx="4"/></svg></template>
+    <div class="trail-pics" id="trailPics" hidden>
+      <img src="assets/offclock/gorge.webp" alt="Wading through a narrow river gorge">
+      <img src="assets/offclock/aerial-silks.webp" alt="Upside down in aerial silks">
+      <img src="assets/offclock/homemade-pizza.webp" alt="A homemade pizza fresh out of the oven">
+      <img src="assets/offclock/monsoon-trek.webp" alt="A monsoon trek by a waterfall">
+      <img src="assets/offclock/bookshelf.webp" alt="A shelf of books">
+      <img src="assets/offclock/lake-sunset.webp" alt="Sunset over a lake">
+      <img src="assets/offclock/cookies.webp" alt="A tray of homemade cookies">
+      <img src="assets/offclock/seaside.webp" alt="Sitting by the sea at sunset">
+      <img src="assets/offclock/crescent-moon.webp" alt="A crescent moon in a dark sky">
+      <img src="assets/offclock/beach-sunset.webp" alt="An orange sunset over the sea">
+      <img src="assets/offclock/chocolate-bark.webp" alt="Homemade chocolate bark with cherries and almonds">
+      <img src="assets/offclock/gorge-rest.webp" alt="Resting on a rock inside a gorge">
+      <img src="assets/offclock/night-sky.webp" alt="A sky full of stars">
     </div>
   </section>
 
@@ -701,7 +657,7 @@
 <script src="assets/js/process.js"></script>
 <script src="assets/js/experiments.js"></script>
 <script src="assets/js/toss.js"></script>
-<script src="assets/js/sideb.js"></script>
+<script src="assets/js/trail.js"></script>
 <script src="assets/js/about-me.js"></script>
 <script src="assets/js/chat.js"></script>
 </body>
