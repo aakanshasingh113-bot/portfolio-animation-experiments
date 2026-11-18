@@ -1,0 +1,2925 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Don’t Crush It — a tiny claw machine</title>
+  <meta name="description" content="A miniature claw machine full of squishy prizes. Line it up, drop the claw, hold gently.">
+  <meta name="theme-color" content="#FFF4DC">
+  <style>
+/* Don't Crush It — cabinet, controls and page. The chamber itself is drawn on canvas. */
+
+:root {
+  --ivory: #FFF4DC;
+  --red: #D94732;
+  --red-deep: #BD3B28;
+  --ink: #292522;
+  --yellow: #F2CB65;
+  --teal: #467E78;
+  --pink: #E8A6AC;
+  --ground: #F5E6C4;
+  --font: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* procedural paper grain */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .145 0 0 0 0 .13 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --line: max(2px, .28em);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--ivory) var(--grain);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+.stage {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 14px 10px 18px;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------- machine -- */
+
+.machine {
+  /* --fit is set by the script when the viewport is too short for the full size */
+  --w: min(700px, 100vw - 20px, var(--fit, 700px));
+  width: var(--w);
+  font-size: calc(var(--w) / 70);   /* 1em = 1/70 of the cabinet width */
+  position: relative;
+  isolation: isolate;
+}
+
+/* the ground the machine stands on */
+.floor {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: calc(100% - .2em);
+  width: 200vw;
+  height: 100vh;
+  transform: translateX(-50%);
+  background: var(--ground) var(--grain);
+  border-top: 2px solid rgba(41, 37, 34, .55);
+}
+.floor::before {   /* one soft contact shadow */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  width: calc(var(--w) * 1.16);
+  height: 2.6em;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 0, rgba(41, 37, 34, .26), rgba(41, 37, 34, 0) 70%);
+}
+
+.cabinet {
+  position: relative;
+  background: var(--red) var(--grain);
+  border: var(--line) solid var(--ink);
+  border-radius: 3.4em 3.4em 1.2em 1.2em;
+  padding: 0 2.6em 2.2em;
+  /* a printed highlight along the top and a shaded right edge */
+  box-shadow: inset 0 .55em 0 rgba(255, 244, 220, .2), inset -1.1em 0 0 rgba(41, 37, 34, .13);
+}
+/* wear along the lower edges */
+.cabinet::after {
+  content: "";
+  position: absolute;
+  left: 1.2em; right: 3.2em; bottom: .5em;
+  height: .35em;
+  border-radius: 1em;
+  background: linear-gradient(90deg, rgba(255, 244, 220, .5) 0 9%, transparent 9% 13%, rgba(255, 244, 220, .35) 13% 16%, transparent 16% 78%, rgba(255, 244, 220, .4) 78% 90%, transparent 90%);
+  pointer-events: none;
+}
+
+.feet { display: flex; justify-content: space-between; padding: 0 5em; }
+.feet i { width: 9em; height: 1.5em; background: var(--ink); border-radius: 0 0 .5em .5em; }
+
+.screw {
+  position: absolute;
+  width: 1.5em; height: 1.5em;
+  border-radius: 50%;
+  border: max(1.5px, .2em) solid var(--ink);
+  background: linear-gradient(var(--tilt, 35deg), transparent 44%, var(--ink) 44% 56%, transparent 56%), #EBDCB8;
+}
+.screw--a { left: -.4em; top: 3.6em; }
+.screw--b { right: -.4em; top: 3.6em; --tilt: 110deg; }
+.screw--c { left: -1.3em; bottom: -.9em; --tilt: 80deg; }
+.screw--d { right: -1.3em; bottom: -.9em; --tilt: 150deg; }
+
+/* -------------------------------------------------------------- fascia -- */
+
+.fascia {
+  position: relative;
+  height: 9em;
+  display: grid;
+  place-items: center;
+  padding-top: .5em;
+}
+.marquee {
+  background: var(--red-deep);
+  border: var(--line) solid var(--ink);
+  border-radius: 1.5em;
+  padding: .8em 3.2em .9em;
+}
+.wordmark {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .32em;
+  font-size: 4.5em;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .055em;
+  white-space: nowrap;
+  color: var(--ivory);
+  text-shadow: .055em .065em 0 var(--ink);
+}
+/* the word being squeezed */
+.wordmark__crush { display: inline-flex; align-items: center; color: var(--yellow); }
+.wordmark__crush b {
+  font-weight: 900;
+  letter-spacing: -.015em;
+  transform: scaleX(.8);
+  margin: 0 -.24em;
+}
+.pinch { width: .3em; height: .7em; overflow: visible; flex: none; }
+.pinch path { fill: none; stroke: var(--ivory); stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* -------------------------------------------------------------- window -- */
+
+.window {
+  background: var(--ivory);
+  border: var(--line) solid var(--ink);
+  border-radius: 2em;
+  padding: .85em;
+}
+.glass {
+  position: relative;
+  border: var(--line) solid var(--ink);
+  border-radius: 1.3em;
+  overflow: hidden;
+  background: #DCE9E1;
+}
+.glass:focus-within { box-shadow: 0 0 0 max(3px, .45em) var(--yellow); }
+#scene {
+  display: block;
+  width: 100%;
+  aspect-ratio: 640 / 440;
+  touch-action: pan-y;
+  cursor: ew-resize;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* round summary: a printed ticket laid on the glass */
+.card {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  pointer-events: none;
+}
+.card[hidden], .pause[hidden] { display: none; }
+.card__paper {
+  min-width: 52%;
+  max-width: 86%;
+  padding: 1.5em 2.6em 1.6em;
+  background: var(--ivory) var(--grain);
+  border: var(--line) solid var(--ink);
+  border-radius: .9em;
+  text-align: center;
+  transform: rotate(-1.6deg);
+  box-shadow: .55em .65em 0 rgba(41, 37, 34, .28);
+  animation: ticket .32s cubic-bezier(.2, 1.3, .4, 1) both;
+}
+@keyframes ticket { from { transform: translateY(-1.5em) rotate(-5deg); opacity: 0; } }
+.card p { margin: 0; }
+.card__eyebrow { font-size: max(11px, 1.15em); font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--teal); }
+.card__stars { display: flex; justify-content: center; gap: .35em; margin: .35em 0 .1em !important; }
+.card__stars svg { width: max(26px, 3.8em); height: max(26px, 3.8em); overflow: visible; }
+.card__stars path { stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; fill: rgba(41, 37, 34, .08); }
+.card__stars .is-on path { fill: var(--yellow); }
+.card__stars .is-on { animation: star .38s cubic-bezier(.2, 1.6, .4, 1) both; }
+.card__stars .is-on:nth-child(2) { animation-delay: .16s; }
+.card__stars .is-on:nth-child(3) { animation-delay: .32s; }
+@keyframes star { from { transform: scale(0) rotate(-40deg); } }
+.card__msg { font-size: max(16px, 2.7em); font-weight: 900; line-height: 1.12; margin-top: .25em !important; }
+.card__score { margin-top: .5em !important; display: flex; align-items: baseline; justify-content: center; gap: .6em; }
+.card__score span { font-size: max(11px, 1.15em); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.card__score strong { font-size: max(26px, 4.6em); font-weight: 900; line-height: 1; color: var(--red); font-variant-numeric: tabular-nums; }
+.card__minis { display: flex; justify-content: center; gap: .9em; margin-top: .7em; }
+.card__minis canvas, .card__minis i {
+  width: max(34px, 5em); height: max(34px, 5em);
+  border-radius: 50%;
+}
+.card__minis canvas { background: #DCE9E1; border: 2px solid var(--ink); }
+.card__minis i { border: 2px dashed rgba(41, 37, 34, .45); }
+.card__best { font-size: max(12px, 1.35em); font-weight: 700; margin-top: .7em !important; }
+
+.pause {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  background: rgba(255, 244, 220, .86);
+}
+.pause__box { text-align: center; }
+.pause__box p { margin: 0 0 .6em; font-size: max(16px, 2.4em); font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+
+/* --------------------------------------------------------------- panel -- */
+
+.panel { display: grid; gap: 1em; margin-top: 1.2em; }
+.panel > * { min-width: 0; }
+
+.plate {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  background: var(--ivory);
+  border: var(--line) solid var(--ink);
+  border-radius: .9em;
+}
+.stat {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: .7em 1.5em;
+  border-right: 2px dashed rgba(41, 37, 34, .45);
+  min-width: max(62px, 10em);
+}
+.stat--right { border-right: 0; border-left: 2px dashed rgba(41, 37, 34, .45); text-align: right; }
+.stat__label { font-size: max(11px, 1.1em); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.stat__value { font-size: max(17px, 2.4em); font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.plate__msg {
+  margin: 0;
+  display: grid; place-items: center;
+  padding: .6em 1em;
+  min-height: max(46px, 5.6em);
+  font-size: max(13.5px, 1.75em);
+  font-weight: 700;
+  line-height: 1.22;
+  text-align: center;
+}
+.plate__msg { min-height: 0; }
+.plate { min-height: max(48px, 5.6em); }
+.plate[data-tone="good"] .plate__msg { color: var(--teal); }
+.plate[data-tone="bad"] .plate__msg { color: #B53623; }
+
+.meter {
+  background: var(--ivory);
+  border: var(--line) solid var(--ink);
+  border-radius: .9em;
+  padding: .75em 1.4em .5em;
+}
+.meter__head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: max(11px, 1.1em);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.meter__head .dmg { color: var(--teal); flex: 1 1 0; min-width: 0; }
+.meter__head .dmg--right { justify-content: flex-end; }
+.meter__zone { min-height: 1.2em; white-space: nowrap; padding: 0 .6em; }
+.meter[data-zone="none"] .meter__zone { color: var(--teal); }
+.meter__zone::before { content: ""; display: inline-block; width: .75em; height: .75em; margin-right: .5em; vertical-align: -.02em; }
+.meter[data-zone="low"] .meter__zone::before { border: 2px solid var(--ink); border-radius: 50%; }
+.meter[data-zone="safe"] .meter__zone::before { background: var(--teal); border-radius: 50%; }
+.meter[data-zone="high"] .meter__zone::before { background: var(--red); transform: rotate(45deg); }
+
+.meter__track {
+  position: relative;
+  height: max(24px, 3.3em);
+  margin: .75em 0 calc(max(15px, 1.6em) + .1em);
+  border: 2px solid var(--ink);
+  border-radius: .55em;
+  background:
+    repeating-linear-gradient(90deg, rgba(41, 37, 34, .3) 0 1.5px, transparent 1.5px 10%),
+    #FBEBC9;
+}
+.meter__fill {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+  background: var(--yellow);
+  border-radius: .4em 0 0 .4em;
+}
+.meter__band {
+  position: absolute; top: -2px; bottom: -2px; left: 30%; width: 25%;
+  display: grid; place-items: center;
+  border: 2px solid var(--ink);
+  background: repeating-linear-gradient(135deg, rgba(255, 244, 220, .2) 0 .45em, transparent .45em .9em), var(--teal);
+  color: var(--ivory);
+  font-size: max(11px, 1.1em);
+  font-weight: 900;
+  letter-spacing: .16em;
+  transition: left .25s ease, width .25s ease, opacity .2s;
+}
+/* a bracket above and a tab below, so the band reads without colour and the
+   needle never hides its label */
+.meter__band::before {
+  content: ""; position: absolute; left: -2px; right: -2px; height: max(4px, .5em);
+  top: calc(-1 * max(4px, .5em) - 1px);
+  border: 2px solid var(--ink); border-bottom: 0;
+}
+.meter__band span {
+  position: absolute; top: calc(100% + 2px); left: 50%; transform: translateX(-50%);
+  padding: .1em .55em .15em .7em;
+  background: var(--ink); color: var(--ivory);
+  border-radius: 0 0 .5em .5em;
+  line-height: 1.2;
+}
+.meter__needle {
+  position: absolute; top: calc(-1 * max(6px, .8em)); bottom: -2px; left: 0;
+  width: max(6px, .7em);
+  margin-left: calc(-.5 * max(6px, .7em));
+  background: var(--ink);
+  border-radius: 1em;
+  box-shadow: 0 0 0 2px var(--ivory);
+}
+.meter[data-active="false"] .meter__band,
+.meter[data-active="false"] .meter__needle,
+.meter[data-active="false"] .meter__fill { opacity: 0; }
+.meter[data-active="false"] .dmg, .meter[data-active="false"] .meter__track { opacity: .5; }
+.meter[data-active="true"] { box-shadow: 0 0 0 max(2px, .3em) var(--yellow); }
+
+.dmg { display: inline-flex; align-items: center; gap: .7em; }
+.dmg i {
+  display: block; width: max(44px, 7em); height: max(7px, .8em);
+  border: 2px solid var(--ink); border-radius: 1em; overflow: hidden; background: #FBEBC9;
+}
+.dmg b { display: block; height: 100%; width: 0; background: var(--teal); }
+.dmg--right b { background: var(--red); margin-left: auto; }
+
+/* ------------------------------------------------------------ controls -- */
+
+.controls { display: flex; align-items: center; gap: .6em; }
+
+.key {
+  appearance: none;
+  font: inherit;
+  font-size: max(16px, 2.05em);
+  font-weight: 900;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--yellow);
+  border: max(2px, .14em) solid var(--ink);
+  border-radius: .55em;
+  min-height: max(48px, 2.9em);
+  width: max(190px, 13.5em);
+  padding: 0 1em;
+  box-shadow: 0 .3em 0 var(--ink);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .06s ease-out, box-shadow .06s ease-out;
+  margin-bottom: .3em;
+}
+.key.is-down, .key--small:active { transform: translateY(.22em); box-shadow: 0 .08em 0 var(--ink); }
+.key[aria-disabled="true"] { background: #E5D3A2; color: rgba(41, 37, 34, .5); cursor: default; }
+.key[data-mode="grip"] { background: var(--ivory); }
+.key--small { font-size: max(15px, 1.7em); width: auto; min-width: max(120px, 9em); min-height: 44px; touch-action: manipulation; }
+
+.keys {
+  flex: 1;
+  margin: 0;
+  padding: 0 .6em;
+  text-align: center;
+  font-size: max(11.5px, 1.25em);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ivory);
+}
+
+.mini {
+  appearance: none;
+  flex: none;
+  width: max(44px, 4.6em); height: max(44px, 4.6em);
+  padding: 0; border: 0; background: none;
+  display: grid; place-items: center;
+  cursor: pointer;
+  color: var(--ink);
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.mini > span {
+  width: max(34px, 3.6em); height: max(34px, 3.6em);
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--ivory);
+  border: 2px solid var(--ink);
+  box-shadow: 0 max(2px, .25em) 0 var(--ink);
+  font-size: 1em;
+  font-weight: 900;
+  transition: transform .06s ease-out, box-shadow .06s ease-out;
+}
+#helpBtn > span { font-size: max(16px, 1.9em); width: 1.9em; height: 1.9em; }
+@media (min-width: 560px) { #helpBtn > span { width: 1.9em; height: 1.9em; } }
+.mini:active > span { transform: translateY(2px); box-shadow: 0 0 0 var(--ink); }
+.mini svg { width: 60%; height: 60%; }
+.mini .spk { fill: var(--ink); }
+.mini .wav, .mini .off { fill: none; stroke: var(--ink); stroke-width: 1.9; stroke-linecap: round; }
+#soundBtn:not([data-sound="on"]) .wav { display: none; }
+#soundBtn[data-sound="on"] .off { display: none; }
+#soundBtn[data-sound="on"] > span { background: var(--yellow); }
+#soundBtn[data-sound="unavailable"] > span { opacity: .55; }
+#soundBtn svg { width: 68%; height: 68%; }
+
+/* ---------------------------------------------------------------- base -- */
+
+.base {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 1.6em;
+  align-items: end;
+  margin-top: 1.1em;
+  padding-top: 1em;
+  border-top: 2px solid rgba(41, 37, 34, .5);
+}
+.chute__label {
+  display: block;
+  margin: 0 0 .35em .3em;
+  font-size: max(11px, 1.1em);
+  font-weight: 800;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ivory);
+}
+.tray {
+  height: max(50px, 6.6em);
+  border: var(--line) solid var(--ink);
+  border-radius: .8em;
+  overflow: hidden;
+  /* a recess: darker lip at the top, lit floor */
+  background: linear-gradient(#B9A680 0, #D9C8A0 22%, #EFE0BC 23%, #F6E9C9 100%);
+}
+#tray { display: block; width: 100%; height: 100%; }
+
+.label {
+  justify-self: end;
+  width: 100%;
+  background: var(--ivory) var(--grain);
+  border: 2px solid var(--ink);
+  border-radius: .5em;
+  padding: .8em 1.1em .75em;
+  transform: rotate(1.4deg) translateY(-.2em);
+}
+.label p { margin: 0; }
+.label__text { font-size: max(11.5px, 1.3em); font-weight: 700; line-height: 1.3; }
+.label__best {
+  margin-top: .45em !important; padding-top: .4em;
+  border-top: 2px dashed rgba(41, 37, 34, .4);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.label__best span { font-size: max(11px, 1.05em); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--teal); }
+.label__best strong { font-size: max(14px, 1.8em); font-weight: 900; font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------- misc -- */
+
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.cabinet button:focus-visible { outline-color: var(--ivory); }
+.pause button:focus-visible { outline-color: var(--ink); }
+
+.help {
+  width: min(400px, calc(100vw - 28px));
+  padding: 22px 24px 24px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: var(--ivory) var(--grain);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.help::backdrop { background: rgba(41, 37, 34, .5); }
+.help h2 { margin: 0 0 10px; font-size: 22px; font-weight: 900; letter-spacing: .02em; }
+.help ol { margin: 0 0 14px; padding-left: 22px; }
+.help li { margin-bottom: 6px; }
+.help li::marker { font-weight: 900; color: var(--red); }
+.help p { margin: 0 0 12px; }
+.help__note { font-size: 13.5px; color: #5a514a; }
+.help .key--small { font-size: 15px; min-width: 120px; box-shadow: 0 4px 0 var(--ink); margin-top: 4px; }
+.help .key--small:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+
+.noscript { position: fixed; left: 0; right: 0; bottom: 0; margin: 0; padding: 10px; text-align: center; background: var(--ink); color: var(--ivory); }
+
+/* -------------------------------------------------------------- narrow -- */
+
+@media (max-width: 560px) {
+  .keys { display: none; }
+  .key { flex: 1; width: auto; }
+  .controls { gap: 4px; }
+  .stat { padding: .7em 10px; }
+  .meter__head { letter-spacing: .08em; }
+  .dmg { gap: 5px; }
+  .meter { padding: 7px 10px 3px; }
+  .base { grid-template-columns: 1.15fr 1fr; gap: 10px; }
+  .label { padding: 6px 8px; }
+  .cabinet { padding: 0 2.2em 2.2em; }
+}
+
+@media (max-width: 400px) {
+  /* attempt and score share one line; the instruction gets the full width */
+  .plate { grid-template-columns: 1fr 1fr; }
+  .stat { flex-direction: row; align-items: baseline; gap: 7px; min-width: 0; padding: 5px 10px 0; border: 0; }
+  .stat--right { justify-content: flex-end; border: 0; }
+  .plate__msg { grid-column: 1 / -1; grid-row: 2; padding: 2px 10px 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card__paper, .card__stars .is-on { animation: none; }
+  .key, .mini > span, .meter__band { transition: none; }
+}
+
+</style>
+</head>
+<body>
+  <main class="stage">
+    <section class="machine" id="machine" role="group" aria-label="Don’t Crush It, a claw machine game">
+      <div class="floor" aria-hidden="true"></div>
+
+      <div class="cabinet">
+        <header class="fascia">
+          <i class="screw screw--a" aria-hidden="true"></i>
+          <i class="screw screw--b" aria-hidden="true"></i>
+          <div class="marquee">
+            <h1 class="wordmark" aria-label="Don’t Crush It">
+              <span aria-hidden="true">DON’T</span>
+              <span class="wordmark__crush" aria-hidden="true">
+                <svg class="pinch" viewBox="0 0 12 28" focusable="false"><path d="M2 3 L9 14 L2 25"/></svg>
+                <b>CRUSH</b>
+                <svg class="pinch" viewBox="0 0 12 28" focusable="false"><path d="M10 3 L3 14 L10 25"/></svg>
+              </span>
+              <span aria-hidden="true">IT</span>
+            </h1>
+          </div>
+        </header>
+
+        <div class="window">
+          <div class="glass">
+            <canvas id="scene" tabindex="0" role="application"
+              aria-label="Claw chamber. Left and right arrow keys aim the claw. Space drops it, then hold Space to grip."></canvas>
+
+            <div class="card" id="card" hidden>
+              <div class="card__paper">
+                <p class="card__eyebrow">Round over</p>
+                <p class="card__stars" id="cardStars"></p>
+                <p class="card__msg" id="cardMsg"></p>
+                <p class="card__score"><span>Score</span> <strong id="cardScore">0</strong></p>
+                <div class="card__minis" id="cardMinis" aria-hidden="true"></div>
+                <p class="card__best" id="cardBest"></p>
+              </div>
+            </div>
+
+            <div class="pause" id="pause" hidden>
+              <div class="pause__box">
+                <p>Paused</p>
+                <button type="button" class="key key--small" id="resumeBtn">Resume</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="plate">
+            <div class="stat">
+              <span class="stat__label">Attempt</span>
+              <span class="stat__value" id="attemptVal">1 / 3</span>
+            </div>
+            <p class="plate__msg" id="plateMsg">Tap a prize to drop the claw on it.</p>
+            <div class="stat stat--right">
+              <span class="stat__label">Score</span>
+              <span class="stat__value" id="scoreVal">0</span>
+            </div>
+          </div>
+
+          <!-- Pressure is shown visually only; see “How to play”. -->
+          <div class="meter" id="meter" data-active="false" data-zone="none" aria-hidden="true">
+            <div class="meter__head">
+              <span class="dmg"><span>Slip</span><i><b id="slipFill"></b></i></span>
+              <strong class="meter__zone" id="zoneLabel">Grip pressure</strong>
+              <span class="dmg dmg--right"><i><b id="crushFill"></b></i><span>Crush</span></span>
+            </div>
+            <div class="meter__track">
+              <div class="meter__fill" id="meterFill"></div>
+              <div class="meter__band" id="band"><span>SAFE</span></div>
+              <div class="meter__needle" id="needle"></div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="mini" id="helpBtn" aria-label="How to play" aria-haspopup="dialog">
+              <span aria-hidden="true">?</span>
+            </button>
+            <button type="button" class="mini" id="soundBtn" aria-label="Mute sound" data-sound="on">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>
+                  <path class="wav" d="M15 9.2c1.6 1.5 1.6 4.1 0 5.6M17.6 6.8c3 2.9 3 7.5 0 10.4"/>
+                  <path class="off" d="M15.5 9.5l5 5M20.5 9.5l-5 5"/>
+                </svg>
+              </span>
+            </button>
+            <p class="keys" id="keysHint" aria-hidden="true">← → aim &nbsp;·&nbsp; Space drop &amp; grip</p>
+            <button type="button" class="key" id="action">Drop claw</button>
+          </div>
+        </div>
+
+        <div class="base">
+          <div class="chute">
+            <span class="chute__label">Prizes</span>
+            <div class="tray"><canvas id="tray" aria-hidden="true"></canvas></div>
+          </div>
+          <div class="label">
+            <p class="label__text">Line it up. Drop the claw. Hold gently.</p>
+            <p class="label__best"><span>Best</span> <strong id="bestVal">—</strong></p>
+          </div>
+          <i class="screw screw--c" aria-hidden="true"></i>
+          <i class="screw screw--d" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="feet" aria-hidden="true"><i></i><i></i></div>
+    </section>
+
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <p class="sr-only" id="live" aria-live="polite" role="status"></p>
+
+    <dialog class="help" id="help" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">How to play</h2>
+      <ol>
+        <li><strong>Aim and drop.</strong> Click or tap a prize, or line the claw up and press Drop claw.</li>
+        <li><strong>Keep pressure in the marked band.</strong> Hold to squeeze, release to loosen. Every prize likes a different grip.</li>
+        <li><strong>Bring home three prizes.</strong> Bonuses for a dead-centre drop (Bullseye), a grip that never leaves the band (Perfect), and captures in a row (Streak).</li>
+      </ol>
+      <p class="help__keys"><strong>Keyboard:</strong> focus the chamber or the main button, then use ← → to aim, Space to drop, and hold Space to grip.</p>
+      <p class="help__note">Grip pressure is shown on a visual meter, so the game needs sight to play well. Results and turn changes are announced to screen readers.</p>
+      <button type="button" class="key key--small" id="helpClose">Got it</button>
+    </dialog>
+
+    <noscript><p class="noscript">Don’t Crush It needs JavaScript to run.</p></noscript>
+  </main>
+
+  <script>
+/*
+ * Don't Crush It — game simulation.
+ *
+ * Pure, deterministic logic: no DOM, no timers, no rendering. Everything
+ * advances through update(dt), so the same inputs always give the same result.
+ * Loaded as a classic script in the browser (window.DCI.sim) and as a
+ * CommonJS module in Node for the automated checks.
+ */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else { root.DCI = root.DCI || {}; root.DCI.sim = api; }
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var S = {
+    READY: 'READY', AIMING: 'AIMING', LOWERING: 'LOWERING', GRIPPING: 'GRIPPING',
+    LIFTING: 'LIFTING', RETURNING: 'RETURNING', DROPPING: 'DROPPING',
+    ATTEMPT_RESULT: 'ATTEMPT_RESULT', ROUND_OVER: 'ROUND_OVER', PAUSED: 'PAUSED'
+  };
+
+  var C = {
+    // Logical world (the chamber), in px. Rendering scales this to any size.
+    W: 640, H: 440,
+    FLOOR_Y: 398,          // where prizes stand
+    TOP_HUB_Y: 86,         // claw hub height when fully raised
+    HUB_GAP: 8,            // gap between hub and the top of a gripped prize
+    EMPTY_REACH: 58,       // how far above the floor the hub stops on a miss
+    AIM_MIN: 56, AIM_MAX: 584, START_X: 320, CHUTE_X: 78,
+    SLOTS: [206, 316, 426, 536], JITTER: 1,   // first slot leaves clear floor beside the chute
+
+    ATTEMPTS: 3,
+    PRESS_UP: 70, PRESS_DOWN: 45,          // pressure units per second
+    GRIP_WINDOW: 2.5, HOLD_REQ: 0.25, LIFT_TIME: 2.4,
+    CRUSH_RATE: 0.75, SLIP_RATE: 0.85, RECOVER_RATE: 0.35,
+    FIRST_ATTEMPT_EASE: 0.75,
+    GENTLE_MAX: 0.15, GENTLE_BONUS: 50,
+    PERFECT_MAX: 0.05, PERFECT_BONUS: 100,   // never left the band (or barely)
+    BULLSEYE: 8, BULLSEYE_BONUS: 25,         // dropped within 8 px of the prize centre
+    STREAK_BONUS: 50,                        // per capture in a row after the first
+    STARS: [150, 450, 800],                  // round score for 1, 2, 3 stars
+
+    LOWER_TIME: 0.8, EMPTY_TIME: 0.45, RISE_TIME: 0.7, CARRY_TIME: 0.9,
+    DROP_TIME: 0.75, INTRO_TIME: 0.45, FINAL_HOLD: 1.8,
+    GRAVITY: 2200,
+    MAX_DT: 0.1, STEP: 1 / 120
+  };
+
+  // halfW / h describe the silhouette; capture is the half-width of the zone
+  // the claw centre must land in; soft is how far the material gives when squeezed.
+  var PRIZES = {
+    cake:   { name: 'Strawberry cake', short: 'cake',   min: 30, max: 55, points: 150, halfW: 36, h: 68, capture: 42, soft: 0.34 },
+    soap:   { name: 'Slippery soap',   short: 'soap',   min: 55, max: 80, points: 100, halfW: 38, h: 44, capture: 44, soft: 0.10 },
+    egg:    { name: 'Egg',             short: 'egg',    min: 20, max: 40, points: 200, halfW: 26, h: 64, capture: 38, soft: 0.06 },
+    cactus: { name: 'Cactus toy',      short: 'cactus', min: 45, max: 70, points: 125, halfW: 32, h: 82, capture: 40, soft: 0.28 }
+  };
+  var TYPES = ['cake', 'soap', 'egg', 'cactus'];
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(t) { t = clamp(t, 0, 1); return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function easeOut(t) { t = clamp(t, 0, 1); return 1 - (1 - t) * (1 - t); }
+
+  function grabHubY(type) {
+    return type ? C.FLOOR_Y - PRIZES[type].h - C.HUB_GAP : C.FLOOR_Y - C.EMPTY_REACH;
+  }
+
+  /** Personal-best rule: the first finished round only establishes a best. */
+  function stars(score) {
+    var n = 0;
+    for (var i = 0; i < C.STARS.length; i++) if (score >= C.STARS[i]) n = i + 1;
+    return n;
+  }
+
+  function evaluateBest(prev, score) {
+    var hasPrev = typeof prev === 'number' && isFinite(prev);
+    if (!hasPrev) return { best: score, isNew: false, first: true };
+    if (score > prev) return { best: score, isNew: true, first: false };
+    return { best: prev, isNew: false, first: false };
+  }
+
+  function createGame(opts) {
+    opts = opts || {};
+    var rng = opts.rng || Math.random;
+    var g = { S: S, events: [], round: 0 };
+
+    function emit(type, data) { var e = data || {}; e.type = type; g.events.push(e); }
+
+    function newLineup() {
+      var types = TYPES.slice();
+      for (var i = types.length - 1; i > 0; i--) {
+        var j = Math.floor(rng() * (i + 1));
+        var tmp = types[i]; types[i] = types[j]; types[j] = tmp;
+      }
+      g.prizes = types.map(function (type, k) {
+        return {
+          type: type,
+          x: C.SLOTS[k] + Math.round((rng() * 2 - 1) * C.JITTER),
+          status: 'idle', // idle | gripped | held | carried | dropping | collected | crushed | slipped
+          h: 0, vy: 0, bounced: false
+        };
+      });
+    }
+
+    function resetAttempt() {
+      g.aimX = C.START_X; g.clawX = C.START_X; g.dropX = null;
+      g.target = null; g.pressure = 0; g.hold = false;
+      g.crush = 0; g.slip = 0; g.maxCrush = 0; g.maxSlip = 0;
+      g.inBand = 0; g.depth = 0; g.retFrom = 0; g.emptyClose = 0;
+      g.carrying = false; g.outcome = null; g.t = 0; g.lineupT = 0;
+      g.pausedFrom = null;
+      newLineup();
+      g.state = S.READY;
+    }
+
+    g.restart = function () {
+      g.round += 1; g.attempt = 1; g.score = 0;
+      g.captured = []; g.results = []; g.streak = 0;
+      g.events.length = 0;
+      resetAttempt();
+      emit('restart');
+      return true;
+    };
+
+    /** The state the machine is really in, looking through a pause. */
+    g.phase = function () { return g.state === S.PAUSED ? g.pausedFrom : g.state; };
+
+    g.zone = function () {
+      if (!g.target) return null;
+      var d = PRIZES[g.target.type];
+      return g.pressure < d.min ? 'low' : g.pressure > d.max ? 'high' : 'safe';
+    };
+
+    g.hubY = function () {
+      return lerp(C.TOP_HUB_Y, grabHubY(g.target && g.target.type), g.depth);
+    };
+
+    // ---- inputs: each one is ignored unless the current state accepts it ----
+
+    g.aim = function (x) {
+      if (g.state !== S.READY && g.state !== S.AIMING) return false;
+      if (typeof x !== 'number' || !isFinite(x)) return false;
+      g.aimX = clamp(x, C.AIM_MIN, C.AIM_MAX);
+      g.clawX = g.aimX;
+      if (g.state === S.READY) { g.state = S.AIMING; emit('aim-start'); }
+      return true;
+    };
+
+    g.pick = function (x) {
+      var best = null, bestD = Infinity;
+      for (var i = 0; i < g.prizes.length; i++) {
+        var p = g.prizes[i];
+        if (p.status !== 'idle') continue;
+        var d = Math.abs(p.x - x);
+        if (d <= PRIZES[p.type].capture && d < bestD) { best = p; bestD = d; }
+      }
+      return best;
+    };
+
+    g.drop = function () {
+      if (g.state !== S.READY && g.state !== S.AIMING) return false;
+      if (g.lineupT < 1) return false;               // lineup still arriving
+      g.dropX = g.aimX; g.clawX = g.dropX;           // decided once, here
+      g.target = g.pick(g.dropX);
+      g.state = S.LOWERING; g.t = 0; g.hold = false;
+      emit('drop', { hit: !!g.target });
+      return true;
+    };
+
+    g.setHold = function (on) {
+      if (!on) { g.hold = false; return true; }
+      var gripping = (g.state === S.GRIPPING && g.target) || g.state === S.LIFTING;
+      if (!gripping) return false;
+      g.hold = true;
+      return true;
+    };
+
+    g.next = function () {
+      if (g.state !== S.ATTEMPT_RESULT) return false;
+      if (g.attempt >= C.ATTEMPTS) { roundOver(); return true; }
+      g.attempt += 1;
+      resetAttempt();
+      emit('next');
+      return true;
+    };
+
+    g.pause = function () {
+      var s = g.state;
+      if (s !== S.LOWERING && s !== S.GRIPPING && s !== S.LIFTING && s !== S.RETURNING && s !== S.DROPPING) return false;
+      g.pausedFrom = s; g.state = S.PAUSED; g.hold = false;
+      emit('pause');
+      return true;
+    };
+
+    g.resume = function () {
+      if (g.state !== S.PAUSED) return false;
+      g.state = g.pausedFrom; g.pausedFrom = null; g.hold = false;
+      emit('resume');
+      return true;
+    };
+
+    // ---- transitions ----
+
+    function roundOver() {
+      g.state = S.ROUND_OVER; g.t = 0; g.hold = false;
+      emit('round-over', { score: g.score, captures: g.captured.length });
+    }
+
+    function finishAttempt() {
+      g.state = S.ATTEMPT_RESULT; g.t = 0; g.hold = false;
+      g.results.push(g.outcome);
+      emit('result', { outcome: g.outcome });
+    }
+
+    function fail(cause) {
+      var p = g.target;
+      g.outcome = { ok: false, cause: cause, type: p ? p.type : null, points: 0, grade: null, bonus: 0, aim: 0, streak: 0, streakBonus: 0, total: 0 };
+      g.streak = 0;
+      g.hold = false; g.retFrom = g.depth;
+      if (p) {
+        var lifted = g.state === S.LIFTING ? (1 - g.depth) * (grabHubY(p.type) - C.TOP_HUB_Y) : 0;
+        p.status = cause === 'crush' ? 'crushed' : 'slipped';
+        p.h = lifted; p.bounced = false;
+        p.vy = lifted > 0 ? 0 : (cause === 'slip' ? -190 : 0);   // a little hop when it squirts free on the floor
+      }
+      g.state = S.RETURNING; g.t = 0;
+      emit('fail', { cause: cause, prize: p });
+    }
+
+    function stepPressure(dt) {
+      g.pressure = clamp(g.pressure + (g.hold ? C.PRESS_UP : -C.PRESS_DOWN) * dt, 0, 100);
+    }
+
+    function stepLoosePrizes(dt) {
+      for (var i = 0; i < g.prizes.length; i++) {
+        var p = g.prizes[i];
+        if (p.status !== 'crushed' && p.status !== 'slipped') continue;
+        if (p.h <= 0 && p.vy === 0) continue;
+        p.vy += C.GRAVITY * dt;
+        p.h -= p.vy * dt;
+        if (p.h <= 0) {
+          p.h = 0;
+          if (p.vy > 260 && !p.bounced) { p.vy = -p.vy * 0.26; p.bounced = true; emit('thud', { prize: p }); }
+          else p.vy = 0;
+        }
+      }
+    }
+
+    function step(dt) {
+      var d, p = g.target;
+      switch (g.state) {
+        case S.READY:
+        case S.AIMING:
+          if (g.lineupT < 1) g.lineupT = Math.min(1, g.lineupT + dt / C.INTRO_TIME);
+          break;
+
+        case S.LOWERING:
+          g.t += dt;
+          g.depth = easeInOut(g.t / C.LOWER_TIME);
+          if (g.t >= C.LOWER_TIME) {
+            g.depth = 1; g.t = 0; g.pressure = 0; g.inBand = 0; g.hold = false;
+            g.state = S.GRIPPING;
+            if (p) { p.status = 'gripped'; emit('touch', { prize: p }); }
+            else { g.emptyClose = 0; emit('empty'); }
+          }
+          break;
+
+        case S.GRIPPING:
+          g.t += dt;
+          if (!p) {                                    // nothing under the claw
+            g.emptyClose = clamp(g.t / C.EMPTY_TIME, 0, 1);
+            if (g.t >= C.EMPTY_TIME) fail('miss');
+            break;
+          }
+          d = PRIZES[p.type];
+          stepPressure(dt);
+          if (g.pressure >= d.min && g.pressure <= d.max) g.inBand += dt; else g.inBand = 0;
+          if (g.inBand >= C.HOLD_REQ) {
+            g.state = S.LIFTING; g.t = 0;
+            g.crush = 0; g.slip = 0; g.maxCrush = 0; g.maxSlip = 0;
+            p.status = 'held';
+            emit('lift-start', { prize: p });
+          } else if (g.t >= C.GRIP_WINDOW) {
+            // Never got a steady hold. If the claw was clamped down at the end
+            // the honest feedback is "too tight"; otherwise it slipped.
+            fail(g.pressure > d.max ? 'crush' : 'slip');
+          }
+          break;
+
+        case S.LIFTING:
+          d = PRIZES[p.type];
+          stepPressure(dt);
+          var k = g.attempt === 1 ? C.FIRST_ATTEMPT_EASE : 1;
+          if (g.pressure > d.max) g.crush += C.CRUSH_RATE * k * dt;
+          else if (g.pressure < d.min) g.slip += C.SLIP_RATE * k * dt;
+          else { g.crush -= C.RECOVER_RATE * dt; g.slip -= C.RECOVER_RATE * dt; }
+          g.crush = clamp(g.crush, 0, 1); g.slip = clamp(g.slip, 0, 1);
+          if (g.crush > g.maxCrush) g.maxCrush = g.crush;
+          if (g.slip > g.maxSlip) g.maxSlip = g.slip;
+          g.t += dt;
+          g.depth = 1 - easeInOut(g.t / C.LIFT_TIME);
+          if (g.crush >= 1) { fail('crush'); break; }
+          if (g.slip >= 1) { fail('slip'); break; }
+          if (g.t >= C.LIFT_TIME) {
+            g.depth = 0; g.hold = false; g.carrying = true;
+            p.status = 'carried';
+            g.state = S.RETURNING; g.t = 0;
+            emit('lifted', { prize: p });
+          }
+          break;
+
+        case S.RETURNING:
+          g.t += dt;
+          if (g.carrying) {
+            g.clawX = lerp(g.dropX, C.CHUTE_X, easeInOut(g.t / C.CARRY_TIME));
+            if (g.t >= C.CARRY_TIME) {
+              g.clawX = C.CHUTE_X; g.state = S.DROPPING; g.t = 0;
+              p.status = 'dropping';
+              emit('release', { prize: p });
+            }
+          } else {
+            g.depth = g.retFrom * (1 - easeOut(g.t / C.RISE_TIME));
+            g.pressure = clamp(g.pressure - 240 * dt, 0, 100);
+            g.emptyClose = clamp(g.emptyClose - dt * 2.5, 0, 1);
+            if (g.t >= C.RISE_TIME) { g.depth = 0; finishAttempt(); }
+          }
+          break;
+
+        case S.DROPPING:
+          g.t += dt;
+          g.pressure = clamp(g.pressure - 300 * dt, 0, 100);
+          if (g.t >= C.DROP_TIME) {
+            d = PRIZES[p.type];
+            var worst = Math.max(g.maxCrush, g.maxSlip);
+            var grade = worst <= C.PERFECT_MAX ? 'perfect' : worst <= C.GENTLE_MAX ? 'gentle' : 'ok';
+            var bonus = grade === 'perfect' ? C.PERFECT_BONUS : grade === 'gentle' ? C.GENTLE_BONUS : 0;
+            var aim = Math.abs(g.dropX - p.x) <= C.BULLSEYE ? C.BULLSEYE_BONUS : 0;
+            g.streak += 1;
+            var streakBonus = (g.streak - 1) * C.STREAK_BONUS;
+            g.outcome = { ok: true, cause: null, type: p.type, points: d.points, grade: grade, bonus: bonus,
+              aim: aim, streak: g.streak, streakBonus: streakBonus, total: d.points + bonus + aim + streakBonus };
+            g.score += g.outcome.total;
+            g.captured.push(p.type);
+            p.status = 'collected';
+            g.carrying = false;
+            emit('collected', { prize: p, outcome: g.outcome });
+            finishAttempt();
+          }
+          break;
+
+        case S.ATTEMPT_RESULT:
+          g.t += dt;
+          g.pressure = clamp(g.pressure - 300 * dt, 0, 100);
+          if (g.attempt >= C.ATTEMPTS && g.t >= C.FINAL_HOLD) roundOver();
+          break;
+
+        default: break;   // ROUND_OVER, PAUSED: nothing advances
+      }
+      if (g.state !== S.PAUSED) stepLoosePrizes(dt);
+    }
+
+    /** Advance the simulation. Large gaps are clamped so lost time can never cause a failure. */
+    g.update = function (dt) {
+      if (!(dt > 0) || g.state === S.PAUSED) return;
+      dt = Math.min(dt, C.MAX_DT);
+      while (dt > 1e-9) {
+        var h = Math.min(dt, C.STEP);
+        step(h);
+        dt -= h;
+        if (g.state === S.PAUSED) break;
+      }
+    };
+
+    g.restart();
+    return g;
+  }
+
+  return {
+    S: S, C: C, PRIZES: PRIZES, TYPES: TYPES,
+    createGame: createGame, evaluateBest: evaluateBest, stars: stars, grabHubY: grabHubY,
+    clamp: clamp, lerp: lerp, easeInOut: easeInOut, easeOut: easeOut
+  };
+});
+
+</script>
+  <script>
+/*
+ * Don't Crush It — prize artwork.
+ *
+ * Each prize is drawn with Canvas paths around an origin at its bottom centre
+ * (y grows upward as negative). Drawing only: nothing here affects gameplay.
+ */
+(function (root) {
+  'use strict';
+  var DCI = root.DCI = root.DCI || {};
+  var TAU = Math.PI * 2;
+
+  var K = {
+    ivory: '#FFF4DC', red: '#D94732', ink: '#292522', yellow: '#F2CB65', teal: '#467E78', pink: '#E8A6AC',
+    cream: '#FFFBF0', sponge: '#F5DC98', spongeDark: '#DDB55C',
+    soap: '#7DB6AD', soapSide: '#467E78', soapLight: '#A9D3CB',
+    egg: '#FFF9EC', eggShade: '#F0DFBE',
+    cactus: '#8AB573', cactusDark: '#5E9160', pot: '#CE6C47', potRim: '#E39270'
+  };
+
+  // Fills sit a touch off their outlines, like slightly misregistered print.
+  var OFF_X = 1.7, OFF_Y = 1.2;
+
+  function rr(ctx, x, y, w, h, r) {
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  /** Fill (slightly offset) then outline a path built by `build`. */
+  function shape(ctx, build, fill, lw, noOffset) {
+    if (fill) {
+      ctx.save();
+      if (!noOffset) ctx.translate(OFF_X, OFF_Y);
+      ctx.beginPath(); build(); ctx.fillStyle = fill; ctx.fill();
+      ctx.restore();
+    }
+    if (lw !== 0) {
+      ctx.beginPath(); build();
+      ctx.lineWidth = lw || 2.6; ctx.strokeStyle = K.ink; ctx.stroke();
+    }
+  }
+
+  function smoothThrough(ctx, pts) {
+    for (var i = 1; i < pts.length - 1; i++) {
+      var mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+      ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+    }
+    var last = pts[pts.length - 1];
+    ctx.lineTo(last[0], last[1]);
+  }
+
+  function wave(ctx, x0, x1, y, amp, n) {
+    for (var i = 1; i <= n; i++) {
+      var xm = x0 + (x1 - x0) * (i - 0.5) / n, xe = x0 + (x1 - x0) * i / n;
+      ctx.quadraticCurveTo(xm, y + (i % 2 ? amp : -amp) * 2, xe, y);
+    }
+  }
+
+  function blush(ctx, x, y, rx, ry) {
+    ctx.fillStyle = K.pink; ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.ellipse(-x, y, rx, ry, 0, 0, TAU); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------------------------------------------------------------- faces --
+
+  function face(ctx, x, y, expr, s) {
+    s = s || 1;
+    var e = 8.5 * s;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = K.ink; ctx.fillStyle = K.ink;
+    ctx.lineWidth = Math.max(1.7, 2.1 * s);
+
+    function dot(cx, r) { ctx.beginPath(); ctx.arc(cx, 0, r * s, 0, TAU); ctx.fill(); }
+    function line(pts) {
+      ctx.beginPath(); ctx.moveTo(pts[0] * s, pts[1] * s);
+      for (var i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i] * s, pts[i + 1] * s);
+      ctx.stroke();
+    }
+    function curve(x0, y0, cx, cy, x1, y1) {
+      ctx.beginPath(); ctx.moveTo(x0 * s, y0 * s); ctx.quadraticCurveTo(cx * s, cy * s, x1 * s, y1 * s); ctx.stroke();
+    }
+    function wavy(y0, w) {
+      ctx.beginPath(); ctx.moveTo(-w * s, y0 * s);
+      ctx.quadraticCurveTo(-w / 2 * s, (y0 - 2.6) * s, 0, y0 * s);
+      ctx.quadraticCurveTo(w / 2 * s, (y0 + 2.6) * s, w * s, y0 * s);
+      ctx.stroke();
+    }
+    var E = e / s;   // eye offset in unscaled units for the helpers above
+
+    switch (expr) {
+      case 'blink':
+        line([-E - 2.5, 0, -E + 2.5, 0]); line([E - 2.5, 0, E + 2.5, 0]);
+        curve(-3, 5, 0, 8, 3, 5);
+        break;
+      case 'nervous':
+        dot(-e, 2.7); dot(e, 2.7);
+        ctx.fillStyle = K.cream; dot(-e + 0.9 * s, 0.9); dot(e + 0.9 * s, 0.9); ctx.fillStyle = K.ink;
+        line([-E - 3.5, -5, -E + 1.5, -6.6]); line([E + 3.5, -5, E - 1.5, -6.6]);
+        wavy(6.5, 4);
+        break;
+      case 'calm':
+        curve(-E - 3, -1, -E, 2.6, -E + 3, -1); curve(E - 3, -1, E, 2.6, E + 3, -1);
+        curve(-3, 5, 0, 7.6, 3, 5);
+        break;
+      case 'strain':
+        line([-E - 3, -3, -E + 2, 0, -E - 3, 3]); line([E + 3, -3, E - 2, 0, E + 3, 3]);
+        wavy(7, 5);
+        break;
+      case 'slip':
+        ctx.fillStyle = K.cream;
+        ctx.beginPath(); ctx.arc(-e, 0, 3.4 * s, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(e, 0, 3.4 * s, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = K.ink; dot(-e, 1.3); dot(e, 1.3);
+        ctx.beginPath(); ctx.ellipse(0, 7.5 * s, 2.3 * s, 3 * s, 0, 0, TAU); ctx.fill();
+        break;
+      case 'happy':
+        curve(-E - 3, 1.2, -E, -3.6, -E + 3, 1.2); curve(E - 3, 1.2, E, -3.6, E + 3, 1.2);
+        ctx.beginPath(); ctx.moveTo(-5 * s, 4.2 * s); ctx.lineTo(5 * s, 4.2 * s);
+        ctx.quadraticCurveTo(5 * s, 11 * s, 0, 11 * s); ctx.quadraticCurveTo(-5 * s, 11 * s, -5 * s, 4.2 * s);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = K.pink; ctx.beginPath(); ctx.ellipse(0, 9 * s, 2.4 * s, 1.5 * s, 0, 0, TAU); ctx.fill();
+        break;
+      case 'crushed':
+        line([-E - 2.6, -2.6, -E + 2.6, 2.6]); line([-E + 2.6, -2.6, -E - 2.6, 2.6]);
+        line([E - 2.6, -2.6, E + 2.6, 2.6]); line([E + 2.6, -2.6, E - 2.6, 2.6]);
+        wavy(7.5, 4.5);
+        break;
+      case 'angry':
+        dot(-e, 2.1); dot(e, 2.1);
+        line([-E - 4, -6.5, -E + 3, -3.4]); line([E + 4, -6.5, E - 3, -3.4]);
+        curve(-4, 8.5, 0, 4.5, 4, 8.5);
+        break;
+      case 'smug':
+        curve(-E - 3, -0.5, -E, 2.2, -E + 3, -0.5); curve(E - 3, -0.5, E, 2.2, E + 3, -0.5);
+        curve(-3, 5.4, 1.5, 8.6, 4.6, 4.4);
+        break;
+      default: // idle
+        dot(-e, 2.3); dot(e, 2.3);
+        curve(-3, 5, 0, 8, 3, 5);
+    }
+    ctx.restore();
+  }
+
+  // ---------------------------------------------------------------- cake ---
+
+  function cake(ctx, o) {
+    var ooze = o.over;
+    shape(ctx, function () { rr(ctx, -34, -50, 68, 50, 8); }, K.sponge);
+
+    // crumb marks
+    ctx.strokeStyle = K.spongeDark; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-27, -5); ctx.lineTo(-23, -6); ctx.moveTo(24, -17); ctx.lineTo(27, -15);
+    ctx.moveTo(22, -5); ctx.lineTo(26, -6); ctx.moveTo(-27, -18); ctx.lineTo(-24, -16);
+    ctx.stroke();
+
+    // cream filling
+    shape(ctx, function () {
+      ctx.moveTo(-34, -32); wave(ctx, -34, 34, -32, 1.1, 6);
+      ctx.lineTo(34, -25); wave(ctx, 34, -34, -25, 1.1, 6);
+      ctx.closePath();
+    }, K.cream, 1.9, true);
+
+    if (ooze > 0.03) {   // cream squeezes out of the sides
+      var r = 2 + 6.5 * ooze;
+      shape(ctx, function () {
+        ctx.arc(-36, -28, r, 0, TAU); ctx.moveTo(36 + r, -28); ctx.arc(36, -28, r, 0, TAU);
+        ctx.moveTo(-38 + r * 0.5, -20 + ooze * 6); ctx.arc(-38, -20 + ooze * 6, r * 0.5, 0, TAU);
+        ctx.moveTo(39 + r * 0.45, -19 + ooze * 8); ctx.arc(39, -19 + ooze * 8, r * 0.45, 0, TAU);
+      }, K.cream, 1.9, true);
+    }
+
+    // icing with drips
+    shape(ctx, function () {
+      ctx.moveTo(-35, -38); ctx.quadraticCurveTo(-36, -54, -24, -54);
+      ctx.lineTo(25, -53.5); ctx.quadraticCurveTo(36, -53, 35, -38);
+      smoothThrough(ctx, [[35, -38], [32, -30], [25, -38], [17, -31], [9, -39], [1, -27], [-8, -38], [-16, -32], [-24, -39], [-31, -29], [-35, -38]]);
+      ctx.closePath();
+    }, K.pink);
+    ctx.strokeStyle = K.cream; ctx.lineWidth = 2.2; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.moveTo(-28, -45); ctx.quadraticCurveTo(-27, -49, -21, -49.5); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // strawberry
+    shape(ctx, function () {
+      ctx.moveTo(4, -52.5); ctx.bezierCurveTo(-9, -57, -7, -70, 4, -67);
+      ctx.bezierCurveTo(14, -70, 16, -57, 4, -52.5); ctx.closePath();
+    }, K.red, 2.3);
+    ctx.fillStyle = K.cream;
+    ctx.beginPath(); ctx.arc(0, -61, 1, 0, TAU); ctx.arc(7, -62, 1, 0, TAU); ctx.arc(4, -57, 1, 0, TAU); ctx.fill();
+    shape(ctx, function () {
+      ctx.moveTo(4, -66); ctx.quadraticCurveTo(-1, -72, -4, -68); ctx.quadraticCurveTo(0, -65.5, 4, -66);
+      ctx.quadraticCurveTo(8, -72.5, 11, -68.5); ctx.quadraticCurveTo(8, -65.5, 4, -66); ctx.closePath();
+    }, K.cactus, 1.8, true);
+
+    blush(ctx, 17, -10, 4.2, 2.6);
+    face(ctx, 0, -14, o.expr, 1);
+  }
+
+  // ---------------------------------------------------------------- soap ---
+
+  function star(ctx, cx, cy, r) {
+    for (var i = 0; i < 10; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? r * 0.48 : r;
+      var px = cx + Math.cos(a) * rad, py = cy + Math.sin(a) * rad;
+      if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+  }
+
+  function soap(ctx, o) {
+    shape(ctx, function () { rr(ctx, -38, -40, 76, 40, 14); }, K.soapSide);
+    shape(ctx, function () { rr(ctx, -38, -44, 76, 37, 14); }, K.soap);
+
+    // sheen
+    ctx.strokeStyle = K.soapLight; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-30, -31); ctx.quadraticCurveTo(-29, -38, -21, -38.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-15, -38.8); ctx.lineTo(-12, -38.8); ctx.stroke();
+
+    // embossed star: a light edge under a dark one
+    ctx.lineWidth = 1.7;
+    ctx.save(); ctx.translate(0.9, 1); ctx.beginPath(); star(ctx, 22, -26, 7.5); ctx.strokeStyle = K.soapLight; ctx.stroke(); ctx.restore();
+    ctx.beginPath(); star(ctx, 22, -26, 7.5); ctx.strokeStyle = K.soapSide; ctx.stroke();
+
+    // a couple of suds
+    ctx.strokeStyle = K.ink; ctx.lineWidth = 1.7; ctx.fillStyle = K.cream;
+    ctx.beginPath(); ctx.arc(-33, -44, 4.2, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-26, -48, 2.6, 0, TAU); ctx.fill(); ctx.stroke();
+
+    face(ctx, -6, -27, o.expr, 1);
+  }
+
+  // ----------------------------------------------------------------- egg ---
+
+  function eggPath(ctx) {
+    ctx.moveTo(0, -64);
+    ctx.bezierCurveTo(16, -64, 26.5, -39, 26.5, -22);
+    ctx.bezierCurveTo(26.5, -6, 15, 0, 0, 0);
+    ctx.bezierCurveTo(-15.5, 0, -26, -6.5, -26, -22);
+    ctx.bezierCurveTo(-26, -39, -15, -64, 0, -64);
+    ctx.closePath();
+  }
+
+  var CRACKS = [
+    [[-25, -33], [-17, -30], [-19, -24], [-12, -21]],
+    [[25, -35], [18, -33], [19.5, -27], [13, -25], [14, -19]],
+    [[-5, -63], [-2, -55], [-8, -50], [-2, -45]],
+    [[21, -11], [14, -12.5], [12, -7.5]]
+  ];
+
+  function egg(ctx, o) {
+    if (o.crushed) { brokenEgg(ctx, o); return; }
+
+    ctx.save();
+    ctx.translate(OFF_X, OFF_Y);
+    ctx.beginPath(); eggPath(ctx); ctx.fillStyle = K.eggShade; ctx.fill();
+    ctx.clip();
+    ctx.fillStyle = K.egg; ctx.beginPath(); ctx.ellipse(-5, -31, 25, 34, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+    shape(ctx, function () { eggPath(ctx); }, null);
+
+    // fine cracks appear one after another as it is over-squeezed
+    if (o.over > 0.02) {
+      ctx.lineWidth = 1.5; ctx.strokeStyle = K.ink;
+      var total = o.over * CRACKS.length;
+      for (var i = 0; i < CRACKS.length; i++) {
+        var amt = Math.max(0, Math.min(1, total - i * 0.75));
+        if (amt <= 0) continue;
+        var c = CRACKS[i], segs = (c.length - 1) * amt;
+        ctx.beginPath(); ctx.moveTo(c[0][0], c[0][1]);
+        for (var j = 1; j < c.length; j++) {
+          var f = Math.min(1, segs - (j - 1));
+          if (f <= 0) break;
+          ctx.lineTo(c[j - 1][0] + (c[j][0] - c[j - 1][0]) * f, c[j - 1][1] + (c[j][1] - c[j - 1][1]) * f);
+        }
+        ctx.stroke();
+      }
+    }
+
+    blush(ctx, 12.5, -19, 3.4, 2.1);
+    face(ctx, 0, -25, o.expr, 0.82);
+
+    if (o.expr === 'nervous' || o.expr === 'strain' || o.expr === 'slip') {   // sweat drop
+      shape(ctx, function () {
+        ctx.moveTo(15, -50); ctx.quadraticCurveTo(19.5, -44, 16, -41.5); ctx.quadraticCurveTo(11.5, -43, 15, -50); ctx.closePath();
+      }, K.soapLight, 1.5, true);
+    }
+  }
+
+  function brokenEgg(ctx, o) {
+    // the cap, tipped over beside the shell
+    ctx.save();
+    ctx.translate(31, -3); ctx.rotate(1.25);
+    shape(ctx, function () {
+      ctx.moveTo(-17, 0);
+      ctx.bezierCurveTo(-15, -15, -8, -24, 0, -24); ctx.bezierCurveTo(9, -24, 15, -15, 17, 0);
+      ctx.lineTo(11, -6); ctx.lineTo(5, 1); ctx.lineTo(-1, -6); ctx.lineTo(-7, 1); ctx.lineTo(-12, -5);
+      ctx.closePath();
+    }, K.egg, 2.4);
+    ctx.restore();
+
+    shape(ctx, function () {
+      ctx.moveTo(-26, -23);
+      ctx.lineTo(-18, -15); ctx.lineTo(-11, -25); ctx.lineTo(-3, -16); ctx.lineTo(6, -26); ctx.lineTo(15, -17); ctx.lineTo(26.5, -24);
+      ctx.bezierCurveTo(27, -7, 15, 0, 0, 0);
+      ctx.bezierCurveTo(-15.5, 0, -26.5, -7, -26, -23);
+      ctx.closePath();
+    }, K.egg);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-11, -25); ctx.lineTo(-13, -18); ctx.lineTo(-9, -14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(15, -17); ctx.lineTo(13, -11); ctx.stroke();
+    face(ctx, 0, -9, 'crushed', 0.78);
+  }
+
+  // -------------------------------------------------------------- cactus ---
+
+  function cactus(ctx, o) {
+    // pot
+    shape(ctx, function () {
+      ctx.moveTo(-21, -27); ctx.lineTo(21, -27); ctx.lineTo(16.5, -3);
+      ctx.quadraticCurveTo(16, 0, 12.5, 0); ctx.lineTo(-12.5, 0); ctx.quadraticCurveTo(-16, 0, -16.5, -3);
+      ctx.closePath();
+    }, K.pot);
+
+    ctx.save();
+    ctx.translate(0, -30);
+    if (o.crushed) ctx.scale(1.18, 0.6);
+    ctx.rotate(o.wig || 0);
+    ctx.translate(0, 30);
+
+    // arms first so the body overlaps their joints
+    function arm(pts, wave) {
+      function path() {
+        ctx.moveTo(pts[0], pts[1]);
+        ctx.lineTo(pts[2], pts[3]);
+        ctx.quadraticCurveTo(pts[4], pts[3], pts[4], pts[5]);
+        ctx.lineTo(pts[4] + wave, pts[7]);
+      }
+      ctx.beginPath(); path(); ctx.lineWidth = 14.2; ctx.strokeStyle = K.ink; ctx.stroke();
+      ctx.beginPath(); path(); ctx.lineWidth = 9; ctx.strokeStyle = K.cactus; ctx.stroke();
+    }
+    var w = (o.wig || 0) * 30;
+    arm([-12, -46, -20, -46, -27, -52, 0, -59], -w);
+    arm([12, -41, 20, -41, 27, -47, 0, -55], -w);
+
+    shape(ctx, function () {
+      ctx.moveTo(-15, -29); ctx.lineTo(-15.5, -60);
+      ctx.bezierCurveTo(-15.5, -82, 15.5, -82, 15.5, -60);
+      ctx.lineTo(15, -29); ctx.closePath();
+    }, K.cactus);
+
+    // ribs and spines
+    ctx.strokeStyle = K.cactusDark; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(-8.5, -33); ctx.lineTo(-8.5, -39); ctx.moveTo(9, -33); ctx.lineTo(9, -40); ctx.stroke();
+    ctx.strokeStyle = K.ink; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-15.5, -66); ctx.lineTo(-19, -68); ctx.moveTo(15.5, -64); ctx.lineTo(19, -66.5);
+    ctx.moveTo(-9, -74.5); ctx.lineTo(-11.5, -78); ctx.moveTo(-27, -59); ctx.lineTo(-27.5, -63); ctx.moveTo(27, -55); ctx.lineTo(27.5, -59);
+    ctx.stroke();
+
+    // flower
+    shape(ctx, function () {
+      ctx.arc(5, -77.5, 4.3, 0, TAU);
+    }, K.pink, 1.9, true);
+    ctx.fillStyle = K.yellow; ctx.beginPath(); ctx.arc(5, -77.5, 1.5, 0, TAU); ctx.fill();
+
+    blush(ctx, 10.5, -50, 2.8, 1.8);
+    face(ctx, 0, -56, o.expr, 0.86);
+    ctx.restore();
+
+    // rim sits in front of the plant
+    shape(ctx, function () { rr(ctx, -24.5, -33, 49, 9.5, 3.5); }, K.potRim);
+  }
+
+  var ART = { cake: cake, soap: soap, egg: egg, cactus: cactus };
+
+  /**
+   * Draw a prize at the current origin (its bottom centre).
+   * o.expr   face: idle | blink | nervous | calm | strain | slip | happy | crushed | angry | smug
+   * o.over   0..1 how over-squeezed it looks (cream, cracks)
+   * o.crushed  the failed, flattened version
+   * o.wig    cactus wiggle angle in radians
+   */
+  function draw(ctx, type, o) {
+    o = o || {};
+    var opt = { expr: o.expr || 'idle', over: o.over || 0, crushed: !!o.crushed, wig: o.wig || 0 };
+    ctx.save();
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.strokeStyle = K.ink; ctx.lineWidth = 2.6;
+    if (opt.crushed && (type === 'cake' || type === 'soap')) { ctx.scale(1.2, 0.6); opt.over = 1; }
+    ART[type](ctx, opt);
+    ctx.restore();
+  }
+
+  DCI.prizes = { K: K, draw: draw, face: face, rr: rr };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+  <script>
+/*
+ * Don't Crush It — chamber renderer.
+ *
+ * Reads the simulation and draws it. Owns purely visual state (particles,
+ * score popups, the jolt, finger easing). Nothing here feeds back into the game.
+ */
+(function (root) {
+  'use strict';
+  var DCI = root.DCI = root.DCI || {};
+  var sim = DCI.sim, C = sim.C, PRIZES = sim.PRIZES, P = DCI.prizes, K = P.K;
+  var TAU = Math.PI * 2;
+  var FONT = 'ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+
+  var COL = {
+    wall: '#DCE9E1', wallDot: '#CADDD3', ceiling: '#BCD2C8',
+    floor: '#C3D9CE', floorLine: '#8FB2A5', lip: '#A9C7BB',
+    hole: '#2C3D3A', rail: '#4B443F', metal: '#FFF4DC', metalBack: '#E4D6B6'
+  };
+  var OPEN = 40, TIP_DY = 50, MAX_PARTICLES = 40, POP_LIFE = 1.9;
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeOutBack(t) { var c = 1.70158; t = clamp(t, 0, 1) - 1; return 1 + (c + 1) * t * t * t + c * t * t; }
+
+  // ------------------------------------------------------------ backdrop ---
+
+  function drawBackdrop(ctx) {
+    ctx.fillStyle = COL.wall; ctx.fillRect(0, 0, C.W, C.H);
+
+    // printed dot pattern
+    ctx.fillStyle = COL.wallDot;
+    for (var row = 0, y = 58; y < 356; y += 22, row++) {
+      for (var x = (row % 2 ? 27 : 16); x < C.W; x += 22) {
+        ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill();
+      }
+    }
+
+    // ceiling
+    ctx.fillStyle = COL.ceiling; ctx.fillRect(0, 0, C.W, 15);
+
+    // floor
+    ctx.fillStyle = COL.floor; ctx.fillRect(0, 362, C.W, C.H - 362);
+    ctx.fillStyle = COL.lip; ctx.fillRect(0, 426, C.W, 14);
+    ctx.strokeStyle = COL.floorLine; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, 362); ctx.lineTo(C.W, 362); ctx.moveTo(0, 426); ctx.lineTo(C.W, 426); ctx.stroke();
+
+    // chute sign on the back wall
+    ctx.save();
+    ctx.translate(C.CHUTE_X, 268); ctx.rotate(-0.045);
+    ctx.fillStyle = K.yellow; ctx.strokeStyle = K.ink; ctx.lineWidth = 2.2; ctx.lineJoin = 'round';
+    ctx.beginPath(); P.rr(ctx, -34, -15, 68, 30, 5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = K.ink; ctx.font = '800 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('PRIZES', -8, 1);
+    ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(23, -7); ctx.lineTo(23, 7); ctx.moveTo(18, 2.5); ctx.lineTo(23, 7.5); ctx.lineTo(28, 2.5); ctx.stroke();
+    ctx.restore();
+
+    // chute opening
+    ctx.fillStyle = COL.hole; ctx.strokeStyle = K.ink; ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.ellipse(C.CHUTE_X, 402, 45, 15, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,244,220,.28)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(C.CHUTE_X, 404, 38, 10, 0, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+
+    // rail and its brackets
+    ctx.fillStyle = COL.rail; ctx.strokeStyle = K.ink; ctx.lineWidth = 2.4;
+    ctx.beginPath(); P.rr(ctx, 8, 23, C.W - 16, 9, 4.5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = K.red;
+    ctx.beginPath(); P.rr(ctx, 12, 12, 16, 26, 4); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); P.rr(ctx, C.W - 28, 12, 16, 26, 4); ctx.fill(); ctx.stroke();
+  }
+
+  function drawForeground(ctx) {
+    // clear guard around the chute
+    ctx.lineJoin = 'round';
+    ctx.fillStyle = 'rgba(255,250,240,.2)';
+    ctx.beginPath(); P.rr(ctx, 22, 340, 110, 78, 12); ctx.fill();
+    ctx.strokeStyle = 'rgba(41,37,34,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); P.rr(ctx, 22, 340, 110, 78, 12); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(31, 392); ctx.lineTo(31, 354); ctx.quadraticCurveTo(31, 348, 38, 348); ctx.stroke();
+
+    // glass: two soft streaks near the edges, nothing across the play area
+    ctx.fillStyle = 'rgba(255,255,255,.2)';
+    ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(46, 0); ctx.lineTo(0, 150); ctx.lineTo(0, 72); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.13)';
+    ctx.beginPath(); ctx.moveTo(58, 0); ctx.lineTo(68, 0); ctx.lineTo(0, 222); ctx.lineTo(0, 190); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(C.W, 250); ctx.lineTo(C.W, 330); ctx.lineTo(C.W - 34, C.H); ctx.lineTo(C.W - 58, C.H); ctx.closePath(); ctx.fill();
+
+    // a shade under the top frame
+    var g = ctx.createLinearGradient(0, 0, 0, 14);
+    g.addColorStop(0, 'rgba(41,37,34,.2)'); g.addColorStop(1, 'rgba(41,37,34,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, C.W, 14);
+  }
+
+  // ---------------------------------------------------------------- claw ---
+
+  function fingerPoints(sx, sy, tx, ty, side) {
+    var l1 = 30, l2 = 32;
+    var dx = tx - sx, dy = ty - sy, d = Math.min(Math.hypot(dx, dy), l1 + l2 - 0.5);
+    var a = Math.atan2(dy, dx);
+    var A = Math.acos(clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1));
+    var ea = a - side * A;                         // elbow bulges outward
+    var ex = sx + Math.cos(ea) * l1, ey = sy + Math.sin(ea) * l1;
+    var ta = Math.atan2(ty - ey, tx - ex);
+    return [sx, sy, ex, ey, ex + Math.cos(ta) * l2, ey + Math.sin(ta) * l2];
+  }
+
+  function drawFinger(ctx, pts, fill) {
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); ctx.lineTo(pts[2], pts[3]); ctx.lineTo(pts[4], pts[5]);
+    ctx.strokeStyle = K.ink; ctx.lineWidth = 10.5; ctx.stroke();
+    ctx.strokeStyle = fill; ctx.lineWidth = 5.6; ctx.stroke();
+    ctx.fillStyle = K.ink; ctx.beginPath(); ctx.arc(pts[2], pts[3], 2.1, 0, TAU); ctx.fill();
+    // rubber tip
+    ctx.fillStyle = K.red; ctx.strokeStyle = K.ink; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(pts[4], pts[5], 4.4, 0, TAU); ctx.fill(); ctx.stroke();
+  }
+
+  function drawCarriage(ctx, x, hubY) {
+    // cable — always vertical
+    ctx.strokeStyle = K.ink; ctx.lineWidth = 2.6; ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.moveTo(x, 38); ctx.lineTo(x, hubY - 16); ctx.stroke();
+
+    ctx.lineJoin = 'round';
+    ctx.fillStyle = K.yellow; ctx.strokeStyle = K.ink; ctx.lineWidth = 2.6;
+    ctx.beginPath(); P.rr(ctx, x - 28, 15, 56, 25, 6); ctx.fill(); ctx.stroke();
+    // wheels on the rail
+    ctx.fillStyle = K.ink;
+    ctx.beginPath(); ctx.arc(x - 16, 27.5, 5, 0, TAU); ctx.arc(x + 16, 27.5, 5, 0, TAU); ctx.fill();
+    ctx.fillStyle = K.yellow;
+    ctx.beginPath(); ctx.arc(x - 16, 27.5, 1.6, 0, TAU); ctx.arc(x + 16, 27.5, 1.6, 0, TAU); ctx.fill();
+    // spool
+    ctx.fillStyle = K.ivory; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, 28, 5.5, 0, TAU); ctx.fill(); ctx.stroke();
+  }
+
+  function drawHub(ctx) {
+    ctx.lineJoin = 'round'; ctx.strokeStyle = K.ink; ctx.lineWidth = 2.5;
+    ctx.fillStyle = K.ivory;
+    ctx.beginPath(); P.rr(ctx, -5, -18, 10, 9, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = K.yellow;
+    ctx.beginPath(); ctx.moveTo(-15, 1); ctx.bezierCurveTo(-15, -15, 15, -15, 15, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = K.ivory;
+    ctx.beginPath(); P.rr(ctx, -17.5, 0, 35, 7, 3.5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = K.ink;
+    ctx.beginPath(); ctx.arc(-10, 3.5, 1.3, 0, TAU); ctx.arc(10, 3.5, 1.3, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, -4); ctx.quadraticCurveTo(-7.5, -8.5, -3, -9.5); ctx.stroke();
+  }
+
+  // ------------------------------------------------------------ renderer ---
+
+  function createRenderer(canvas) {
+    var ctx = canvas.getContext('2d');
+    var scale = 1;
+    var backdrop = document.createElement('canvas');
+    var particles = [], popups = [];
+    var jolt = 0, visSpread = OPEN, firstFrame = true;
+
+    function resize(cssW, dpr) {
+      var w = Math.max(1, Math.round(cssW * dpr));
+      var h = Math.max(1, Math.round(cssW * dpr * C.H / C.W));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      scale = w / C.W;
+      backdrop.width = w; backdrop.height = h;
+      var b = backdrop.getContext('2d');
+      b.setTransform(scale, 0, 0, scale, 0, 0);
+      drawBackdrop(b);
+    }
+
+    function reset() { particles.length = 0; popups.length = 0; jolt = 0; }
+
+    function addParticle(p) { if (particles.length < MAX_PARTICLES) particles.push(p); }
+
+    function burst(kind, x, y, n) {
+      for (var i = 0; i < n; i++) {
+        var a = -Math.PI * (0.12 + 0.76 * (i + 0.5) / n), sp = 90 + ((i * 53) % 90);
+        var p = { kind: kind, x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 3 + (i * 7 % 4), rot: i, vr: (i % 2 ? 1 : -1) * (3 + i % 4), age: 0, life: 0.8 };
+        if (kind === 'bubble') { p.vx *= 0.35; p.vy = -30 - (i * 17 % 40); p.life = 1.1; p.r = 3 + (i * 5 % 5); p.x += (i - n / 2) * 7; }
+        if (kind === 'spark') { p.vx *= 0.5; p.vy *= 0.5; p.life = 0.6; p.r = 4 + i % 3; }
+        addParticle(p);
+      }
+    }
+
+    /** React to simulation events with effects. Visual only. */
+    function onEvent(ev, game, reduced) {
+      var p = ev.prize, d, y;
+      if (ev.type === 'restart' || ev.type === 'next') { reset(); return; }
+      if (ev.type === 'collected') {
+        var o = ev.outcome, extras = [];
+        if (o.aim) extras.push('BULLSEYE +' + o.aim);
+        if (o.streakBonus) extras.push('STREAK \u00d7' + o.streak + ' +' + o.streakBonus);
+        popups.push({ text: '+' + o.total, grade: { perfect: 'PERFECT!', gentle: 'GENTLE!', ok: 'GOT IT!' }[o.grade], extras: extras, x: 215, y: 215, age: 0 });
+        return;
+      }
+      if (reduced) return;
+      if (ev.type === 'fail' && p) {
+        d = PRIZES[p.type]; y = C.FLOOR_Y - p.h - d.h * 0.5;
+        if (ev.cause === 'crush') {
+          jolt = 1;
+          burst(p.type === 'cake' ? 'cream' : p.type === 'egg' ? 'shell' : p.type === 'soap' ? 'bubble' : 'leaf', p.x, y, 8);
+        } else {
+          burst(p.type === 'soap' ? 'bubble' : 'puff', p.x, y, p.type === 'soap' ? 6 : 4);
+        }
+      } else if (ev.type === 'lifted' && p) {
+        burst('spark', game.clawX, C.TOP_HUB_Y + 50, 5);
+      }
+    }
+
+    function stepEffects(dt) {
+      for (var i = particles.length - 1; i >= 0; i--) {
+        var p = particles[i];
+        p.age += dt;
+        if (p.age >= p.life) { particles.splice(i, 1); continue; }
+        if (p.kind === 'bubble') { p.vx *= 0.98; p.x += Math.sin(p.age * 9 + p.rot) * 12 * dt; }
+        else if (p.kind !== 'spark') p.vy += 620 * dt;
+        else { p.vx *= 0.94; p.vy *= 0.94; }
+        p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+        if (p.kind !== 'bubble' && p.kind !== 'spark' && p.y > C.FLOOR_Y + 6) { p.y = C.FLOOR_Y + 6; p.vy = 0; p.vx *= 0.8; p.vr = 0; }
+      }
+      for (var j = popups.length - 1; j >= 0; j--) { popups[j].age += dt; if (popups[j].age > POP_LIFE) popups.splice(j, 1); }
+      if (jolt > 0) jolt = Math.max(0, jolt - dt / 0.22);
+    }
+
+    function drawParticles() {
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i], fade = clamp((p.life - p.age) / 0.25, 0, 1);
+        ctx.save();
+        ctx.globalAlpha = fade;
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.strokeStyle = K.ink; ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
+        switch (p.kind) {
+          case 'cream':
+            ctx.fillStyle = K.cream; ctx.beginPath(); ctx.ellipse(0, 0, p.r + 1, p.r * 0.75, 0, 0, TAU); ctx.fill(); ctx.stroke(); break;
+          case 'shell':
+            ctx.fillStyle = K.egg; ctx.beginPath(); ctx.moveTo(-p.r, p.r * 0.6); ctx.lineTo(0, -p.r); ctx.lineTo(p.r, p.r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke(); break;
+          case 'leaf':
+            ctx.fillStyle = (i % 3 === 0) ? K.pink : K.cactus; ctx.beginPath(); ctx.ellipse(0, 0, p.r, p.r * 0.55, 0, 0, TAU); ctx.fill(); ctx.stroke(); break;
+          case 'bubble':
+            ctx.fillStyle = 'rgba(255,251,240,.55)'; ctx.beginPath(); ctx.arc(0, 0, p.r, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, p.r * 0.55, -2.4, -1.5); ctx.stroke(); break;
+          case 'puff':
+            ctx.fillStyle = K.ivory; ctx.globalAlpha = fade * 0.9; ctx.beginPath(); ctx.arc(0, 0, p.r, 0, TAU); ctx.fill(); ctx.stroke(); break;
+          default: // spark
+            ctx.fillStyle = K.yellow; ctx.beginPath();
+            ctx.moveTo(0, -p.r); ctx.quadraticCurveTo(0, 0, p.r, 0); ctx.quadraticCurveTo(0, 0, 0, p.r);
+            ctx.quadraticCurveTo(0, 0, -p.r, 0); ctx.quadraticCurveTo(0, 0, 0, -p.r); ctx.fill(); ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    function label(text, x, y, size, fill, line) {
+      ctx.font = '900 ' + size + 'px ' + FONT;
+      ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(4, size * 0.24); ctx.strokeStyle = K.ink;
+      ctx.strokeText(text, x, y);
+      ctx.fillStyle = fill; ctx.fillText(text, x, y);
+    }
+
+    function drawPopups(reduced) {
+      for (var i = 0; i < popups.length; i++) {
+        var p = popups[i], t = p.age / POP_LIFE;
+        var rise = reduced ? 0 : 30 * (1 - (1 - t) * (1 - t));
+        var pop = reduced ? 1 : Math.min(1, easeOutBack(p.age / 0.28));
+        ctx.save();
+        ctx.globalAlpha = clamp((POP_LIFE - p.age) / 0.35, 0, 1);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.translate(p.x, p.y - rise);
+        ctx.scale(pop, pop);
+        if (p.grade) {
+          ctx.save(); ctx.rotate(-0.06);
+          label(p.grade, 0, -36, 24, p.grade === 'PERFECT!' ? K.pink : K.ivory);
+          ctx.restore();
+        }
+        label(p.text, 0, 0, 34, K.yellow);
+        for (var k = 0; k < p.extras.length; k++) {
+          var show = reduced || p.age > 0.25 + k * 0.18;
+          if (show) label(p.extras[k], 0, 32 + k * 22, 15, K.ivory);
+        }
+        ctx.restore();
+      }
+    }
+
+    function shadow(x, rx, alpha) {
+      ctx.fillStyle = 'rgba(41,37,34,' + alpha + ')';
+      ctx.beginPath(); ctx.ellipse(x, C.FLOOR_Y + 3, rx, rx * 0.2, 0, 0, TAU); ctx.fill();
+    }
+
+    function exprFor(game, p, phase, time, reduced) {
+      var S = sim.S;
+      switch (p.status) {
+        case 'carried': case 'dropping': return 'happy';
+        case 'crushed': return p.type === 'cactus' ? 'angry' : 'crushed';
+        case 'slipped': return 'smug';
+        case 'gripped': case 'held':
+          var z = game.zone();
+          if (z === 'high') return 'strain';
+          if (z === 'safe') return 'calm';
+          return (phase === S.LIFTING || game.pressure > 4) ? 'slip' : 'nervous';
+        default:
+          if (game.target === p && phase === S.LOWERING) return 'nervous';
+          if (p.type === 'egg') return 'nervous';
+          if (!reduced && ((time * 0.9 + p.x * 0.013) % 3.1) < 0.13) return 'blink';
+          return 'idle';
+      }
+    }
+
+    function cactusWiggle(game, phase, reduced) {
+      // Personality only: fixed moments in the lift, no effect on the rules.
+      if (reduced || phase !== sim.S.LIFTING) return 0;
+      var starts = [0.45, 1.25, 1.95], len = 0.36;
+      for (var i = 0; i < starts.length; i++) {
+        var u = (game.t - starts[i]) / len;
+        if (u > 0 && u < 1) return Math.sin(u * TAU * 2) * 0.13 * Math.sin(u * Math.PI);
+      }
+      return 0;
+    }
+
+    function draw(game, view) {
+      var S = sim.S, phase = game.phase(), dt = view.dt, reduced = view.reduced;
+      var x = view.x, hubY = game.hubY();
+      var t = game.target, holding = t && (t.status === 'gripped' || t.status === 'held' || t.status === 'carried');
+      var def = t ? PRIZES[t.type] : null;
+
+      if (game.state !== S.PAUSED) stepEffects(dt);
+
+      // how far the fingers are closed
+      var targetSpread = OPEN;
+      if (holding) {
+        var w = def.halfW + 3, pr = game.pressure;
+        targetSpread = pr < 6 ? lerp(OPEN, w, pr / 6) : w * (1 - def.soft * (pr - 6) / 94);
+      } else if (!t && game.emptyClose > 0) {
+        targetSpread = lerp(OPEN, 7, sim.easeInOut(game.emptyClose));
+      }
+      if (firstFrame) { visSpread = targetSpread; firstFrame = false; }
+      visSpread += (targetSpread - visSpread) * (1 - Math.exp(-dt / 0.035));
+      if (holding) visSpread = Math.max(visSpread, targetSpread);   // never draw fingers inside the prize
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(backdrop, 0, 0);
+      var jx = (!reduced && jolt > 0) ? Math.sin(view.time * 95) * 3.2 * jolt : 0;
+      ctx.setTransform(scale, 0, 0, scale, jx * scale, 0);
+
+      // contact shadows
+      var i, p, d;
+      for (i = 0; i < game.prizes.length; i++) {
+        p = game.prizes[i]; d = PRIZES[p.type];
+        if (p.status === 'collected' || p.status === 'dropping' || p.status === 'carried') continue;
+        var lift = p.status === 'held' ? (1 - game.depth) * (sim.grabHubY(p.type) - C.TOP_HUB_Y) : p.h;
+        var k = clamp(1 - lift / 320, 0.35, 1);
+        var a = (p.status === 'idle' ? clamp(game.lineupT * 1.6 - i * 0.18, 0, 1) : 1) * 0.16 * k;
+        shadow(p.x, d.halfW * (p.status === 'crushed' ? 1.15 : 0.95) * k, a);
+      }
+      // lock-on: the prize the claw would grab if dropped now
+      var aiming = phase === S.READY || phase === S.AIMING;
+      var locked = aiming && game.lineupT >= 1 ? game.pick(game.aimX) : null;
+      if (locked) {
+        var dd = PRIZES[locked.type], bull = Math.abs(game.aimX - locked.x) <= C.BULLSEYE;
+        ctx.save();
+        ctx.lineWidth = 2.6; ctx.strokeStyle = K.ink;
+        ctx.setLineDash(bull ? [] : [7, 6]);
+        ctx.lineDashOffset = reduced ? 0 : -view.time * 22;
+        ctx.fillStyle = bull ? 'rgba(242,203,101,.75)' : 'rgba(242,203,101,.35)';
+        ctx.beginPath(); ctx.ellipse(locked.x, C.FLOOR_Y + 3, dd.halfW + 10, (dd.halfW + 10) * 0.24, 0, 0, TAU);
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+        if (bull) {   // tiny sparkle marks at the ring's ends
+          ctx.fillStyle = K.ink;
+          [-1, 1].forEach(function (sd) {
+            var sx = locked.x + sd * (dd.halfW + 18), sy = C.FLOOR_Y - 4, r = 5;
+            ctx.beginPath(); ctx.moveTo(sx, sy - r); ctx.quadraticCurveTo(sx, sy, sx + r, sy); ctx.quadraticCurveTo(sx, sy, sx, sy + r);
+            ctx.quadraticCurveTo(sx, sy, sx - r, sy); ctx.quadraticCurveTo(sx, sy, sx, sy - r); ctx.fill();
+          });
+        }
+      }
+      // the claw's own shadow: an aiming aid
+      if (!game.carrying) shadow(x, 22 + 10 * game.depth, 0.1 + 0.1 * game.depth);
+
+      // back finger (behind whatever is being held)
+      var close = clamp((OPEN - visSpread) / (OPEN - 7), 0, 1);
+      ctx.save();
+      ctx.translate(x, hubY); ctx.rotate(view.sway);
+      var backLen = 26 + 20 * close;
+      drawFinger(ctx, [0, 2, 0, 2 + backLen * 0.5, 0, 2 + backLen], COL.metalBack);
+      ctx.restore();
+
+      // prizes
+      for (i = 0; i < game.prizes.length; i++) {
+        p = game.prizes[i]; d = PRIZES[p.type];
+        if (p.status === 'collected') continue;
+        var o = { expr: exprFor(game, p, phase, view.time, reduced), over: 0, crushed: p.status === 'crushed', wig: 0 };
+        ctx.save();
+        if (p.status === 'idle') {
+          var local = clamp(game.lineupT * 1.6 - i * 0.18, 0, 1);
+          ctx.globalAlpha = clamp(local * 2, 0, 1);
+          var hop = (p === locked && !reduced) ? Math.abs(Math.sin(view.time * 7)) * 5 : 0;
+          ctx.translate(p.x, C.FLOOR_Y + (reduced ? 0 : (1 - easeOutBack(local)) * 26) - hop);
+          if (p === locked) o.expr = 'happy';
+        } else if (p.status === 'gripped' || p.status === 'held' || p.status === 'carried') {
+          var sx = clamp((visSpread - 3) / d.halfW, 0.55, 1), sy = 1 + (1 - sx) * 0.45;
+          var slide = game.slip * 16;
+          o.over = Math.max(game.crush, game.maxCrush * 0.6, clamp((game.pressure - d.max) / (100 - d.max), 0, 1) * 0.5);
+          if (p.type === 'cactus') o.wig = cactusWiggle(game, phase, reduced);
+          ctx.translate(x, hubY);
+          ctx.rotate(view.sway * 0.6 + game.slip * 0.14);
+          ctx.translate(0, C.HUB_GAP + d.h + slide);
+          ctx.scale(sx, sy);
+        } else if (p.status === 'dropping') {
+          var fall = 0.5 * 2600 * game.t * game.t;
+          ctx.beginPath(); ctx.rect(0, 0, C.W, 409); ctx.clip();
+          ctx.translate(C.CHUTE_X, C.TOP_HUB_Y + C.HUB_GAP + d.h + fall);
+        } else { // crushed or slipped, loose in the chamber
+          ctx.translate(p.x, C.FLOOR_Y - p.h);
+          if (p.status === 'slipped') ctx.rotate(clamp(p.h / 200, 0, 1) * 0.25);
+        }
+        P.draw(ctx, p.type, o);
+        ctx.restore();
+      }
+
+      // carriage, cable, front fingers, hub
+      drawCarriage(ctx, x, hubY);
+      ctx.save();
+      ctx.translate(x, hubY); ctx.rotate(view.sway);
+      drawFinger(ctx, fingerPoints(-9, 3, -visSpread, TIP_DY, -1), COL.metal);
+      drawFinger(ctx, fingerPoints(9, 3, visSpread, TIP_DY, 1), COL.metal);
+      drawHub(ctx);
+      ctx.restore();
+
+      drawParticles();
+      drawPopups(reduced);
+
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      drawForeground(ctx);
+    }
+
+    return { resize: resize, draw: draw, onEvent: onEvent, reset: reset };
+  }
+
+  // ---------------------------------------------------------------- tray ---
+
+  /** Collected prizes in the cabinet tray. items: [{type, at}] where `at` is the landing time. */
+  function drawTray(canvas, items, time, reduced) {
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width, h = canvas.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    var s = h / 76;                     // logical tray height
+    ctx.setTransform(s, 0, 0, s, 0, 0);
+    var lw = w / s;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i], age = time - it.at, y = 0;
+      if (!reduced && age < 0.7) {
+        var u = age / 0.7;              // drop in, one bounce
+        y = u < 0.45 ? -70 * (1 - (u / 0.45) * (u / 0.45)) : -14 * Math.sin((u - 0.45) / 0.55 * Math.PI) * (1 - u);
+      }
+      var cx = lw * (0.2 + 0.3 * i);
+      ctx.fillStyle = 'rgba(41,37,34,.16)';
+      ctx.beginPath(); ctx.ellipse(cx, 69, 21, 3.6, 0, 0, TAU); ctx.fill();
+      ctx.save();
+      ctx.translate(cx, 68 + y); ctx.scale(0.66, 0.66);
+      P.draw(ctx, it.type, { expr: age < 1.2 ? 'happy' : 'calm' });
+      ctx.restore();
+    }
+  }
+
+  /** A small standalone portrait, used on the round summary. */
+  function drawMini(canvas, type, dpr) {
+    var size = 56;
+    canvas.width = size * dpr; canvas.height = size * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.translate(size / 2, size - 5); ctx.scale(0.58, 0.58);
+    P.draw(ctx, type, { expr: 'happy' });
+  }
+
+  DCI.render = { createRenderer: createRenderer, drawTray: drawTray, drawMini: drawMini };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+  <script>
+/*
+ * Don't Crush It — sound.
+ *
+ * Every sound is synthesised with the Web Audio API (oscillators, filtered
+ * noise, short envelopes); there are no audio files. Nothing is created until
+ * the first intentional interaction, everything goes through one master gain
+ * and a limiter, and every call is safe when audio is muted, unavailable,
+ * suspended or broken — sound can never hold the game up.
+ */
+(function (root) {
+  'use strict';
+  var DCI = root.DCI = root.DCI || {};
+  var PREF_KEY = 'dont-crush-it.sound';
+  var MASTER = 0.6;
+
+  function createAudio() {
+    var Ctor = root.AudioContext || root.webkitAudioContext;
+    var ctx = null, master = null, analyser = null, noiseBuf = null;
+    var broken = false;      // the context could not be created
+    var unlocked = false;    // a user gesture has started audio
+    var halted = false;      // tab hidden
+    var voices = [];         // active one-shot sounds
+    var lastAt = {};         // name -> context time of the last trigger
+    var log = [];            // names of triggered sounds, for the automated checks
+
+    function readPref() { try { return root.localStorage.getItem(PREF_KEY); } catch (e) { return null; } }
+    function writePref(v) { try { root.localStorage.setItem(PREF_KEY, v); } catch (e) {} }
+    var muted = readPref() === 'off';
+
+    function build() {
+      if (ctx) return true;
+      if (!Ctor || broken) return false;
+      try {
+        ctx = new Ctor();
+        master = ctx.createGain();
+        master.gain.value = MASTER;
+        var limiter = ctx.createDynamicsCompressor();     // guards against clipping when effects overlap
+        limiter.threshold.value = -16; limiter.knee.value = 10; limiter.ratio.value = 10;
+        limiter.attack.value = 0.003; limiter.release.value = 0.12;
+        analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+        master.connect(limiter); limiter.connect(analyser); analyser.connect(ctx.destination);
+
+        var n = ctx.sampleRate, seed = 1234567;            // one second of noise, shared
+        noiseBuf = ctx.createBuffer(1, n, n);
+        var data = noiseBuf.getChannelData(0);
+        for (var i = 0; i < n; i++) { seed = (seed * 16807) % 2147483647; data[i] = (seed / 2147483647) * 2 - 1; }
+      } catch (e) { ctx = null; broken = true; }
+      return !!ctx;
+    }
+
+    function resumeCtx() {
+      if (!ctx || ctx.state !== 'suspended') return;
+      try { var p = ctx.resume(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+    }
+
+    /** Call from inside a click, tap or key press. Starts audio unless the player muted it. */
+    function unlock() {
+      if (muted || halted || !build()) return false;
+      unlocked = true;
+      resumeCtx();
+      return true;
+    }
+
+    function can() { return !muted && !halted && unlocked && !!ctx && ctx.state !== 'closed'; }
+
+    // ------------------------------------------------------------ voices --
+
+    function prune(now) {
+      for (var i = voices.length - 1; i >= 0; i--) {
+        if (voices[i].end < now) { try { voices[i].out.disconnect(); } catch (e) {} voices.splice(i, 1); }
+      }
+    }
+
+    /** Start a one-shot sound. `gap` drops duplicate triggers that arrive too close together. */
+    function play(name, gap, build_) {
+      if (!can()) return false;
+      try {
+        var now = ctx.currentTime;
+        if (lastAt[name] != null && now - lastAt[name] < gap) return false;
+        lastAt[name] = now;
+        prune(now);
+        var v = { name: name, out: ctx.createGain(), nodes: [], end: now };
+        v.out.connect(master);
+        build_(v, now + 0.005);
+        voices.push(v);
+        log.push(name); if (log.length > 400) log.shift();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function envelope(param, t, attack, peak, dur) {
+      param.setValueAtTime(0.0001, t);
+      param.exponentialRampToValueAtTime(peak, t + attack);          // short fade-in: no click
+      param.exponentialRampToValueAtTime(0.0001, t + dur);           // and fade-out
+    }
+
+    /** o: type, f (number or [[freq, offset], …]), at, dur, peak, attack, lp, vib:[rate, depth] */
+    function tone(v, t0, o) {
+      var t = t0 + (o.at || 0), osc = ctx.createOscillator(), g = ctx.createGain(), i;
+      osc.type = o.type || 'sine';
+      var f = typeof o.f === 'number' ? [[o.f, 0]] : o.f;
+      osc.frequency.setValueAtTime(f[0][0], t);
+      for (i = 1; i < f.length; i++) osc.frequency.exponentialRampToValueAtTime(Math.max(20, f[i][0]), t + f[i][1]);
+      envelope(g.gain, t, o.attack || 0.008, o.peak, o.dur);
+      var head = osc;
+      if (o.lp) { var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = o.lp; osc.connect(lp); head = lp; }
+      head.connect(g); g.connect(v.out);
+      if (o.vib) {
+        var lfo = ctx.createOscillator(), lg = ctx.createGain();
+        lfo.frequency.value = o.vib[0]; lg.gain.value = o.vib[1];
+        lfo.connect(lg); lg.connect(osc.frequency);
+        lfo.start(t); lfo.stop(t + o.dur + 0.03); v.nodes.push(lfo);
+      }
+      osc.start(t); osc.stop(t + o.dur + 0.03);
+      v.nodes.push(osc);
+      v.end = Math.max(v.end, t + o.dur + 0.06);
+    }
+
+    /** o: at, dur, peak, attack, type (filter), f (number or [from, to]), q */
+    function hiss(v, t0, o) {
+      var t = t0 + (o.at || 0), src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), g = ctx.createGain();
+      src.buffer = noiseBuf; src.loop = true;
+      flt.type = o.type || 'bandpass'; flt.Q.value = o.q || 1;
+      if (typeof o.f === 'number') flt.frequency.setValueAtTime(o.f, t);
+      else { flt.frequency.setValueAtTime(o.f[0], t); flt.frequency.exponentialRampToValueAtTime(o.f[1], t + o.dur); }
+      envelope(g.gain, t, o.attack || 0.004, o.peak, o.dur);
+      src.connect(flt); flt.connect(g); g.connect(v.out);
+      src.start(t, (t * 7.3) % 0.9); src.stop(t + o.dur + 0.03);
+      v.nodes.push(src);
+      v.end = Math.max(v.end, t + o.dur + 0.06);
+    }
+
+    function silence(v, now, hard) {
+      try {
+        if (hard) { v.out.disconnect(); }
+        else {
+          v.out.gain.cancelScheduledValues(now);
+          v.out.gain.setValueAtTime(v.out.gain.value, now);
+          v.out.gain.linearRampToValueAtTime(0, now + 0.03);
+        }
+        for (var i = 0; i < v.nodes.length; i++) { try { v.nodes[i].stop(now + (hard ? 0 : 0.05)); } catch (e) {} }
+      } catch (e) {}
+    }
+
+    /** Silence everything that is sounding or scheduled. */
+    function stopAll(hard) {
+      if (!ctx) return;
+      var now = ctx.currentTime;
+      for (var i = 0; i < voices.length; i++) silence(voices[i], now, hard);
+      voices.length = 0;
+    }
+
+    // ------------------------------------------------------------ sounds --
+
+    // Bright, toy-like palette: wooden mallets, little bells, ticks and bloops.
+    // Nothing sustains, and nothing sits low enough to rumble.
+    var C5 = 523.25, D5 = 587.33, E5 = 659.25, G5 = 783.99, A5 = 880, C6 = 1046.5, D6 = 1174.66, E6 = 1318.51, G6 = 1567.98;
+    var LIFT_NOTES = [C5, D5, E5, G5, A5, C6, D6, E6];
+
+    /** A marimba-ish mallet: a sine with a quick, brighter overtone. */
+    function mallet(v, t, f, at, peak, dur) {
+      dur = dur || 0.22;
+      tone(v, t, { f: f, at: at, dur: dur, peak: peak, attack: 0.003 });
+      tone(v, t, { f: f * 4, at: at, dur: dur * 0.28, peak: peak * 0.22, attack: 0.002 });
+    }
+    /** A small bell: inharmonic partial gives it shimmer. */
+    function bell(v, t, f, at, peak, dur) {
+      dur = dur || 0.5;
+      tone(v, t, { f: f, at: at, dur: dur, peak: peak, attack: 0.004 });
+      tone(v, t, { f: f * 2.76, at: at, dur: dur * 0.45, peak: peak * 0.28, attack: 0.003 });
+    }
+
+    var api = {
+      available: !!Ctor,
+      unlock: unlock,
+      stopAll: function () { stopAll(false); },
+
+      /** 'unavailable' | 'muted' | 'on' */
+      status: function () { return (!Ctor || broken) ? 'unavailable' : muted ? 'muted' : 'on'; },
+      isMuted: function () { return muted; },
+      /** Call from a user gesture. Muting silences everything sounding and all future sounds. */
+      setMuted: function (m) {
+        muted = !!m;
+        writePref(muted ? 'off' : 'on');
+        if (muted) stopAll(false); else unlock();
+        return api.status();
+      },
+      /** Tab hidden: cut everything and suspend the context. */
+      halt: function () {
+        halted = true;
+        stopAll(true);
+        if (ctx && ctx.state === 'running') { try { var p = ctx.suspend(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      },
+      /** Back in view: audio may run again (only if a gesture already unlocked it). */
+      wake: function () {
+        halted = false;
+        if (unlocked && !muted) resumeCtx();
+      },
+
+      // any game button: a crisp little tick
+      click: function () {
+        play('click', 0.04, function (v, t) {
+          hiss(v, t, { f: 3400, q: 2, dur: 0.014, peak: 0.09 });
+          mallet(v, t, 1400, 0, 0.045, 0.05);
+        });
+      },
+      // carriage gliding along the rail: soft gear ticks, one per few pixels travelled
+      tick: function () {
+        play('tick', 0.035, function (v, t) {
+          hiss(v, t, { f: 2800, q: 4, dur: 0.009, peak: 0.035 });
+          tone(v, t, { f: 1900, dur: 0.014, peak: 0.012 });
+        });
+      },
+      // claw going down: a quick descending mallet run with a gentle glide underneath
+      lower: function () {
+        play('lower', 0.3, function (v, t) {
+          [G5, E5, D5, C5].forEach(function (f, i) { mallet(v, t, f, i * 0.13, 0.055, 0.18); });
+          tone(v, t, { f: [[880, 0], [520, 0.7]], dur: 0.72, peak: 0.018, attack: 0.05 });
+        });
+      },
+      // grip tightening: ticks that climb in pitch with the pressure
+      ratchet: function (step) {
+        play('ratchet', 0.03, function (v, t) {
+          hiss(v, t, { f: 2200 + step * 110, q: 5, dur: 0.01, peak: 0.055 });
+          tone(v, t, { type: 'triangle', f: 620 + step * 55, dur: 0.025, peak: 0.035 });
+        });
+      },
+      // closing on nothing: two wood blocks and a little "aww"
+      clack: function () {
+        play('clack', 0.2, function (v, t) {
+          mallet(v, t, 880, 0, 0.07, 0.08);
+          mallet(v, t, 740, 0.09, 0.07, 0.08);
+          tone(v, t, { f: [[620, 0], [440, 0.28]], at: 0.2, dur: 0.32, peak: 0.045, attack: 0.03, vib: [6, 8] });
+        });
+      },
+      // safe grip established: a bright two-bell "got it"
+      safe: function () {
+        play('safe', 0.2, function (v, t) {
+          bell(v, t, C6, 0, 0.07, 0.3);
+          bell(v, t, G6, 0.075, 0.06, 0.45);
+        });
+      },
+      // lifting: one note of a rising scale per step of the climb
+      liftNote: function (i) {
+        play('liftNote', 0.05, function (v, t) {
+          mallet(v, t, LIFT_NOTES[Math.max(0, Math.min(LIFT_NOTES.length - 1, i))], 0, 0.045, 0.2);
+        });
+      },
+      // dangerous pressure: a light tick-tock; the game spaces them closer near failure
+      warn: function (zone) {
+        play('warn', 0.08, function (v, t) {
+          var f = zone === 'high' ? 1046.5 : 698.46;
+          tone(v, t, { type: 'triangle', f: f, dur: 0.06, peak: 0.055, attack: 0.003 });
+          tone(v, t, { type: 'triangle', f: f * 0.75, at: 0.065, dur: 0.06, peak: 0.04, attack: 0.003 });
+        });
+      },
+      // prize slipping: a slide whistle going down
+      whistle: function () {
+        play('whistle', 0.2, function (v, t) {
+          tone(v, t, { f: [[1400, 0], [520, 0.36]], dur: 0.38, peak: 0.06, attack: 0.02, vib: [7, 14] });
+        });
+      },
+      // cake crushed: a soft, bright splat
+      squish: function () {
+        play('squish', 0.2, function (v, t) {
+          hiss(v, t, { f: [2600, 900], q: 1.4, dur: 0.15, peak: 0.12, attack: 0.008 });
+          tone(v, t, { f: [[980, 0], [520, 0.11]], dur: 0.12, peak: 0.05, attack: 0.005 });
+        });
+      },
+      // soap escaping: bubbly pops
+      pops: function () {
+        play('pops', 0.2, function (v, t) {
+          var f = [720, 940, 660, 1060, 860], at = [0, 0.06, 0.11, 0.19, 0.25];
+          for (var i = 0; i < f.length; i++) tone(v, t, { f: [[f[i], 0], [f[i] * 1.7, 0.04]], dur: 0.05, peak: 0.07, at: at[i], attack: 0.003 });
+        });
+      },
+      // egg breaking: a delicate crack
+      crack: function () {
+        play('crack', 0.2, function (v, t) {
+          var at = [0, 0.032, 0.05, 0.115];
+          for (var i = 0; i < at.length; i++) hiss(v, t, { f: 3000 - i * 240, q: 2.6, dur: 0.012, peak: i ? 0.07 : 0.1, at: at[i], attack: 0.002 });
+          tone(v, t, { type: 'triangle', f: [[1180, 0], [760, 0.03]], dur: 0.035, peak: 0.03 });
+        });
+      },
+      // cactus toy squashed: a squeaky-toy "eep"
+      squeak: function () {
+        play('squeak', 0.2, function (v, t) {
+          tone(v, t, { f: [[980, 0], [1560, 0.07], [1180, 0.2]], dur: 0.22, peak: 0.07, attack: 0.01, vib: [16, 22] });
+          tone(v, t, { f: [[1960, 0], [3120, 0.07], [2360, 0.2]], dur: 0.16, peak: 0.012, attack: 0.01 });
+        });
+      },
+      // a loose prize landing on the chamber floor: a light wooden "tok"
+      thud: function () {
+        play('thud', 0.1, function (v, t) {
+          mallet(v, t, 560, 0, 0.07, 0.07);
+          hiss(v, t, { f: 1600, q: 1.5, dur: 0.02, peak: 0.04 });
+        });
+      },
+      // prize lands in the tray: a water-drop bloop, then a cheerful chime
+      landed: function () {
+        play('landed', 0.3, function (v, t) {
+          tone(v, t, { f: [[520, 0], [1240, 0.07]], dur: 0.09, peak: 0.09, attack: 0.004 });
+          bell(v, t, G5, 0.14, 0.07, 0.35);
+          bell(v, t, C6, 0.23, 0.07, 0.5);
+        });
+      },
+      /** Points: a rising run whose length grows with the bonuses earned. */
+      points: function (o) {
+        play('points', 0.3, function (v, t) {
+          var run = [C5, E5, G5];
+          if (o && o.aim) run.push(A5);
+          if (o && o.grade === 'perfect') run.push(C6);
+          if (o && o.streak > 1) run.push(E6);
+          if (o && o.streak > 2) run.push(G6);
+          for (var i = 0; i < run.length; i++) mallet(v, t, run[i], 0.62 + i * 0.07, 0.055, 0.16);
+        });
+      },
+      // perfect grip: a quick twinkle on top of the landing
+      sparkle: function () {
+        play('sparkle', 0.3, function (v, t) {
+          [G6, 2093, 2637.02, 2093].forEach(function (f, i) { tone(v, t, { f: f, at: 1.0 + i * 0.05, dur: 0.18, peak: 0.022, attack: 0.003 }); });
+        });
+      },
+      // perfect round or new personal best: a short flourish, started with the confetti
+      flourish: function () {
+        play('flourish', 0.5, function (v, t) {
+          var run = [C5, E5, G5, C6, E6];
+          for (var i = 0; i < run.length; i++) mallet(v, t, run[i], i * 0.075, 0.06, 0.18);
+          [C5, E5, G5, C6].forEach(function (f) { bell(v, t, f, 0.42, 0.04, 0.9); });
+        });
+      },
+      // ordinary round ending: a short, gentle close
+      closing: function () {
+        play('closing', 0.5, function (v, t) {
+          mallet(v, t, G5, 0, 0.06, 0.3);
+          mallet(v, t, E5, 0.16, 0.06, 0.3);
+          bell(v, t, C5, 0.32, 0.06, 0.7);
+        });
+      },
+
+      // read-only view for the automated checks
+      debug: {
+        log: log,
+        loops: function () { return []; },   // no continuous sounds any more
+        voices: function () { return ctx ? voices.filter(function (v) { return v.end >= ctx.currentTime; }).length : 0; },
+        state: function () { return ctx ? ctx.state : 'none'; },
+        peak: function () {
+          if (!analyser) return 0;
+          var buf = new Float32Array(analyser.fftSize), m = 0;
+          analyser.getFloatTimeDomainData(buf);
+          for (var i = 0; i < buf.length; i++) { var a = Math.abs(buf[i]); if (a > m) m = a; }
+          return m;
+        }
+      }
+    };
+    return api;
+  }
+
+  DCI.audio = { createAudio: createAudio };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+  <script>
+/*
+ * Don't Crush It — browser glue.
+ *
+ * Wires input, the single animation loop, the HTML controls and the effects
+ * to the simulation. The simulation decides everything about the rules; this
+ * file only feeds it input and reflects its state.
+ */
+(function (root) {
+  'use strict';
+  var DCI = root.DCI, sim = DCI.sim, S = sim.S, C = sim.C, PRIZES = sim.PRIZES;
+  var doc = root.document;
+  function $(id) { return doc.getElementById(id); }
+
+  var el = {
+    machine: $('machine'), scene: $('scene'), tray: $('tray'), confetti: $('confetti'),
+    action: $('action'), help: $('help'), helpBtn: $('helpBtn'), helpClose: $('helpClose'), soundBtn: $('soundBtn'),
+    plate: doc.querySelector('.plate'), plateMsg: $('plateMsg'), attempt: $('attemptVal'), score: $('scoreVal'), best: $('bestVal'),
+    meter: $('meter'), band: $('band'), needle: $('needle'), fill: $('meterFill'), zone: $('zoneLabel'),
+    slip: $('slipFill'), crush: $('crushFill'),
+    card: $('card'), cardStars: $('cardStars'), cardMsg: $('cardMsg'), cardScore: $('cardScore'), cardMinis: $('cardMinis'), cardBest: $('cardBest'),
+    pause: $('pause'), resume: $('resumeBtn'), live: $('live')
+  };
+
+  var game = sim.createGame();
+  var renderer = DCI.render.createRenderer(el.scene);
+  var audio = DCI.audio.createAudio();
+  DCI.game = game;   // handy for debugging and the automated browser checks
+  DCI.sound = audio;
+
+  var COPY = {
+    aim: 'Tap a prize to drop the claw on it.',
+    aimDesk: 'Click a prize to drop the claw on it.',
+    firstGrip: 'Hold to squeeze. Release to loosen.',
+    grip: 'Squeeze into the safe band.',
+    lift: 'Keep it in the band.',
+    carry: 'Got it. Bringing it home.',
+    empty: 'Nothing under the claw.',
+    paused: 'Paused.',
+    fail: { crush: 'Too tight.', slip: 'Slipped away.', miss: 'Missed it.' },
+    zone: { low: 'Too loose', safe: 'Just right', high: 'Too tight' },
+    round: ['The prizes won this round.', 'One safe landing.', 'You’ve got a gentle touch.', 'Claw machine whisperer.']
+  };
+  var BEST_KEY = 'dont-crush-it.best';
+
+  // --------------------------------------------------------- environment ---
+
+  var motionQuery = root.matchMedia ? root.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var reduced = !!(motionQuery && motionQuery.matches);
+  if (motionQuery) {
+    var onMotion = function (e) { reduced = e.matches; if (reduced) stopConfetti(); };
+    if (motionQuery.addEventListener) motionQuery.addEventListener('change', onMotion);
+    else if (motionQuery.addListener) motionQuery.addListener(onMotion);
+  }
+
+  function readBest() {
+    try {
+      var raw = root.localStorage.getItem(BEST_KEY);
+      if (raw === null) return null;
+      var n = Number(raw);
+      return isFinite(n) && n >= 0 ? n : null;
+    } catch (e) { return null; }   // storage blocked (private mode, sandboxed iframe…)
+  }
+  function writeBest(n) { try { root.localStorage.setItem(BEST_KEY, String(n)); } catch (e) {} }
+  var best = readBest();
+
+  function dpr() { return Math.min(root.devicePixelRatio || 1, 2); }
+
+  // ------------------------------------------------------------- visuals ---
+
+  var view = { x: game.clawX, sway: 0, swayV: 0, time: 0, dt: 0, reduced: reduced };
+  var trayItems = [];
+  var firstGripPending = true, hintThisGrip = false;
+
+  var confetti = { active: false, t: 0, parts: [] };
+
+  function sizeCanvases() {
+    var w = el.scene.clientWidth;
+    if (w > 0) renderer.resize(w, dpr());
+    var tw = el.tray.clientWidth, th = el.tray.clientHeight;
+    if (tw > 0 && th > 0) { el.tray.width = Math.round(tw * dpr()); el.tray.height = Math.round(th * dpr()); }
+    if (confetti.active) sizeConfetti();
+  }
+  // Shrink the cabinet when the viewport (or a portfolio iframe) is too short for it.
+  // Minimum text and touch sizes mean height is not proportional to width, so iterate.
+  function fitMachine() {
+    var m = el.machine, avail = root.innerHeight - 30;
+    m.style.removeProperty('--fit');
+    var w = m.offsetWidth, floorW = Math.min(w, 300);
+    for (var i = 0; i < 4; i++) {
+      var h = m.offsetHeight;
+      if (h <= avail || w <= floorW) break;
+      w = Math.max(floorW, Math.floor(w * avail / h));
+      m.style.setProperty('--fit', w + 'px');
+    }
+  }
+  fitMachine();
+  root.addEventListener('resize', fitMachine);
+
+  if (root.ResizeObserver) {
+    var ro = new root.ResizeObserver(sizeCanvases);   // never touches game state
+    ro.observe(el.scene); ro.observe(el.tray);
+  } else {
+    root.addEventListener('resize', sizeCanvases);
+  }
+  sizeCanvases();
+
+  // confetti: one bounded system, fired from the cabinet's top corners
+  var CONFETTI_COLORS = ['#D94732', '#F2CB65', '#467E78', '#E8A6AC', '#292522'];
+
+  function sizeConfetti() {
+    var c = el.confetti, d = dpr();
+    c.width = Math.round(root.innerWidth * d); c.height = Math.round(root.innerHeight * d);
+  }
+  function stopConfetti() {
+    if (!confetti.active && !confetti.parts.length) return;
+    confetti.active = false; confetti.parts.length = 0;
+    var c = el.confetti; c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  }
+  function fireConfetti() {
+    stopConfetti();                       // never two at once
+    if (reduced) return;
+    sizeConfetti();
+    var r = doc.querySelector('.cabinet').getBoundingClientRect();
+    var n = 64, seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    for (var i = 0; i < n; i++) {
+      var left = i % 2 === 0, a = (left ? -1 : 1) * (0.25 + rnd() * 0.75), sp = 260 + rnd() * 380;
+      confetti.parts.push({
+        x: left ? r.left + 14 : r.right - 14, y: r.top + 14,
+        vx: Math.sin(a) * sp * -1, vy: -Math.cos(a) * sp,
+        w: 5 + rnd() * 5, h: 8 + rnd() * 6, rot: rnd() * 6, vr: (rnd() - 0.5) * 14,
+        c: CONFETTI_COLORS[i % CONFETTI_COLORS.length]
+      });
+    }
+    confetti.active = true; confetti.t = 0;
+  }
+  function stepConfetti(dt) {
+    if (!confetti.active) return;
+    confetti.t += dt;
+    if (confetti.t >= 1.5) { stopConfetti(); return; }
+    var c = el.confetti, ctx = c.getContext('2d'), d = dpr();
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.globalAlpha = Math.min(1, (1.5 - confetti.t) / 0.35);
+    for (var i = 0; i < confetti.parts.length; i++) {
+      var p = confetti.parts[i];
+      p.vy += 900 * dt; p.vx *= 0.985; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2 * Math.cos(p.rot * 1.3), p.w, p.h * Math.cos(p.rot * 1.3));
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // --------------------------------------------------------------- input ---
+
+  // What the main button means right now. A press only counts for the mode it
+  // began in, so a key held across a phase change can never trigger the next action.
+  var mode = 'drop', modeSerial = 0;
+  var presses = {};            // source -> modeSerial at press time
+  var arrows = { ArrowLeft: false, ArrowRight: false };
+  var lastKeyRelease = 0;
+
+  function currentMode() {
+    switch (game.state) {
+      case S.READY: case S.AIMING: return 'drop';
+      case S.GRIPPING: return game.target ? 'grip' : 'none';
+      case S.LIFTING: return 'grip';
+      case S.ATTEMPT_RESULT: return 'next';
+      case S.ROUND_OVER: return 'again';
+      default: return 'none';
+    }
+  }
+  function syncMode() {
+    var m = currentMode();
+    if (m !== mode) { mode = m; modeSerial += 1; }
+  }
+  function anyPress() { for (var k in presses) return true; return false; }
+  function gripHeld() { for (var k in presses) if (presses[k] === modeSerial) return true; return false; }
+
+  function act() {
+    var done = false;
+    if (mode === 'drop') done = game.drop();
+    else if (mode === 'next') done = game.next();
+    else if (mode === 'again') done = game.restart();
+    if (done) audio.click();
+    syncMode();
+  }
+
+  function pressStart(src) {
+    syncMode();
+    if (presses[src] != null) return;
+    presses[src] = modeSerial;
+    el.action.classList.add('is-down');            // immediate tactile feedback
+    if (mode === 'grip') game.setHold(true);
+  }
+  function pressEnd(src, commit) {
+    if (presses[src] == null) return;
+    var serial = presses[src];
+    delete presses[src];
+    syncMode();
+    if (!anyPress()) el.action.classList.remove('is-down');
+    if (mode === 'grip') { game.setHold(gripHeld()); return; }
+    if (commit && serial === modeSerial) act();
+  }
+  function clearInput() {
+    presses = {};
+    arrows.ArrowLeft = arrows.ArrowRight = false;
+    game.setHold(false);
+    el.action.classList.remove('is-down');
+  }
+
+  function isActionKey(e) { return e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'; }
+  function onGameControl(t) { return t === el.scene || t === el.action; }
+
+  // Keys are scoped to the chamber and the main button; anything else on the page is left alone.
+  el.machine.addEventListener('keydown', function (e) {
+    if (!onGameControl(e.target) || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); arrows[e.key] = true; return; }
+    if (isActionKey(e)) {
+      e.preventDefault();                 // no page scroll, no native click
+      if (e.repeat) return;               // auto-repeat is not a new press
+      pressStart('key:' + e.code);
+    }
+  });
+  root.addEventListener('keyup', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { arrows[e.key] = false; return; }
+    if (isActionKey(e) && presses['key:' + e.code] != null) {
+      if (onGameControl(e.target)) e.preventDefault();
+      lastKeyRelease = root.performance.now();
+      pressEnd('key:' + e.code, true);
+    }
+  });
+
+  el.action.addEventListener('pointerdown', function (e) {
+    if (e.button > 0) return;
+    try { el.action.setPointerCapture(e.pointerId); } catch (err) {}
+    pressStart('ptr');
+  });
+  el.action.addEventListener('pointerup', function (e) {
+    var r = el.action.getBoundingClientRect();
+    var inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    pressEnd('ptr', inside);
+  });
+  el.action.addEventListener('pointercancel', function () { pressEnd('ptr', false); });
+  el.action.addEventListener('lostpointercapture', function () { pressEnd('ptr', false); });
+  el.action.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  // Activation that arrives without a physical press (assistive tech, scripts).
+  el.action.addEventListener('click', function (e) {
+    if (e.detail !== 0 || anyPress() || root.performance.now() - lastKeyRelease < 400) return;
+    syncMode();
+    if (mode !== 'grip' && mode !== 'none') act();
+  });
+
+  // aiming with the pointer: hover with a mouse, drag with a finger
+  var dragging = {};
+  var finePointer = !!(root.matchMedia && root.matchMedia('(pointer: fine)').matches);
+  var tap = null;   // a press in the chamber that may become a "drop here"
+  function canTapDrop() { syncMode(); return mode === 'drop' && !anyPress(); }
+  function aimFromEvent(e) {
+    var r = el.scene.getBoundingClientRect();
+    if (r.width > 0) game.aim((e.clientX - r.left) / r.width * C.W);
+  }
+  el.scene.addEventListener('pointerdown', function (e) {
+    if (e.button > 0) return;
+    dragging[e.pointerId] = true;
+    tap = { id: e.pointerId, x: e.clientX, y: e.clientY, t: root.performance.now() };
+    try { el.scene.setPointerCapture(e.pointerId); } catch (err) {}
+    aimFromEvent(e);
+  });
+  el.scene.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'mouse' || dragging[e.pointerId]) aimFromEvent(e);
+  });
+  function endDrag(e) { delete dragging[e.pointerId]; if (tap && tap.id === e.pointerId) tap = null; }
+  // A short press without dragging drops the claw where it was pressed. Dragging only aims.
+  el.scene.addEventListener('pointerup', function (e) {
+    var t = tap;
+    endDrag(e);
+    if (!t || t.id !== e.pointerId) return;
+    var moved = Math.abs(e.clientX - t.x) + Math.abs(e.clientY - t.y);
+    if (moved > 12 || root.performance.now() - t.t > 450 || !canTapDrop()) return;
+    aimFromEvent(e);
+    if (game.drop()) { audio.click(); syncMode(); }
+  });
+  el.scene.addEventListener('pointercancel', endDrag);
+
+  // pausing: any time-based phase stops when the tab is hidden and needs an explicit resume
+  function pauseGame() {
+    clearInput();
+    if (game.pause()) { el.pause.hidden = false; return true; }
+    return false;
+  }
+  doc.addEventListener('visibilitychange', function () {
+    if (doc.hidden) { pauseGame(); audio.halt(); }
+    else audio.wake();
+    lastFrame = 0;
+  });
+  root.addEventListener('blur', clearInput);
+  root.addEventListener('pagehide', function () { pauseGame(); audio.halt(); });
+  root.addEventListener('pageshow', function () { if (!doc.hidden) audio.wake(); });
+  el.resume.addEventListener('click', function () {
+    if (el.help.open) return;
+    clearInput();
+    game.resume();
+    el.pause.hidden = true;
+    lastFrame = 0;
+    el.action.focus({ preventScroll: true });
+  });
+
+  // help
+  function openHelp() {
+    pauseGame();
+    if (el.help.showModal) { try { el.help.showModal(); return; } catch (e) {} }
+    el.help.setAttribute('open', '');
+  }
+  function closeHelp() {
+    if (el.help.close) { try { el.help.close(); } catch (e) {} }
+    el.help.removeAttribute('open');
+  }
+  el.helpBtn.addEventListener('click', openHelp);
+  el.helpClose.addEventListener('click', closeHelp);
+  el.help.addEventListener('close', function () {
+    (game.state === S.PAUSED ? el.resume : el.helpBtn).focus({ preventScroll: true });
+  });
+  el.help.addEventListener('click', function (e) { if (e.target === el.help) closeHelp(); });
+
+  // ---------------------------------------------------------------- sound --
+
+  // Audio starts inside the first intentional click, tap or key press (browsers
+  // block it before that), unless the player muted it on an earlier visit.
+  function unlockAudio(e) {
+    if (e.type === 'keydown' && (e.key === 'Tab' || e.key === 'Escape' || e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta')) return;
+    audio.unlock();
+    if (el.soundBtn.getAttribute('data-sound') !== audio.status()) refreshSoundBtn();
+  }
+  ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'].forEach(function (type) {
+    doc.addEventListener(type, unlockAudio, true);
+  });
+
+  function refreshSoundBtn() {
+    var st = audio.status();
+    el.soundBtn.setAttribute('data-sound', st);
+    el.soundBtn.setAttribute('aria-label', st === 'on' ? 'Mute sound' : st === 'muted' ? 'Enable sound' : 'Sound unavailable');
+    el.soundBtn.title = el.soundBtn.getAttribute('aria-label');
+    if (st === 'unavailable') el.soundBtn.setAttribute('aria-disabled', 'true'); else el.soundBtn.removeAttribute('aria-disabled');
+  }
+  el.soundBtn.addEventListener('click', function () {
+    if (audio.status() !== 'unavailable') {
+      audio.setMuted(!audio.isMuted());
+      audio.click();
+    }
+    refreshSoundBtn();
+  });
+  el.helpBtn.addEventListener('click', function () { audio.click(); });
+  el.helpClose.addEventListener('click', function () { audio.click(); });
+  el.resume.addEventListener('click', function () { audio.click(); });
+
+  // Sound bookkeeping. Everything is triggered by a change in game state:
+  // a few pixels of travel, a ratchet tooth passed, a lift step reached, a warning due.
+  var sound = { travel: 0, tooth: 0, liftStep: -1, nextWarn: 0 };
+  function resetSound() { sound.travel = 0; sound.tooth = 0; sound.liftStep = -1; sound.nextWarn = 0; }
+
+  function syncSound(moved) {
+    var st = game.state, gripping = !!game.target && (st === S.GRIPPING || st === S.LIFTING);
+
+    // carriage: a soft gear tick for every 22 px it travels
+    var travelling = st === S.READY || st === S.AIMING || (st === S.RETURNING && game.carrying);
+    if (travelling) {
+      sound.travel += moved;
+      if (sound.travel >= 22) { sound.travel = 0; audio.tick(); }
+    } else sound.travel = 0;
+
+    // ratchet: one tick per tooth as the grip tightens, climbing in pitch
+    var tooth = gripping ? Math.floor(game.pressure / 9) : 0;
+    if (gripping && game.hold && tooth > sound.tooth) audio.ratchet(tooth);
+    sound.tooth = tooth;
+
+    // lift: a rising scale, one note per eighth of the climb
+    if (st === S.LIFTING) {
+      var step = Math.floor(game.t / (C.LIFT_TIME / 8));
+      if (step > sound.liftStep) { sound.liftStep = step; audio.liftNote(step); }
+    } else if (st !== S.PAUSED) sound.liftStep = -1;
+
+    // warning tick-tock while damage builds, quicker the nearer it is to failing
+    if (st === S.LIFTING && game.zone() !== 'safe') {
+      if (view.time >= sound.nextWarn) {
+        var z = game.zone(), dmg = z === 'high' ? game.crush : game.slip;
+        audio.warn(z);
+        sound.nextWarn = view.time + sim.lerp(0.5, 0.16, sim.clamp(dmg, 0, 1));
+      }
+    } else {
+      sound.nextWarn = 0;
+    }
+  }
+
+  function failSound(ev) {
+    var type = ev.prize && ev.prize.type;
+    if (ev.cause === 'miss') return;                 // the empty clack already played
+    if (ev.cause === 'slip') { audio.whistle(); if (type === 'soap') audio.pops(); return; }
+    if (type === 'cake') audio.squish();
+    else if (type === 'egg') audio.crack();
+    else if (type === 'cactus') audio.squeak();
+    else { audio.squish(); audio.pops(); }           // soap squeezed out of shape
+  }
+
+  // ------------------------------------------------------------------ UI ---
+
+  var ui = {};
+  function setText(node, key, value) { if (ui[key] !== value) { ui[key] = value; node.textContent = value; } }
+  function setAttr(node, key, name, value) { if (ui[key] !== value) { ui[key] = value; node.setAttribute(name, value); } }
+  function setStyle(node, key, prop, value) { if (ui[key] !== value) { ui[key] = value; node.style[prop] = value; } }
+  function announce(text) { el.live.textContent = text; }
+
+  var GRADE = { perfect: 'Perfect grip!', gentle: 'Gentle hands!', ok: 'Got it!' };
+  function outcomeText(o) {
+    if (!o) return '';
+    if (!o.ok) return COPY.fail[o.cause];
+    return GRADE[o.grade] + ' +' + o.total;
+  }
+  /** Full breakdown, for screen readers. */
+  function outcomeDetail(o) {
+    if (!o || !o.ok) return outcomeText(o);
+    var parts = [PRIZES[o.type].name + ' ' + o.points];
+    if (o.bonus) parts.push((o.grade === 'perfect' ? 'perfect grip ' : 'gentle hands ') + o.bonus);
+    if (o.aim) parts.push('bullseye ' + o.aim);
+    if (o.streakBonus) parts.push(o.streak + ' in a row ' + o.streakBonus);
+    return GRADE[o.grade] + ' ' + parts.join(', plus ') + '. Total ' + o.total + ' points.';
+  }
+  function aimText() {
+    var base = finePointer ? COPY.aimDesk : COPY.aim;
+    if (game.streak > 0) return game.streak + ' in a row! Keep the streak going.';
+    return base;
+  }
+
+  function instruction(phase) {
+    if (game.state === S.PAUSED) return [COPY.paused, ''];
+    switch (phase) {
+      case S.GRIPPING:
+        if (!game.target) return [COPY.empty, ''];
+        return [hintThisGrip ? COPY.firstGrip : COPY.grip, ''];
+      case S.LIFTING: return [hintThisGrip ? COPY.firstGrip : COPY.lift, ''];
+      case S.RETURNING: case S.DROPPING:
+        if (game.outcome && !game.outcome.ok) return [outcomeText(game.outcome), 'bad'];
+        return [COPY.carry, 'good'];
+      case S.ATTEMPT_RESULT: return [outcomeText(game.outcome), game.outcome && game.outcome.ok ? 'good' : 'bad'];
+      case S.ROUND_OVER: return [COPY.round[game.captured.length], ''];
+      default: return [aimText(), game.streak > 0 ? 'good' : ''];
+    }
+  }
+
+  var LABELS = { drop: 'Drop claw', grip: 'Hold to grip', next: 'Next grab', again: 'Play again' };
+
+  function syncUI() {
+    var phase = game.phase();
+    syncMode();
+
+    setText(el.attempt, 'attempt', game.attempt + ' / ' + C.ATTEMPTS);
+    setText(el.score, 'score', String(game.score));
+    setText(el.best, 'best', best === null ? '—' : String(best));
+
+    var msg = instruction(phase);
+    setText(el.plateMsg, 'msg', msg[0]);
+    setAttr(el.plate, 'tone', 'data-tone', msg[1]);
+
+    // main button: the label only changes when a new action becomes available
+    if (mode !== 'none') {
+      var label = mode === 'next' && game.attempt >= C.ATTEMPTS ? 'See score' : LABELS[mode];
+      setText(el.action, 'label', label);
+      setAttr(el.action, 'btnMode', 'data-mode', mode);
+    }
+    setAttr(el.action, 'disabled', 'aria-disabled', String(mode === 'none'));
+
+    // pressure meter
+    var active = !!game.target && (phase === S.GRIPPING || phase === S.LIFTING);
+    setAttr(el.meter, 'meterActive', 'data-active', String(active));
+    if (active) {
+      var d = PRIZES[game.target.type], z = game.zone();
+      setStyle(el.band, 'bandL', 'left', d.min + '%');
+      setStyle(el.band, 'bandW', 'width', (d.max - d.min) + '%');
+      setStyle(el.needle, 'needle', 'left', game.pressure.toFixed(1) + '%');
+      setStyle(el.fill, 'fill', 'width', game.pressure.toFixed(1) + '%');
+      setAttr(el.meter, 'zone', 'data-zone', z);
+      setText(el.zone, 'zoneText', COPY.zone[z]);
+      setStyle(el.slip, 'slip', 'width', Math.round(game.slip * 100) + '%');
+      setStyle(el.crush, 'crush', 'width', Math.round(game.crush * 100) + '%');
+    } else {
+      setAttr(el.meter, 'zone', 'data-zone', 'none');
+      setText(el.zone, 'zoneText', 'Grip pressure');
+      setStyle(el.slip, 'slip', 'width', '0%');
+      setStyle(el.crush, 'crush', 'width', '0%');
+    }
+  }
+
+  function showRoundOver() {
+    var n = game.captured.length;
+    var res = sim.evaluateBest(best, game.score);
+    best = res.best;
+    writeBest(best);
+
+    var stars = sim.stars(game.score);
+    el.cardStars.textContent = '';
+    el.cardStars.setAttribute('aria-label', stars + ' of 3 stars');
+    for (var k = 0; k < 3; k++) {
+      var svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+      if (k < stars) svg.setAttribute('class', 'is-on');
+      var path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.4 6.3L12 16.8 6.3 20l1.4-6.3L2.9 9.4l6.4-.7z');
+      svg.appendChild(path); el.cardStars.appendChild(svg);
+    }
+    el.cardMsg.textContent = COPY.round[n];
+    el.cardScore.textContent = String(game.score);
+    el.cardBest.textContent = res.isNew ? 'New personal best!' : res.first ? 'That’s your score to beat.' : 'Personal best ' + best;
+    el.cardMinis.textContent = '';
+    for (var i = 0; i < C.ATTEMPTS; i++) {
+      if (i < n) {
+        var c = doc.createElement('canvas');
+        DCI.render.drawMini(c, game.captured[i], dpr());
+        el.cardMinis.appendChild(c);
+      } else {
+        el.cardMinis.appendChild(doc.createElement('i'));
+      }
+    }
+    el.card.hidden = false;
+    if (n === C.ATTEMPTS || res.isNew) { fireConfetti(); audio.flourish(); }   // together
+    else audio.closing();
+    announce('Round over. ' + COPY.round[n] + ' Score ' + game.score + ', ' + stars + ' of 3 stars.' + (res.isNew ? ' New personal best.' : '') + ' Press Play again for another round.');
+  }
+
+  function handleEvent(ev) {
+    renderer.onEvent(ev, game, reduced);
+    switch (ev.type) {
+      case 'restart':
+        trayItems.length = 0; el.card.hidden = true; el.pause.hidden = true; stopConfetti();
+        audio.stopAll(); resetSound();
+        announce('New round. Attempt 1 of ' + C.ATTEMPTS + '. ' + aimText());
+        break;
+      case 'next':
+        announce('Attempt ' + game.attempt + ' of ' + C.ATTEMPTS + '. ' + aimText());
+        break;
+      case 'drop': audio.lower(); break;
+      case 'touch':
+        hintThisGrip = firstGripPending; firstGripPending = false;
+        announce('The claw is on the ' + PRIZES[ev.prize.type].name.toLowerCase() + '. Hold to squeeze, release to loosen. Pressure is shown on the meter.');
+        break;
+      case 'empty': audio.clack(); break;
+      case 'lift-start':
+        audio.safe();
+        announce('Lifting. Keep the pressure in the safe band.'); break;
+      case 'fail': failSound(ev); break;
+      case 'thud': audio.thud(); break;
+      case 'collected':
+        trayItems.push({ type: ev.prize.type, at: view.time });
+        audio.landed();
+        audio.points(ev.outcome);
+        if (ev.outcome.grade === 'perfect') audio.sparkle();
+        break;
+      case 'result':
+        hintThisGrip = false;
+        announce(outcomeDetail(ev.outcome) + (game.attempt < C.ATTEMPTS ? ' Press Next grab.' : ''));
+        break;
+      case 'round-over': showRoundOver(); break;
+      case 'pause':
+        audio.stopAll();
+        announce('Paused. Press Resume to continue.'); break;
+      default: break;
+    }
+  }
+
+  // ---------------------------------------------------------------- loop ---
+
+  var lastFrame = 0;
+  function frame(now) {
+    root.requestAnimationFrame(frame);          // the one and only loop
+    var dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.05) : 0;
+    lastFrame = now;
+    if (doc.hidden) return;
+
+    // keyboard aiming, by elapsed time
+    var dir = (arrows.ArrowRight ? 1 : 0) - (arrows.ArrowLeft ? 1 : 0);
+    if (dir) game.aim(game.aimX + dir * 300 * dt);
+
+    game.update(dt);
+    var evs = game.events.splice(0, game.events.length);
+    for (var i = 0; i < evs.length; i++) handleEvent(evs[i]);
+
+    // soft carriage movement and a tiny settle; the cable itself stays vertical
+    view.time += dt; view.dt = dt; view.reduced = reduced;
+    var prevX = view.x;
+    view.x += (game.clawX - view.x) * (1 - Math.exp(-dt / 0.045));
+    if (Math.abs(game.clawX - view.x) < 0.05) view.x = game.clawX;
+    if (reduced || dt === 0) { view.sway = 0; view.swayV = 0; }
+    else {
+      var target = sim.clamp(-(view.x - prevX) / dt * 0.00045, -0.1, 0.1);
+      view.swayV += ((target - view.sway) * 170 - view.swayV * 11) * dt;
+      view.sway += view.swayV * dt;
+    }
+
+    syncSound(Math.abs(view.x - prevX));
+
+    renderer.draw(game, view);
+    DCI.render.drawTray(el.tray, trayItems, view.time, reduced);
+    stepConfetti(dt);
+    syncUI();
+  }
+
+  // deliver the opening 'restart' event quietly: nothing is announced before the player acts
+  game.events.length = 0;
+  refreshSoundBtn();
+  syncUI();
+  root.requestAnimationFrame(frame);
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+</body>
+</html>
