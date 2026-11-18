@@ -2,7 +2,7 @@
 
 A static portfolio site (no build step).
 
-**The intro:** a ball of tangled red thread spins on a dark screen. Press and hold (or Space, or just wait about 3 seconds) and the thread unwinds: its fibres stream out of the ball and stitch "Aakansha Singh" together, left to right. Let go early and it tangles back up; move the cursor through the fibres to scatter them. When the name is complete it settles into the crisp handwriting and the screen splits open onto the desk. Escape, scrolling or "Skip intro" skips it; it plays once per visit and is skipped for reduced motion.
+**The intro:** "Too much going on." The screen fills with the clutter of a noisy product: popups, cookie banners, badges, buttons that all shout at once. Swipe (or just move the cursor) through it and every piece pops away. Do nothing and a cursor starts tidying up on its own. Whatever is left at about 5 seconds is swept away, the word "Better." lands, and the calm desk drops in. It takes 6 seconds at most. Escape, scrolling or "Skip intro" skips it; it plays once per visit and is skipped for reduced motion.
 
 **Play / Tidy up:** the switch at the bottom of the desk. Tidy up sweeps every object to the edges for a calm, focused intro; clicking any object (or Play) brings the desk back. The choice is remembered.
 
@@ -45,7 +45,7 @@ python3 -m http.server 8000
 index.html            markup: intro, desk, work, about, contact
 assets/css/styles.css all styles (desk prop positions are near the "props" comment)
 assets/js/sound.js    synthesized sounds and the cassette music
-assets/js/intro.js    the thread / name intro
+assets/js/intro.js    the clutter-clearing intro
 assets/js/desk.js     dragging and the click action of every desk object
 assets/js/cases.js    case study content for the detail pages
 assets/js/case.js     renders a case study page

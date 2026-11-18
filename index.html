@@ -18,15 +18,14 @@
 <body class="intro-on">
 
 <!-- ================= INTRO =================
-     A ball of tangled red thread spins on a dark screen. Press and hold
-     (or wait) and the thread unwinds into the name, fibre by fibre; the
-     cursor scatters the fibres. Then the screen splits open on the desk. -->
+     "Too much going on": the screen fills with the clutter of a noisy
+     product (popups, banners, badges). Swipe through it to clear it, or
+     watch a cursor tidy up. About 6 seconds, then the desk drops in. -->
 <div class="intro" id="intro" aria-hidden="true">
-  <div class="half top"></div>
-  <div class="half bottom"></div>
-  <canvas class="icv" id="icv"></canvas>
-  <div class="iname" id="iname"></div>
-  <div class="ihint" id="ihint"><b>press &amp; hold to pull the thread</b><span>or just wait</span><div class="bar"><i id="ibar"></i></div></div>
+  <div class="ibits" id="ibits"></div>
+  <div class="ihint" id="ihint"><b>Too much going on.</b><span>swipe to clean it up · <em id="icount">0</em> things left</span></div>
+  <svg class="ibot" id="ibot" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 7.5-6.2 1.7L10 18.5z"/></svg>
+  <p class="idone" id="idone">Better.</p>
   <button class="skip" id="skipBtn" type="button">Skip intro →</button>
 </div>
 
