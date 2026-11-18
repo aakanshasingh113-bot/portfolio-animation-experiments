@@ -126,6 +126,16 @@
         </span></span>
       </button>
 
+      <!-- Desk calendar: today, then a page for each day of a typical week -->
+      <button class="prop" id="pCal" data-k="cal" style="--i:4" type="button" aria-label="Desk calendar. Flip to the next day">
+        <span class="tag" id="calTag">flip a day</span>
+        <span class="land"><span class="art cal">
+          <span class="cal-rings" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="cal-page" id="calPage"><b class="cal-k" id="calK">NOV</b><b class="cal-d" id="calD">18</b><span class="cal-n" id="calN">Wednesday</span></span>
+          <span class="cal-under" aria-hidden="true"></span>
+        </span></span>
+      </button>
+
       <!-- Cassette -->
       <button class="prop" id="pTape" data-k="tape" style="--i:5" type="button" aria-label="Cassette. Press play" aria-pressed="false">
         <span class="tag" id="tapeTag">press play</span>
@@ -144,14 +154,14 @@
       </button>
 
       <!-- Work folder -->
-      <button class="prop" id="pFolder" data-k="folder" style="--i:6" type="button" aria-label="Folder of work. Open it">
-        <span class="tag" id="folderTag">open my work</span>
+      <button class="prop" id="pFolder" data-k="folder" style="--i:6" type="button" aria-label="Folder of the tools I use. Open it">
+        <span class="tag" id="folderTag">open my toolkit</span>
         <span class="land"><span class="art folder" id="folder">
           <span class="fback"></span>
-          <span class="fcard c1"><b>Legrand</b>switch configurator</span>
-          <span class="fcard c2"><b>Oman 2040</b>holographic story</span>
-          <span class="fcard c3"><b>+2</b>coming soon</span>
-          <span class="ffront"><span>WORK · 2022—26</span></span>
+          <span class="fcard c1 logo"><img src="assets/tools/figma.svg" alt="Figma"></span>
+          <span class="fcard c2 logo"><img src="assets/tools/chatgpt.png" alt="ChatGPT"></span>
+          <span class="fcard c3 logo"><img src="assets/tools/claude.png" alt="Claude"></span>
+          <span class="ffront"><span>MY TOOLS</span></span>
         </span></span>
       </button>
 
@@ -202,7 +212,7 @@
       </button>
     </div>
 
-    <div class="counter" aria-live="polite"><span id="countTxt">drag &amp; click anything · 0/10</span><span class="pips" id="pips" aria-hidden="true"></span></div>
+    <div class="counter" aria-live="polite"><span id="countTxt">drag &amp; click anything · 0/11</span><span class="pips" id="pips" aria-hidden="true"></span></div>
     <button class="replay" id="replayBtn" type="button">↺ replay intro</button>
 
     <!-- Play: the full desk. Tidy: everything is swept to the edges for a calm, focused intro. -->
@@ -653,7 +663,7 @@
     <div class="wrap foot-grid reveal">
       <div class="foot-talk">
         <p class="eyebrow-no"><i></i><b>06</b>Let's talk</p>
-        <h2 id="contactTitle">Complex product?<br><span style="white-space:nowrap">Let's make it <em>simple.</em></span></h2>
+        <h2 id="contactTitle">Complex product?<br><span style="white-space:nowrap">Let's make it simple.</span></h2>
         <p class="contact-sub">I'm open to product design roles and the occasional freelance project. I reply within a day.</p>
         <div class="mail"><a class="mail-link" href="mailto:you@youremail.com"><code id="email">you@youremail.com</code><span class="arr" aria-hidden="true">↗</span></a><button class="copy" id="copyBtn" type="button">Copy email</button></div>
         <ul class="stamps">
@@ -695,6 +705,8 @@
 <script src="assets/js/sound.js"></script>
 <script src="assets/js/intro.js"></script>
 <script src="assets/js/desk.js"></script>
+<script src="assets/js/desk-plus.js"></script>
+<script src="assets/js/lamp.js"></script>
 <script src="assets/js/cases.js"></script>
 <script src="assets/js/site.js"></script>
 <script src="assets/js/process.js"></script>

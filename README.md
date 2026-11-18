@@ -6,7 +6,7 @@ A static portfolio site (no build step).
 
 **Play / Tidy up:** the switch at the bottom of the desk. Tidy up sweeps every object to the edges for a calm, focused intro; clicking any object (or Play) brings the desk back. The choice is remembered.
 
-**The desk:** ten objects you can drag anywhere. Each one does something when clicked:
+**The desk:** eleven objects you can drag anywhere. Each one does something when clicked:
 
 | Object | Click |
 | --- | --- |
@@ -14,6 +14,7 @@ A static portfolio site (no build step).
 | Coffee | take a sip (then refill) |
 | Sticky notes | peel off a user quote |
 | Receipt | prints another skill |
+| Desk calendar | shows today's date, then tears off a page for each day of a typical week |
 | Cassette | plays lo-fi music |
 | Folder | fans out the work, click again to jump to it |
 | Plant | water it to grow a new version |
