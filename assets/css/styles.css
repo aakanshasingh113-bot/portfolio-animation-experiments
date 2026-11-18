@@ -140,10 +140,9 @@ button{font:inherit; color:inherit}
 
 #pBadge{--x:11%; --y:-20px; --w:172px; --r:-3deg}
 #pCoffee{--x:25.5%; --y:14%; --w:132px; --r:0deg}
-#pNotes{--x:37.5%; --y:9%; --w:128px; --r:6deg}
-#pReceipt{--x:60%; --y:12%; --w:150px; --r:-4deg}
+#pNotes{--x:39%; --y:9%; --w:128px; --r:6deg}
+#pReceipt{--x:auto; --y:11%; --w:150px; --r:-4deg; right:13%}
 #pPhotos{--x:auto; --y:13%; --w:220px; --r:3deg; right:5%}
-#pCal{--x:auto; --y:12%; --w:clamp(130px,11vw,164px); --r:5deg; right:2%}
 #pTape{--x:5%; --y:66%; --w:190px; --r:-6deg}
 #pFolder{--x:22%; --y:67%; --w:170px; --r:4deg}
 #pWindow{--x:calc(50% - 150px); --y:69%; --w:300px; --r:0deg}
@@ -732,7 +731,7 @@ body.leaving{opacity:0; transition:opacity .25s}
   .props{position:relative; inset:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:54px 18px; margin:70px auto 0; max-width:560px; justify-items:center; align-items:center}
   .prop{position:relative; left:auto!important; right:auto!important; top:auto!important; width:min(var(--w),100%)}
   #pBadge{--w:150px} #pBadge .strap{height:60px} .badge .avatar{width:62px; height:62px; font-size:22px} .badge .dev{font-size:19px}
-  #pPhotos{--w:180px} #pCal{--w:150px} #pPost{--w:180px} #pTape{--w:170px} #pFolder{--w:150px}
+  #pPhotos{--w:180px} #pPost{--w:180px} #pTape{--w:170px} #pFolder{--w:150px}
   #pWindow{grid-column:1 / -1; --w:320px}
   #pPencil{grid-column:1 / -1; --w:150px; --r:-8deg}
   .counter{left:50%; transform:translateX(-50%); bottom:24px; white-space:nowrap}
@@ -797,7 +796,7 @@ body.leaving{opacity:0; transition:opacity .25s}
   #pBadge{--w:104px} #pBadge .strap{height:34px}
   .badge .face{padding:10px 9px} .badge .dev{font-size:14px; margin-top:6px} .badge .small{display:none} .badge .avatar{width:44px; height:44px; font-size:16px; border-width:2px} .badge .bc{height:9px}
   .badge .back b{font-size:14px} .badge .back span{font-size:10.5px}
-  #pCoffee{--w:96px} #pNotes{--w:98px} #pReceipt{--w:112px} #pPhotos{--w:118px} #pCal{--w:104px} #pTape{--w:116px} #pFolder{--w:108px} #pPlant{--w:78px} #pPost{--w:118px}
+  #pCoffee{--w:96px} #pNotes{--w:98px} #pReceipt{--w:112px} #pPhotos{--w:118px} #pTape{--w:116px} #pFolder{--w:108px} #pPlant{--w:78px} #pPost{--w:118px}
   .receipt{padding:10px 9px 18px; font-size:8.5px} .receipt b{font-size:9.5px} .receipt small{font-size:7px} .receipt .thx{font-size:13px}
   .post .greet{font-size:17px; margin-top:12px} .post .stamp{width:26px; height:32px; font-size:14px; right:8px; top:8px} .post .pm{display:none} .post .back{font-size:13px}
   .pol .cap{font-size:13px; padding:6px 0 7px}
@@ -1072,18 +1071,3 @@ body.leaving{opacity:0; transition:opacity .25s}
 @keyframes unlockIn{from{opacity:0; transform:translateX(-50%) translateY(20px) rotate(4deg)}}
 @media (prefers-reduced-motion:reduce){ .prop.nudge .art{animation:none} }
 
-/* ---------- desk calendar ---------- */
-@media (min-width:981px) and (max-width:1120px){ #pCal{right:1%; --w:118px} }
-.cal{padding-top:12px; perspective:600px}
-.cal-rings{position:absolute; z-index:3; left:12%; right:12%; top:0; display:flex; justify-content:space-between; pointer-events:none}
-.cal-rings i{width:9px; height:22px; border-radius:6px; background:linear-gradient(90deg,#8E877B,#D9D2C4 45%,#8E877B); box-shadow:0 1px 1px rgba(0,0,0,.25)}
-.cal-page, .cal-under{display:grid; justify-items:center; aspect-ratio:1/1.02; background:#FFFDF8; border-radius:10px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(60,40,20,.08)}
-.cal-page{position:relative; z-index:2; transform-origin:50% 0; transition:transform .33s cubic-bezier(.5,0,.75,0), opacity .33s; grid-template-rows:auto 1fr auto}
-.cal-under{position:absolute; z-index:1; left:5px; right:-5px; top:17px; transform:rotate(2deg); background:#F3ECDD}
-.cal-k{width:100%; text-align:center; padding:11px 0 7px; background:var(--accent); color:#fff; font:800 15px/1 var(--display); letter-spacing:.08em}
-.cal-d{align-self:center; font:800 clamp(46px,4.6vw,66px)/1 var(--display); letter-spacing:-.05em; color:var(--ink)}
-.cal-n{padding:0 8px 12px; font:700 18px/1.05 var(--hand); color:var(--muted); text-align:center}
-.cal-page.word .cal-d{font:700 clamp(30px,2.8vw,40px)/1 var(--hand); letter-spacing:0; color:var(--accent)}
-.cal-page.tear{transform:rotateX(-75deg) translateY(-12px); opacity:0}
-.cal-page.fresh{transition:none; transform:translateY(6px); opacity:.4}
-@media (max-width:640px){ .cal-k{font-size:11px; padding:7px 0 5px} .cal-d{font-size:34px} .cal-page.word .cal-d{font-size:22px} .cal-n{font-size:13px; padding-bottom:8px} .cal-rings i{width:6px; height:15px} .cal{padding-top:8px} }

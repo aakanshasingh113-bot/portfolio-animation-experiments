@@ -28,7 +28,7 @@
   }
 
   /* ---------- drag anything; a click without a drag is a tap ---------- */
-  var z = 10, pitch = {badge:523, coffee:659, notes:740, receipt:830, cal:880, tape:587, folder:698, plant:784, window:932, post:988, pencil:1046};
+  var z = 10, pitch = {badge:523, coffee:659, notes:740, receipt:830,  tape:587, folder:698, plant:784, window:932, post:988, pencil:1046};
   function draggable(el, onTap){
     var sx, sy, ox, oy, active = false, moved = false;
     el.addEventListener('pointerdown', function(e){
@@ -117,35 +117,6 @@
     setTimeout(function(){ stack.insertBefore(topPol, stack.firstElementChild); requestAnimationFrame(function(){ topPol.classList.remove('out'); shuffling = false; }); }, 380);
     discover('photos');
   });
-
-  /* desk calendar: today's date, then a page for each day of a typical week */
-  var cal = $('pCal');
-  if(cal){
-    var now = new Date(), MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    var week = [
-      [MON[now.getMonth()], String(now.getDate()), DAYS[now.getDay()]],
-      ['MON', 'crit', 'design review, 10am'],
-      ['TUE', 'flows', 'edge cases, all day'],
-      ['WED', 'proto', 'prototype day'],
-      ['THU', 'handoff', 'dev walkthrough + QA'],
-      ['FRI', 'puri', 'pani puri o\u2019clock'],
-      ['SAT', 'bake', 'croissant attempt #14']
-    ], ci = 0, flipping = false;
-    function paintCal(){ var d = week[ci]; $('calK').textContent = d[0]; $('calD').textContent = d[1]; $('calN').textContent = d[2]; $('calPage').classList.toggle('word', ci > 0); }
-    paintCal();
-    draggable(cal, function(){
-      if(flipping) return; flipping = true;
-      var pg = $('calPage'); pg.classList.add('tear'); snd.peel();
-      setTimeout(function(){
-        ci = (ci + 1) % week.length; paintCal();
-        pg.classList.remove('tear'); pg.classList.add('fresh');
-        requestAnimationFrame(function(){ requestAnimationFrame(function(){ pg.classList.remove('fresh'); flipping = false; }); });
-        $('calTag').textContent = ci === 0 ? 'flip a day' : 'next day';
-      }, 330);
-      discover('cal');
-    });
-  }
 
   /* cassette: lo-fi on and off */
   draggable($('pTape'), function(){
