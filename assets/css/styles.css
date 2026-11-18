@@ -29,7 +29,7 @@ button{font:inherit; color:inherit}
 .wrap{max-width:1160px; margin:0 auto; padding-inline:clamp(16px,4vw,40px)}
 
 /* ---------- INTRO: too much going on ---------- */
-.intro{position:fixed; inset:0; z-index:200; overflow:hidden; background:color-mix(in oklab, var(--paper) 55%, transparent); cursor:crosshair; touch-action:none; user-select:none; -webkit-user-select:none; transition:opacity .5s, background .6s}
+.intro{position:fixed; inset:0; z-index:200; overflow:hidden; background:color-mix(in oklab, var(--paper) 55%, transparent); cursor:crosshair; touch-action:none; user-select:none; -webkit-user-select:none; transition:opacity .35s, background .4s}
 .intro.swept{background:transparent}
 .intro.open{opacity:0; pointer-events:none}
 .ibits{position:absolute; inset:0}

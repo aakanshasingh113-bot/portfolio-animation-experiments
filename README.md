@@ -2,7 +2,7 @@
 
 A static portfolio site (no build step).
 
-**The intro:** "Too much going on." The screen fills with the clutter of a noisy product: popups, cookie banners, badges, buttons that all shout at once. Swipe (or just move the cursor) through it and every piece pops away. Do nothing and a cursor starts tidying up on its own. Whatever is left at about 5 seconds is swept away, the word "Better." lands, and the calm desk drops in. It takes 6 seconds at most. Escape, scrolling or "Skip intro" skips it; it plays once per visit and is skipped for reduced motion.
+**The intro:** "Too much going on." The screen fills with the clutter of a noisy product: popups, cookie banners, badges, buttons that all shout at once. Swipe (or just move the cursor) through it and every piece pops away. Do nothing and a cursor starts tidying up on its own. Whatever is left after about 2.5 seconds is swept away, the word "Better." lands, and the calm desk drops in. It takes about 4 seconds. Escape, scrolling or "Skip intro" skips it; it plays once per visit and is skipped for reduced motion.
 
 **Play / Tidy up:** the switch at the bottom of the desk. Tidy up sweeps every object to the edges for a calm, focused intro; clicking any object (or Play) brings the desk back. The choice is remembered.
 

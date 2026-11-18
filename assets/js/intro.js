@@ -2,16 +2,15 @@
    designed product: popups, banners, badges, buttons that all shout at once.
    Swipe (or move the cursor) through it to clear it away; every piece you
    clear pops. Do nothing and a cursor starts tidying on its own. Whatever is
-   left after about 4 seconds is swept away in one go, the word "Better." lands,
-   and the calm desk behind it all drops in. The whole thing takes 6 seconds
-   at most. Escape, scroll or "Skip" skips it. */
+   left after about 2.5 seconds is swept away in one go, the word "Better." lands,
+   and the calm desk behind it all drops in. The whole thing takes about 4 seconds. Escape, scroll or "Skip" skips it. */
 (function(){
   var S = window.Site, $ = S.$, snd = S.snd;
   var intro = $('intro'), layer = $('ibits'), hint = $('ihint'), count = $('icount'), bot = $('ibot'), done_ = $('idone');
   var desk = $('top'), body = document.body;
   var timers = [], raf = null, done = false, running = false;
   var bits = [], left = 0, total = 0, t0 = 0, lastUser = -9, lastPop = 0, popN = 0, swept = false;
-  var CAP = 4.2;   // seconds before the leftovers are swept away
+  var CAP = 2.5;   // seconds before the leftovers are swept away
 
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
   function rnd(a, b){ return a + Math.random() * (b - a); }
@@ -114,10 +113,10 @@
   function frame(now){
     var time = (now - t0) / 1000, dt = Math.min(.05, (now - (lastF || now)) / 1000); lastF = now;
     /* nobody swiping for a moment: the cursor takes over (and hands back when you move) */
-    var idle = time - lastUser > .7;
-    if(time > 1.6 && idle && !swept){
+    var idle = time - lastUser > .5;
+    if(time > .8 && idle && !swept){
       if(!botOn){ botOn = true; bot.classList.add('on'); }
-      botK = Math.min(1, botK + dt / 2.8);
+      botK = Math.min(1, botK + dt / 1.7);
       var p = along(botK);
       bot.style.transform = 'translate(' + p[0].toFixed(1) + 'px,' + p[1].toFixed(1) + 'px)';
       brush(p[0], p[1], innerWidth < 640 ? 64 : 84, botPrev ? botPrev[0] : p[0] - 1, botPrev ? botPrev[1] : p[1]);
@@ -132,10 +131,10 @@
     if(swept) return; swept = true; botOn = false; bot.classList.remove('on');
     intro.classList.add('swept');
     var rest = bits.filter(function(b){ return !b.gone; }), cx = innerWidth / 2, cy = innerHeight / 2;
-    rest.forEach(function(b, i){ later(function(){ pop(b, b.x - cx, b.y - cy, true); }, i * 7); });
+    rest.forEach(function(b, i){ later(function(){ pop(b, b.x - cx, b.y - cy, true); }, i * 4); });
     snd.noise(.4, 'bandpass', 700, .14, 0, 3200, .8);
-    later(function(){ intro.classList.add('better'); snd.chime(); }, rest.length * 7 + 120);
-    later(finish, rest.length * 7 + 800);
+    later(function(){ intro.classList.add('better'); snd.chime(); }, rest.length * 4 + 60);
+    later(finish, rest.length * 4 + 620);
   }
 
   function reveal(){
@@ -147,7 +146,7 @@
     if(done) return; done = true; stop();
     intro.classList.add('open'); body.classList.remove('intro-on');
     reveal();
-    setTimeout(function(){ if(done){ intro.hidden = true; layer.innerHTML = ''; } }, 650);
+    setTimeout(function(){ if(done){ intro.hidden = true; layer.innerHTML = ''; } }, 450);
   }
 
   function play(){
