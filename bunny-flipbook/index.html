@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Bunny Who Packed Too Much</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #4a2f27;
+    --berry: #a8343a;
+    --cream: #fbf1df;
+    --paper: #f8ecd6;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    font-family: "Nunito", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at 50% 115%, rgba(150, 190, 90, .55), transparent 55%),
+      radial-gradient(ellipse at 50% -20%, #fffaf0 0%, transparent 60%),
+      linear-gradient(180deg, #bfe0f3 0%, #dcefe9 55%, #f3ead2 100%);
+    display: flex; flex-direction: column; align-items: center;
+    user-select: none; -webkit-user-select: none;
+  }
+
+  /* floating clouds */
+  .cloud {
+    position: fixed; z-index: 0; pointer-events: none;
+    width: 180px; height: 60px; border-radius: 60px; background: rgba(255,255,255,.75);
+    filter: blur(1px);
+    animation: drift linear infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: ""; position: absolute; background: inherit; border-radius: 50%;
+  }
+  .cloud::before { width: 80px; height: 80px; left: 25px; top: -40px; }
+  .cloud::after  { width: 60px; height: 60px; left: 90px; top: -25px; }
+  @keyframes drift { from { transform: translateX(-260px); } to { transform: translateX(calc(100vw + 260px)); } }
+
+  header {
+    position: relative; z-index: 2; text-align: center;
+    padding: max(10px, env(safe-area-inset-top)) 12px 0;
+    flex: 0 0 auto;
+  }
+  header h1 {
+    margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600;
+    font-size: clamp(18px, 2.6vw, 30px); line-height: 1.1; color: var(--berry);
+    letter-spacing: .01em;
+  }
+  header h1 span { color: #2d3a4a; font-weight: 500; }
+  header p { margin: 2px 0 0; font-size: clamp(11px, 1.2vw, 14px); opacity: .7; }
+
+  .stage {
+    position: relative; z-index: 1; flex: 1 1 auto; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    perspective: 2600px; perspective-origin: 50% 40%;
+    touch-action: none;
+  }
+  .book {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  /* page-stack bases (give the closed/open book thickness) */
+  .base {
+    position: absolute; top: 0; height: 100%;
+    background: var(--paper); border-radius: 3px;
+    pointer-events: none;
+  }
+  .base.right {
+    box-shadow:
+      1px 1px 0 #efe1c6, 2px 2px 0 #fbf4e6, 3px 3px 0 #e8d8ba, 4px 4px 0 #f8efdd,
+      5px 5px 0 #e2cfae, 6px 7px 0 #b9875a,
+      14px 22px 40px rgba(60, 40, 20, .28);
+    border-radius: 0 4px 4px 0;
+  }
+  .base.left {
+    box-shadow:
+      -1px 1px 0 #efe1c6, -2px 2px 0 #fbf4e6, -3px 3px 0 #e8d8ba, -4px 4px 0 #f8efdd,
+      -5px 5px 0 #e2cfae, -6px 7px 0 #b9875a,
+      -14px 22px 40px rgba(60, 40, 20, .28);
+    border-radius: 4px 0 0 4px;
+  }
+  .single .base.left { display: none; }
+
+  .leaf {
+    position: absolute; top: 0;
+    transform-origin: 0 50%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    overflow: hidden; background: var(--paper);
+  }
+  .face.front { border-radius: 0 4px 4px 0; }
+  .face.back  { transform: rotateY(180deg); border-radius: 4px 0 0 4px; }
+  .face img {
+    width: 100%; height: 100%; display: block; object-fit: cover;
+    pointer-events: none; -webkit-user-drag: none;
+  }
+  /* fold shadow near the spine */
+  .face::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+  }
+  .spread .face.front::after {
+    background: linear-gradient(90deg, rgba(60,35,15,.30) 0%, rgba(60,35,15,.10) 3%, rgba(255,255,255,.06) 6%, transparent 12%);
+  }
+  .spread .face.back::after {
+    background: linear-gradient(270deg, rgba(60,35,15,.30) 0%, rgba(60,35,15,.10) 3%, rgba(255,255,255,.06) 6%, transparent 12%);
+  }
+  .single .face.front::after {
+    background: linear-gradient(90deg, rgba(60,35,15,.18) 0%, transparent 4%);
+  }
+  /* dynamic shading while turning */
+  .shade {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  }
+  .front .shade { background: linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,.35) 70%, rgba(255,255,255,.25) 96%, rgba(0,0,0,.1)); }
+  .back .shade  { background: linear-gradient(270deg, rgba(0,0,0,.05), rgba(0,0,0,.30) 70%, rgba(255,255,255,.25) 96%, rgba(0,0,0,.1)); }
+
+  /* hard covers */
+  .leaf.hard .face { border-radius: 0 6px 6px 0; }
+  .leaf.hard .face.back { border-radius: 6px 0 0 6px; }
+  .leaf.hard .face.front { box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+
+  /* endpapers: little strawberry-dot pattern */
+  .endpaper {
+    width: 100%; height: 100%;
+    background-color: #f6e2cf;
+    background-image:
+      radial-gradient(circle at 25% 30%, #d9545c 0 5%, transparent 5.5%),
+      radial-gradient(circle at 75% 80%, #e8b34a 0 3.5%, transparent 4%),
+      radial-gradient(circle at 70% 25%, #8bbf6a 0 2.5%, transparent 3%);
+    background-size: 64px 64px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .endpaper .tag {
+    background: var(--cream); padding: 14px 20px; border-radius: 14px;
+    font-family: "Fredoka", sans-serif; color: var(--berry);
+    box-shadow: 0 4px 14px rgba(120, 60, 30, .18); text-align: center;
+    font-size: clamp(12px, 1.4vw, 18px); line-height: 1.3;
+  }
+  .endpaper .tag small { display: block; color: var(--ink); opacity: .65; font-family: "Nunito", sans-serif; font-size: .75em; }
+  .plain-back {
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, #efe0c4, var(--paper) 30%, #f3e6cd);
+  }
+
+  /* controls */
+  .controls {
+    position: relative; z-index: 2; flex: 0 0 auto;
+    display: flex; gap: 10px; align-items: center; justify-content: center;
+    padding: 6px 12px max(12px, env(safe-area-inset-bottom));
+  }
+  .btn {
+    appearance: none; border: 0; cursor: pointer;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: #fffaf0; color: var(--berry);
+    box-shadow: 0 3px 0 #e3c9a4, 0 6px 16px rgba(80, 50, 20, .18);
+    display: grid; place-items: center;
+    transition: transform .15s, opacity .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #e3c9a4, 0 3px 8px rgba(80,50,20,.18); }
+  .btn:disabled { opacity: .35; cursor: default; transform: none; }
+  .btn svg { width: 22px; height: 22px; }
+  .btn.small { width: 38px; height: 38px; }
+  .btn.small svg { width: 18px; height: 18px; }
+  .counter {
+    min-width: 130px; text-align: center; font-weight: 700; font-size: 14px;
+    background: rgba(255, 250, 240, .8); padding: 9px 14px; border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(80, 50, 20, .12);
+  }
+  .progress {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    height: 3px; width: 0; background: var(--berry); border-radius: 3px; opacity: .5;
+    transition: width .5s ease;
+  }
+
+  .hint {
+    position: absolute; z-index: 3; left: 50%; bottom: 76px; transform: translateX(-50%);
+    background: rgba(74, 47, 39, .85); color: #fff; font-size: 13px; padding: 8px 14px;
+    border-radius: 999px; pointer-events: none; white-space: nowrap;
+    transition: opacity .6s;
+  }
+  .hint.hide { opacity: 0; }
+
+  .loading {
+    position: fixed; inset: 0; z-index: 10; display: grid; place-items: center;
+    background: #dcefe9; transition: opacity .5s;
+    font-family: "Fredoka", sans-serif; color: var(--berry); font-size: 20px;
+  }
+  .loading.done { opacity: 0; pointer-events: none; }
+  .loading .hop { display: inline-block; animation: hop .6s ease-in-out infinite alternate; }
+  @keyframes hop { to { transform: translateY(-14px); } }
+
+  @media (prefers-reduced-motion: reduce) { .cloud { display: none; } }
+</style>
+</head>
+<body>
+  <div class="cloud" style="top:12%; animation-duration:95s; animation-delay:-20s"></div>
+  <div class="cloud" style="top:30%; transform:scale(.7); animation-duration:130s; animation-delay:-80s; opacity:.7"></div>
+  <div class="cloud" style="top:6%;  animation-duration:160s; animation-delay:-120s; opacity:.6"></div>
+
+  <header>
+    <h1><span>The Bunny Who</span> Packed Too Much</h1>
+    <p>by Aakansha Singh</p>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="book" id="book"></div>
+    <div class="hint" id="hint">Tap a page, swipe, or drag the corner to turn</div>
+  </main>
+
+  <nav class="controls">
+    <button class="btn small" id="first" aria-label="Back to cover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
+    </button>
+    <button class="btn" id="prev" aria-label="Previous page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="counter" id="counter" aria-live="polite">Cover</div>
+    <button class="btn" id="next" aria-label="Next page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+    <button class="btn small" id="sound" aria-label="Toggle page sound">
+      <svg id="soundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14"/></svg>
+      <svg id="soundOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+    </button>
+    <div class="progress" id="progress"></div>
+  </nav>
+
+  <div class="loading" id="loading"><div><span class="hop">🐰</span> Opening the book…</div></div>
+
+<script>
+(() => {
+  const PAGE_COUNT = 19;
+  const RATIO = 1334 / 1000;            // page height / width
+  const src = n => `pages/${String(n).padStart(2, "0")}.webp`;
+
+  const stage = document.getElementById("stage");
+  const book = document.getElementById("book");
+  const counter = document.getElementById("counter");
+  const hint = document.getElementById("hint");
+
+  // ---------- content for each face ----------
+  const img = n => ({ page: n });
+  const ENDPAPER_FRONT = { html: '<div class="endpaper"></div>' };
+  const ENDPAPER_START = { html: '<div class="endpaper"><div class="tag">This book belongs to<br>a very good reader<small>♡</small></div></div>' };
+  const ENDPAPER_END = { html: '<div class="endpaper"><div class="tag">The End<small>Tomorrow… the sofa?</small></div></div>' };
+  const PLAIN = { html: '<div class="plain-back"></div>' };
+
+  // Two-page spreads. The artwork is painted across 3|4, 5|6, 7|8 … 17|18,
+  // so the cover and title page stand alone and the back cover closes the book.
+  function spreadLeaves() {
+    const L = [];
+    L.push({ front: img(1), back: ENDPAPER_START, hard: true });
+    L.push({ front: img(2), back: img(3) });
+    for (let p = 4; p <= 16; p += 2) L.push({ front: img(p), back: img(p + 1) });
+    L.push({ front: img(18), back: ENDPAPER_END });
+    L.push({ front: ENDPAPER_FRONT, back: img(19), hard: true });
+    return L;
+  }
+  // Phone: one page at a time.
+  function singleLeaves() {
+    const L = [];
+    for (let p = 1; p <= PAGE_COUNT; p++) L.push({ front: img(p), back: PLAIN, hard: p === 1 });
+    return L;
+  }
+
+  // ---------- state ----------
+  let mode = null;          // "spread" | "single"
+  let leaves = [];          // {el, front, back, angle, data}
+  let target = 0;           // number of leaves that are (or will be) turned
+  let pageW = 300, pageH = 400;
+  const anims = new Map();  // leafIndex -> animation
+  let drag = null;
+
+  function faceHTML(d) {
+    if (d.page) return `<img src="${src(d.page)}" alt="Page ${d.page}" draggable="false">`;
+    return d.html;
+  }
+
+  function build(newMode, keepPage) {
+    mode = newMode;
+    document.body.classList.toggle("spread", mode === "spread");
+    document.body.classList.toggle("single", mode === "single");
+    anims.clear(); drag = null;
+    book.innerHTML = "";
+    const data = mode === "spread" ? spreadLeaves() : singleLeaves();
+
+    const baseL = document.createElement("div"); baseL.className = "base left";
+    const baseR = document.createElement("div"); baseR.className = "base right";
+    book.append(baseL, baseR);
+
+    leaves = data.map((d, i) => {
+      const el = document.createElement("div");
+      el.className = "leaf" + (d.hard ? " hard" : "");
+      el.innerHTML =
+        `<div class="face front">${faceHTML(d.front)}<div class="shade"></div></div>` +
+        `<div class="face back">${faceHTML(d.back)}<div class="shade"></div></div>`;
+      book.appendChild(el);
+      return {
+        el, data: d, angle: 0,
+        frontShade: el.querySelector(".front .shade"),
+        backShade: el.querySelector(".back .shade"),
+        back: el.querySelector(".face.back"),
+      };
+    });
+
+    target = pageToTarget(keepPage || 1);
+    leaves.forEach((l, i) => l.angle = i < target ? -180 : 0);
+    layout();
+  }
+
+  // map between "a page number being viewed" and "leaves turned"
+  function pageToTarget(p) {
+    if (mode === "single") return Math.min(p - 1, PAGE_COUNT - 1);
+    if (p <= 1) return 0;
+    if (p === 2) return 1;
+    if (p >= 19) return leaves.length;
+    return Math.floor(p / 2);            // 3|4 -> 2 ... 17|18 -> 9
+  }
+  function currentPage() {
+    if (mode === "single") return target + 1;
+    if (target === 0) return 1;
+    if (target >= leaves.length) return 19;
+    const right = leaves[target].data.front;
+    if (right.page) return right.page;
+    return 19;
+  }
+
+  function layout() {
+    const r = stage.getBoundingClientRect();
+    const availW = r.width * (mode === "spread" ? 0.94 : 0.92);
+    const availH = r.height * 0.94;
+    const pages = mode === "spread" ? 2 : 1;
+    pageW = Math.floor(Math.min(availW / pages, availH / RATIO));
+    pageH = Math.floor(pageW * RATIO);
+    const bookW = pageW * pages;
+    book.style.width = bookW + "px";
+    book.style.height = pageH + "px";
+    const left = mode === "spread" ? pageW : 0;
+    leaves.forEach(l => {
+      l.el.style.left = left + "px";
+      l.el.style.width = pageW + "px";
+      l.el.style.height = pageH + "px";
+    });
+    const [bl, br] = book.querySelectorAll(".base");
+    bl.style.left = "0px"; bl.style.width = pageW + "px";
+    br.style.left = left + "px"; br.style.width = pageW + "px";
+    stage.style.perspective = (pageW * 7) + "px";
+    render();
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    const n = leaves.length;
+    let pos = 0;
+    leaves.forEach((l, i) => {
+      const a = l.angle;
+      const t = -a / 180;                 // 0 = lying right, 1 = lying left
+      pos += t;
+      const moving = t > 0 && t < 1;
+      // lift slightly off the stack while turning, for depth
+      const lift = moving ? Math.sin(t * Math.PI) * 8 : 0;
+      l.el.style.transform = `translateZ(${lift}px) rotateY(${a}deg)`;
+      let z;
+      if (!moving) z = t === 0 ? n - i : i;
+      else z = a > -90 ? 3 * n - i : 3 * n + i;
+      l.el.style.zIndex = z;
+      const s = Math.sin(t * Math.PI);
+      l.frontShade.style.opacity = moving ? (t < .5 ? s * .9 : 0) : 0;
+      l.backShade.style.opacity = moving ? (t > .5 ? s * .9 : 0) : 0;
+
+      if (mode === "single") {
+        // finished pages slide away; only the page itself is on screen
+        l.el.style.visibility = t >= 1 ? "hidden" : "visible";
+        l.back.style.opacity = t > .5 ? Math.max(0, 1 - (t - .5) * 2.2) : 1;
+      } else {
+        l.el.style.visibility = "visible";
+        l.back.style.opacity = 1;
+      }
+    });
+
+    const [bl, br] = book.querySelectorAll(".base");
+    if (mode === "spread") {
+      // centre the closed book; slide it open as the cover turns
+      const shift = -pageW / 2 * clamp(1 - pos, 0, 1) + pageW / 2 * clamp(pos - (n - 1), 0, 1);
+      book.style.transform = `translateX(${shift}px)`;
+      bl.style.opacity = clamp(pos, 0, 1);
+      br.style.opacity = clamp(n - pos, 0, 1);
+    } else {
+      book.style.transform = "";
+      br.style.opacity = 1;
+    }
+    updateUI();
+  }
+
+  function updateUI() {
+    const n = leaves.length;
+    document.getElementById("prev").disabled = target <= 0;
+    document.getElementById("first").disabled = target <= 0;
+    document.getElementById("next").disabled = target >= maxTarget();
+    let label;
+    if (mode === "single") {
+      const p = target + 1;
+      label = p === 1 ? "Cover" : p === PAGE_COUNT ? "Back cover" : `Page ${p} of ${PAGE_COUNT}`;
+    } else {
+      if (target === 0) label = "Cover";
+      else if (target === 1) label = "Title page";
+      else if (target >= n) label = "Back cover";
+      else if (target === n - 1) label = "The End";
+      else {
+        const L = leaves[target - 1].data.back.page, R = leaves[target].data.front.page;
+        label = `Pages ${L}–${R} of ${PAGE_COUNT}`;
+      }
+    }
+    counter.textContent = label;
+    document.getElementById("progress").style.width = (target / maxTarget() * 100) + "%";
+  }
+
+  const maxTarget = () => mode === "single" ? leaves.length - 1 : leaves.length;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  // ---------- animation ----------
+  let raf = 0;
+  function animateLeaf(i, to, duration) {
+    const l = leaves[i];
+    anims.set(i, { from: l.angle, to, start: performance.now(), duration });
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    anims.forEach((a, i) => {
+      const k = clamp((now - a.start) / a.duration, 0, 1);
+      leaves[i].angle = a.from + (a.to - a.from) * ease(k);
+      if (k >= 1) anims.delete(i);
+    });
+    render();
+    raf = anims.size ? requestAnimationFrame(tick) : 0;
+  }
+
+  let lastDir = 0;
+  function busyOpposite(dir) { return anims.size > 0 && lastDir !== dir; }
+
+  function next() {
+    if (drag || target >= maxTarget() || busyOpposite(1)) return;
+    lastDir = 1;
+    const i = target++;
+    animateLeaf(i, -180, leaves[i].data.hard ? 1000 : 850);
+    flipSound();
+    dismissHint();
+    updateUI();
+  }
+  function prev() {
+    if (drag || target <= 0 || busyOpposite(-1)) return;
+    lastDir = -1;
+    const i = --target;
+    animateLeaf(i, 0, leaves[i].data.hard ? 1000 : 850);
+    flipSound();
+    dismissHint();
+    updateUI();
+  }
+  function goTo(t) {
+    t = clamp(t, 0, maxTarget());
+    const step = () => {
+      if (target === t) return;
+      if (target < t) next(); else prev();
+      setTimeout(step, 140);
+    };
+    step();
+  }
+
+  // ---------- pointer: tap or drag pages ----------
+  stage.addEventListener("pointerdown", e => {
+    if (e.button !== 0 || anims.size) return;
+    const r = book.getBoundingClientRect();
+    if (e.clientX < r.left - 20 || e.clientX > r.right + 20 || e.clientY < r.top - 20 || e.clientY > r.bottom + 20) return;
+    const rel = (e.clientX - r.left) / r.width;
+    const dir = mode === "spread" ? (rel >= .5 ? 1 : -1) : (rel >= .3 ? 1 : -1);
+    if (dir === 1 && target >= maxTarget()) return;
+    if (dir === -1 && target <= 0) return;
+    drag = { dir, x0: e.clientX, x: e.clientX, t0: performance.now(), active: false, leaf: dir === 1 ? target : target - 1 };
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!drag) return;
+    drag.x = e.clientX;
+    const dx = drag.x - drag.x0;
+    if (!drag.active && Math.abs(dx) > 8) { drag.active = true; dismissHint(); }
+    if (!drag.active) return;
+    const span = mode === "spread" ? pageW * 1.6 : pageW * 1.1;
+    const p = clamp((drag.dir === 1 ? -dx : dx) / span, 0, 1);
+    drag.p = p;
+    const l = leaves[drag.leaf];
+    l.angle = drag.dir === 1 ? -180 * p : -180 * (1 - p);
+    render();
+  });
+  const endDrag = e => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (!d.active) {                       // a tap
+      d.dir === 1 ? next() : prev();
+      return;
+    }
+    const dt = performance.now() - d.t0;
+    const flick = Math.abs(d.x - d.x0) / dt > .5 && (d.dir === 1 ? d.x < d.x0 : d.x > d.x0);
+    const complete = (d.p || 0) > .3 || flick;
+    const l = leaves[d.leaf];
+    lastDir = d.dir;
+    if (complete) {
+      const to = d.dir === 1 ? -180 : 0;
+      target += d.dir;
+      animateLeaf(d.leaf, to, 300 + 500 * Math.abs(to - l.angle) / 180);
+      flipSound(.6);
+    } else {
+      const to = d.dir === 1 ? 0 : -180;
+      animateLeaf(d.leaf, to, 250 + 350 * Math.abs(to - l.angle) / 180);
+    }
+    updateUI();
+  };
+  stage.addEventListener("pointerup", endDrag);
+  stage.addEventListener("pointercancel", endDrag);
+
+  // ---------- keyboard + buttons ----------
+  document.getElementById("next").onclick = next;
+  document.getElementById("prev").onclick = prev;
+  document.getElementById("first").onclick = () => goTo(0);
+  addEventListener("keydown", e => {
+    if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === "Home") goTo(0);
+    else if (e.key === "End") goTo(maxTarget());
+  });
+
+  // ---------- page-turn sound (synthesised paper rustle) ----------
+  let audio = null, soundOn = true;
+  function flipSound(vol = 1) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const dur = .45, sr = audio.sampleRate;
+      const buf = audio.createBuffer(1, sr * dur, sr);
+      const ch = buf.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) {
+        const t = i / ch.length;
+        const env = Math.pow(Math.sin(Math.PI * Math.min(1, t * 1.25)), 2) * (1 - t);
+        ch[i] = (Math.random() * 2 - 1) * env * (0.6 + 0.4 * Math.random());
+      }
+      const srcN = audio.createBufferSource(); srcN.buffer = buf;
+      const bp = audio.createBiquadFilter(); bp.type = "bandpass";
+      bp.frequency.setValueAtTime(1800, audio.currentTime);
+      bp.frequency.linearRampToValueAtTime(3800, audio.currentTime + dur);
+      bp.Q.value = .7;
+      const g = audio.createGain(); g.gain.value = .22 * vol;
+      srcN.connect(bp).connect(g).connect(audio.destination);
+      srcN.start();
+    } catch (_) {}
+  }
+  document.getElementById("sound").onclick = () => {
+    soundOn = !soundOn;
+    document.getElementById("soundOn").style.display = soundOn ? "" : "none";
+    document.getElementById("soundOff").style.display = soundOn ? "none" : "";
+  };
+
+  function dismissHint() { hint.classList.add("hide"); }
+
+  // ---------- responsive mode ----------
+  const pickMode = () => {
+    const r = stage.getBoundingClientRect();
+    // a spread needs room for two portrait pages side by side
+    return r.width / r.height > 1.05 && r.width >= 560 ? "spread" : "single";
+  };
+  let resizeT;
+  addEventListener("resize", () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => {
+      const m = pickMode();
+      if (m !== mode) build(m, currentPage()); else layout();
+    }, 120);
+  });
+
+  // ---------- boot ----------
+  build(pickMode(), 1);
+  const preload = Array.from({ length: PAGE_COUNT }, (_, i) => new Promise(res => {
+    const im = new Image(); im.onload = im.onerror = res; im.src = src(i + 1);
+  }));
+  Promise.race([Promise.all(preload.slice(0, 4)), new Promise(r => setTimeout(r, 4000))]).then(() => {
+    document.getElementById("loading").classList.add("done");
+    // a little tease: lift the cover corner so readers know it turns
+    setTimeout(() => {
+      if (target !== 0 || anims.size || drag) return;
+      animateLeaf(0, -22, 600);
+      setTimeout(() => { if (target === 0 && !drag) animateLeaf(0, 0, 700); }, 650);
+    }, 700);
+    setTimeout(dismissHint, 7000);
+  });
+})();
+</script>
+</body>
+</html>
