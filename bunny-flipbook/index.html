@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#bfe0f3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>The Bunny Who Packed Too Much</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,94 +16,86 @@
     --berry: #a8343a;
     --cream: #fbf1df;
     --paper: #f8ecd6;
+    --turn: 850ms;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; height: 100%; overflow: hidden;
+    overscroll-behavior: none;
     font-family: "Nunito", system-ui, sans-serif;
     color: var(--ink);
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   body {
+    height: 100vh; height: 100dvh;
     background:
       radial-gradient(ellipse at 50% 115%, rgba(150, 190, 90, .55), transparent 55%),
       radial-gradient(ellipse at 50% -20%, #fffaf0 0%, transparent 60%),
       linear-gradient(180deg, #bfe0f3 0%, #dcefe9 55%, #f3ead2 100%);
-    display: flex; flex-direction: column; align-items: center;
+    display: flex; flex-direction: column; align-items: stretch;
     user-select: none; -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
   }
+  button { font: inherit; touch-action: manipulation; }
 
   /* floating clouds */
   .cloud {
     position: fixed; z-index: 0; pointer-events: none;
-    width: 180px; height: 60px; border-radius: 60px; background: rgba(255,255,255,.75);
-    filter: blur(1px);
+    width: 180px; height: 60px; border-radius: 60px; background: rgba(255,255,255,.7);
     animation: drift linear infinite;
   }
-  .cloud::before, .cloud::after {
-    content: ""; position: absolute; background: inherit; border-radius: 50%;
-  }
+  .cloud::before, .cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; }
   .cloud::before { width: 80px; height: 80px; left: 25px; top: -40px; }
   .cloud::after  { width: 60px; height: 60px; left: 90px; top: -25px; }
   @keyframes drift { from { transform: translateX(-260px); } to { transform: translateX(calc(100vw + 260px)); } }
 
   header {
-    position: relative; z-index: 2; text-align: center;
-    padding: max(10px, env(safe-area-inset-top)) 12px 0;
-    flex: 0 0 auto;
+    position: relative; z-index: 2; text-align: center; flex: 0 0 auto;
+    padding: max(10px, env(safe-area-inset-top)) 16px 0;
   }
   header h1 {
     margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600;
     font-size: clamp(18px, 2.6vw, 30px); line-height: 1.1; color: var(--berry);
-    letter-spacing: .01em;
+    text-wrap: balance;
   }
   header h1 span { color: #2d3a4a; font-weight: 500; }
-  header p { margin: 2px 0 0; font-size: clamp(11px, 1.2vw, 14px); opacity: .7; }
+  header p { margin: 2px 0 0; font-size: clamp(12px, 1.2vw, 14px); opacity: .7; }
 
   .stage {
-    position: relative; z-index: 1; flex: 1 1 auto; width: 100%;
+    position: relative; z-index: 1; flex: 1 1 auto; min-height: 0;
     display: flex; align-items: center; justify-content: center;
     perspective: 2600px; perspective-origin: 50% 40%;
     touch-action: none;
+    padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
   }
-  .book {
-    position: relative;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
+  .book { position: relative; transform-style: preserve-3d; }
 
-  /* page-stack bases (give the closed/open book thickness) */
-  .base {
-    position: absolute; top: 0; height: 100%;
-    background: var(--paper); border-radius: 3px;
-    pointer-events: none;
-  }
+  /* page-stack bases (give the book its thickness) */
+  .base { position: absolute; top: 0; height: 100%; background: var(--paper); pointer-events: none; }
   .base.right {
     box-shadow:
       1px 1px 0 #efe1c6, 2px 2px 0 #fbf4e6, 3px 3px 0 #e8d8ba, 4px 4px 0 #f8efdd,
-      5px 5px 0 #e2cfae, 6px 7px 0 #b9875a,
-      14px 22px 40px rgba(60, 40, 20, .28);
+      5px 5px 0 #e2cfae, 6px 7px 0 #b9875a, 14px 22px 40px rgba(60, 40, 20, .28);
     border-radius: 0 4px 4px 0;
   }
   .base.left {
     box-shadow:
       -1px 1px 0 #efe1c6, -2px 2px 0 #fbf4e6, -3px 3px 0 #e8d8ba, -4px 4px 0 #f8efdd,
-      -5px 5px 0 #e2cfae, -6px 7px 0 #b9875a,
-      -14px 22px 40px rgba(60, 40, 20, .28);
+      -5px 5px 0 #e2cfae, -6px 7px 0 #b9875a, -14px 22px 40px rgba(60, 40, 20, .28);
     border-radius: 4px 0 0 4px;
   }
   .single .base.left { display: none; }
-
-  .leaf {
-    position: absolute; top: 0;
-    transform-origin: 0 50%;
-    transform-style: preserve-3d;
-    will-change: transform;
+  .single .base.right {
+    box-shadow: 1px 1px 0 #efe1c6, 2px 2px 0 #fbf4e6, 3px 3px 0 #e8d8ba, 4px 5px 0 #b9875a,
+      8px 16px 30px rgba(60, 40, 20, .25);
   }
+
+  .leaf { position: absolute; top: 0; transform-origin: 0 50%; transform-style: preserve-3d; }
   .face {
-    position: absolute; inset: 0;
+    position: absolute; inset: 0; overflow: hidden; background: var(--paper);
     backface-visibility: hidden; -webkit-backface-visibility: hidden;
-    overflow: hidden; background: var(--paper);
   }
   .face.front { border-radius: 0 4px 4px 0; }
   .face.back  { transform: rotateY(180deg); border-radius: 4px 0 0 4px; }
@@ -108,35 +103,23 @@
     width: 100%; height: 100%; display: block; object-fit: cover;
     pointer-events: none; -webkit-user-drag: none;
   }
-  /* fold shadow near the spine */
-  .face::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-  }
+  .face::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
   .spread .face.front::after {
     background: linear-gradient(90deg, rgba(60,35,15,.30) 0%, rgba(60,35,15,.10) 3%, rgba(255,255,255,.06) 6%, transparent 12%);
   }
   .spread .face.back::after {
     background: linear-gradient(270deg, rgba(60,35,15,.30) 0%, rgba(60,35,15,.10) 3%, rgba(255,255,255,.06) 6%, transparent 12%);
   }
-  .single .face.front::after {
-    background: linear-gradient(90deg, rgba(60,35,15,.18) 0%, transparent 4%);
-  }
-  /* dynamic shading while turning */
-  .shade {
-    position: absolute; inset: 0; pointer-events: none; opacity: 0;
-  }
+  .single .face.front::after { background: linear-gradient(90deg, rgba(60,35,15,.18) 0%, transparent 4%); }
+  .shade { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
   .front .shade { background: linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,.35) 70%, rgba(255,255,255,.25) 96%, rgba(0,0,0,.1)); }
   .back .shade  { background: linear-gradient(270deg, rgba(0,0,0,.05), rgba(0,0,0,.30) 70%, rgba(255,255,255,.25) 96%, rgba(0,0,0,.1)); }
 
-  /* hard covers */
   .leaf.hard .face { border-radius: 0 6px 6px 0; }
   .leaf.hard .face.back { border-radius: 6px 0 0 6px; }
-  .leaf.hard .face.front { box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
 
-  /* endpapers: little strawberry-dot pattern */
   .endpaper {
-    width: 100%; height: 100%;
-    background-color: #f6e2cf;
+    width: 100%; height: 100%; background-color: #f6e2cf;
     background-image:
       radial-gradient(circle at 25% 30%, #d9545c 0 5%, transparent 5.5%),
       radial-gradient(circle at 75% 80%, #e8b34a 0 3.5%, transparent 4%),
@@ -151,60 +134,93 @@
     font-size: clamp(12px, 1.4vw, 18px); line-height: 1.3;
   }
   .endpaper .tag small { display: block; color: var(--ink); opacity: .65; font-family: "Nunito", sans-serif; font-size: .75em; }
+  .plain-back { width: 100%; height: 100%; background: linear-gradient(90deg, #efe0c4, var(--paper) 30%, #f3e6cd); }
   .credit {
     position: absolute; left: 50%; bottom: 1.6%; transform: translateX(-50%);
     background: rgba(255, 250, 240, .92); color: var(--ink);
     font-family: "Fredoka", sans-serif; font-weight: 500;
     font-size: clamp(11px, 3.2vw, 16px); white-space: nowrap;
-    padding: .35em 1em; border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(60, 40, 20, .2);
-  }
-  .plain-back {
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, #efe0c4, var(--paper) 30%, #f3e6cd);
+    padding: .35em 1em; border-radius: 999px; box-shadow: 0 2px 8px rgba(60, 40, 20, .2);
   }
 
-  /* controls */
+  /* ---------- controls ---------- */
   .controls {
     position: relative; z-index: 2; flex: 0 0 auto;
-    display: flex; gap: 10px; align-items: center; justify-content: center;
-    padding: 6px 12px max(12px, env(safe-area-inset-bottom));
+    display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: center;
+    padding: 8px 12px max(12px, env(safe-area-inset-bottom));
   }
+  .group { display: flex; gap: 10px; align-items: center; }
   .btn {
-    appearance: none; border: 0; cursor: pointer;
-    width: 46px; height: 46px; border-radius: 50%;
+    appearance: none; border: 0; cursor: pointer; flex: none;
+    width: 48px; height: 48px; border-radius: 50%;
     background: #fffaf0; color: var(--berry);
     box-shadow: 0 3px 0 #e3c9a4, 0 6px 16px rgba(80, 50, 20, .18);
     display: grid; place-items: center;
-    transition: transform .15s, opacity .2s;
+    transition: transform .15s, opacity .2s, background .2s;
   }
-  .btn:hover { transform: translateY(-2px); }
   .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #e3c9a4, 0 3px 8px rgba(80,50,20,.18); }
-  .btn:disabled { opacity: .35; cursor: default; transform: none; }
+  @media (hover: hover) { .btn:not(:disabled):hover { transform: translateY(-2px); } }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .btn:focus-visible, .pill:focus-visible, .thumb:focus-visible { outline: 3px solid #2d6fb0; outline-offset: 3px; }
   .btn svg { width: 22px; height: 22px; }
-  .btn.small { width: 38px; height: 38px; }
-  .btn.small svg { width: 18px; height: 18px; }
-  .counter {
-    min-width: 130px; text-align: center; font-weight: 700; font-size: 14px;
-    background: rgba(255, 250, 240, .8); padding: 9px 14px; border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(80, 50, 20, .12);
+  .btn.small { width: 44px; height: 44px; }
+  .btn.small svg { width: 19px; height: 19px; }
+  .pill {
+    appearance: none; border: 0; cursor: pointer; height: 44px; border-radius: 999px;
+    padding: 0 16px; display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255, 250, 240, .9); color: var(--ink); font-weight: 700; font-size: 15px;
+    box-shadow: 0 2px 8px rgba(80, 50, 20, .14); white-space: nowrap;
   }
+  .pill svg { width: 18px; height: 18px; flex: none; color: var(--berry); }
+  .counter { min-width: 150px; justify-content: center; }
   .progress {
-    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-    height: 3px; width: 0; background: var(--berry); border-radius: 3px; opacity: .5;
-    transition: width .5s ease;
+    position: absolute; left: 0; top: 0; height: 3px; width: 0;
+    background: var(--berry); border-radius: 0 3px 3px 0; opacity: .45; transition: width .5s ease;
   }
 
-  .hint {
-    position: absolute; z-index: 3; left: 50%; bottom: 76px; transform: translateX(-50%);
-    background: rgba(74, 47, 39, .85); color: #fff; font-size: 13px; padding: 8px 14px;
-    border-radius: 999px; pointer-events: none; white-space: nowrap;
-    transition: opacity .6s;
+  .toast {
+    position: absolute; z-index: 5; left: 50%; bottom: 10px; transform: translateX(-50%);
+    background: rgba(74, 47, 39, .9); color: #fff; font-size: 14px; padding: 8px 8px 8px 16px;
+    border-radius: 999px; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+    transition: opacity .5s, transform .5s; box-shadow: 0 6px 20px rgba(0,0,0,.2);
   }
-  .hint.hide { opacity: 0; }
+  .toast.hide { opacity: 0; pointer-events: none; transform: translate(-50%, 10px); }
+  .toast.hint { padding: 8px 16px; pointer-events: none; }
+  .toast button {
+    border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer; font-weight: 700; font-size: 13px;
+    background: #fffaf0; color: var(--berry);
+  }
+  .toast button.x { background: transparent; color: #fff; padding: 7px 9px; }
+
+  /* ---------- page picker ---------- */
+  .picker {
+    position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(40, 30, 25, .45); opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .picker.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    width: min(960px, 100%); max-height: 82dvh; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--cream); border-radius: 22px 22px 0 0;
+    padding: 14px 16px max(18px, env(safe-area-inset-bottom));
+    transform: translateY(30px); transition: transform .3s;
+  }
+  .picker.open .sheet { transform: none; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+  .sheet-head h2 { margin: 0; font-family: "Fredoka", sans-serif; font-size: 20px; color: var(--berry); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; }
+  .thumb {
+    appearance: none; border: 0; padding: 0; background: none; cursor: pointer; text-align: center;
+    color: var(--ink); font-weight: 700; font-size: 13px;
+  }
+  .thumb img {
+    width: 100%; aspect-ratio: 1000 / 1334; object-fit: cover; display: block; border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(80, 50, 20, .2); background: var(--paper);
+  }
+  .thumb span { display: block; margin-top: 5px; }
+  .thumb.current img { outline: 3px solid var(--berry); outline-offset: 2px; }
 
   .loading {
-    position: fixed; inset: 0; z-index: 10; display: grid; place-items: center;
+    position: fixed; inset: 0; z-index: 30; display: grid; place-items: center;
     background: #dcefe9; transition: opacity .5s;
     font-family: "Fredoka", sans-serif; color: var(--berry); font-size: 20px;
   }
@@ -212,41 +228,83 @@
   .loading .hop { display: inline-block; animation: hop .6s ease-in-out infinite alternate; }
   @keyframes hop { to { transform: translateY(-14px); } }
 
-  @media (prefers-reduced-motion: reduce) { .cloud { display: none; } }
+  /* phones held upright: primary nav on one row, tools on the next */
+  @media (max-width: 600px) {
+    .group.nav, .group.tools { flex-basis: 100%; justify-content: center; }
+    .controls { gap: 10px; }
+    .counter { min-width: 0; flex: 1 1 auto; max-width: 200px; }
+    .cloud { opacity: .5; }
+  }
+  /* phones held sideways: every pixel goes to the book */
+  @media (max-height: 500px) and (orientation: landscape) {
+    header { display: none; }
+    .controls { padding-top: 4px; padding-bottom: max(6px, env(safe-area-inset-bottom)); gap: 8px 14px; }
+    .btn { width: 40px; height: 40px; } .btn.small { width: 38px; height: 38px; }
+    .pill { height: 38px; font-size: 14px; padding: 0 12px; }
+    .cloud { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cloud { display: none; }
+  }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
   <div class="cloud" style="top:12%; animation-duration:95s; animation-delay:-20s"></div>
-  <div class="cloud" style="top:30%; transform:scale(.7); animation-duration:130s; animation-delay:-80s; opacity:.7"></div>
-  <div class="cloud" style="top:6%;  animation-duration:160s; animation-delay:-120s; opacity:.6"></div>
+  <div class="cloud" style="top:30%; transform:scale(.7); animation-duration:130s; animation-delay:-80s; opacity:.6"></div>
 
   <header>
     <h1><span>The Bunny Who</span> Packed Too Much</h1>
     <p>by Aakansha Singh</p>
   </header>
 
-  <main class="stage" id="stage">
+  <main class="stage" id="stage" aria-label="Storybook. Tap the right side to turn forward, the left side to go back.">
     <div class="book" id="book"></div>
-    <div class="hint" id="hint">Tap a page, swipe, or drag the corner to turn</div>
+    <div class="toast hint" id="hint">Tap, swipe or drag a page to turn it</div>
+    <div class="toast hide" id="resume">
+      <span id="resumeText">Continue where you left off?</span>
+      <button id="resumeGo">Continue</button>
+      <button class="x" id="resumeX" aria-label="Dismiss">✕</button>
+    </div>
   </main>
 
-  <nav class="controls">
-    <button class="btn small" id="first" aria-label="Back to cover">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
-    </button>
-    <button class="btn" id="prev" aria-label="Previous page">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-    </button>
-    <div class="counter" id="counter" aria-live="polite">Cover</div>
-    <button class="btn" id="next" aria-label="Next page">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-    </button>
-    <button class="btn small" id="sound" aria-label="Toggle page sound">
-      <svg id="soundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14"/></svg>
-      <svg id="soundOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
-    </button>
+  <nav class="controls" aria-label="Book controls">
     <div class="progress" id="progress"></div>
+    <div class="group nav">
+      <button class="btn" id="prev" aria-label="Previous page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="pill counter" id="counter" aria-haspopup="dialog" aria-label="Choose a page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span id="counterText">Cover</span>
+      </button>
+      <button class="btn" id="next" aria-label="Next page">
+        <svg id="nextIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        <svg id="againIcon" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </div>
+    <div class="group tools">
+      <button class="btn small" id="sound" aria-label="Page-turn sound on" aria-pressed="true">
+        <svg id="soundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14"/></svg>
+        <svg id="soundOff" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+      </button>
+      <button class="btn small" id="full" aria-label="Full screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
   </nav>
+
+  <div class="picker" id="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="pickerTitle">Jump to a page</h2>
+        <button class="btn small" id="pickerClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
 
   <div class="loading" id="loading"><div><span class="hop">🐰</span> Opening the book…</div></div>
 
@@ -256,12 +314,38 @@
   const RATIO = 1334 / 1000;            // page height / width
   const src = n => `pages/${String(n).padStart(2, "0")}.webp`;
 
-  const stage = document.getElementById("stage");
-  const book = document.getElementById("book");
-  const counter = document.getElementById("counter");
-  const hint = document.getElementById("hint");
+  // The words on each page (alt text for screen readers).
+  const TEXT = {
+    1: "The Bunny Who Packed Too Much. By Aakansha Singh.",
+    2: "The Bunny Who Packed Too Much. By Aakansha Singh.",
+    3: "Pip sniffed the air. “It’s a picnic day!”",
+    4: "He packed two strawberry buns. Then he gave one a little sniff. “See you at lunch.”",
+    5: "Pip hugged his cushion. “You’re coming, too.”",
+    6: "In went the cushion, the teapot, and the little stool. “Right. Now I’m ready.”",
+    7: "Pip took three big hops. Hop, hop, hop!",
+    8: "The cushion took four. Boing, boing, boing, boing!",
+    9: "Plop! “Oh!” said a duckling. “A seat!”",
+    10: "“I’m Pip. Want to come?” “I’m Dot. Wait for me!” She scooped up the cushion.",
+    11: "Clonk! Out fell the stool. Up scrambled Pipkin. “Wait!” squeaked Poppy.",
+    12: "“Giddy-up!” said Poppy. The stool stayed put. Pip grinned. “Bring your pony.”",
+    13: "“Got it!” said Hazel. “I brought strawberries!”",
+    14: "“I brought cups!” said Pip. He poked around in the basket. “Well… I brought a cup.”",
+    15: "Buns for five. Strawberries, too!",
+    16: "“My turn!” said Poppy. Up she went with the cup. Pipkin held her tail. “Steady… steady… sip!”",
+    17: "Pip was almost inside. “Tomorrow?” called Dot.",
+    18: "Pip looked at the sofa. “Think we could carry that?”",
+    19: "Pip is off on a picnic with two strawberry buns and a very full basket. Every time something falls out, someone new comes along. Will two buns be enough for five hungry friends?",
+  };
+  // Reader-facing numbers: story pages count from 1, covers and title page are named.
+  const pageName = p => p === 1 ? "Cover" : p === 2 ? "Title" : p === PAGE_COUNT ? "Back" : String(p - 2);
+  const STORY_PAGES = PAGE_COUNT - 3;
 
-  // ---------- content for each face ----------
+  const $ = id => document.getElementById(id);
+  const stage = $("stage"), book = $("book"), hint = $("hint");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const TURN_MS = reduceMotion ? 380 : 850;
+
+  // ---------- leaves ----------
   const img = n => ({ page: n });
   const ENDPAPER_FRONT = { html: '<div class="endpaper"></div>' };
   const ENDPAPER_START = { html: '<div class="endpaper"><div class="tag">This book belongs to<br>a very good reader<small>♡</small></div></div>' };
@@ -279,8 +363,8 @@
     L.push({ front: ENDPAPER_FRONT, back: img(19), hard: true });
     return L;
   }
-  // Phone: one page at a time. The inside title page (page 2) only repeats the
-  // cover, so it is skipped and the author credit moves onto the cover instead.
+  // Phone: one page at a time. The inside title page only repeats the cover,
+  // so it is skipped and the author credit moves onto the cover instead.
   const SINGLE_PAGES = [1, ...Array.from({ length: PAGE_COUNT - 2 }, (_, i) => i + 3)];
   function singleLeaves() {
     return SINGLE_PAGES.map(p => ({
@@ -291,15 +375,18 @@
 
   // ---------- state ----------
   let mode = null;          // "spread" | "single"
-  let leaves = [];          // {el, front, back, angle, data}
+  let leaves = [];
   let target = 0;           // number of leaves that are (or will be) turned
   let pageW = 300, pageH = 400;
   const anims = new Map();  // leafIndex -> animation
   let drag = null;
 
   function faceHTML(d) {
-    if (d.page) return `<img src="${src(d.page)}" alt="Page ${d.page}" draggable="false">` +
-      (d.credit ? '<div class="credit">by Aakansha Singh</div>' : "");
+    if (d.page) {
+      const alt = (TEXT[d.page] || "").replace(/"/g, "&quot;");
+      return `<img src="${src(d.page)}" alt="${alt}" draggable="false" decoding="async">` +
+        (d.credit ? '<div class="credit">by Aakansha Singh</div>' : "");
+    }
     return d.html;
   }
 
@@ -308,19 +395,14 @@
     document.body.classList.toggle("spread", mode === "spread");
     document.body.classList.toggle("single", mode === "single");
     anims.clear(); drag = null;
-    book.innerHTML = "";
+    book.innerHTML = '<div class="base left"></div><div class="base right"></div>';
     const data = mode === "spread" ? spreadLeaves() : singleLeaves();
-
-    const baseL = document.createElement("div"); baseL.className = "base left";
-    const baseR = document.createElement("div"); baseR.className = "base right";
-    book.append(baseL, baseR);
-
-    leaves = data.map((d, i) => {
+    leaves = data.map(d => {
       const el = document.createElement("div");
       el.className = "leaf" + (d.hard ? " hard" : "");
       el.innerHTML =
         `<div class="face front">${faceHTML(d.front)}<div class="shade"></div></div>` +
-        `<div class="face back">${faceHTML(d.back)}<div class="shade"></div></div>`;
+        `<div class="face back" aria-hidden="true">${faceHTML(d.back)}<div class="shade"></div></div>`;
       book.appendChild(el);
       return {
         el, data: d, angle: 0,
@@ -329,9 +411,9 @@
         back: el.querySelector(".face.back"),
       };
     });
-
     target = pageToTarget(keepPage || 1);
     leaves.forEach((l, i) => l.angle = i < target ? -180 : 0);
+    buildPicker();
     layout();
   }
 
@@ -343,27 +425,33 @@
     }
     if (p <= 1) return 0;
     if (p === 2) return 1;
-    if (p >= 19) return leaves.length;
+    if (p >= PAGE_COUNT) return leaves.length;
     return Math.floor(p / 2);            // 3|4 -> 2 ... 17|18 -> 9
   }
-  function currentPage() {
-    if (mode === "single") return SINGLE_PAGES[target];
-    if (target === 0) return 1;
-    if (target >= leaves.length) return 19;
-    const right = leaves[target].data.front;
-    if (right.page) return right.page;
-    return 19;
+  // pages visible right now
+  function visiblePages() {
+    if (mode === "single") return [SINGLE_PAGES[target]];
+    const n = leaves.length;
+    if (target === 0) return [1];
+    if (target >= n) return [PAGE_COUNT];
+    return [leaves[target - 1].data.back.page, leaves[target].data.front.page].filter(Boolean);
   }
+  const currentPage = () => {
+    const v = visiblePages();
+    return v.length ? v[v.length - 1] : (target === 0 ? 1 : PAGE_COUNT - 1);
+  };
+  const maxTarget = () => mode === "single" ? leaves.length - 1 : leaves.length;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
   function layout() {
     const r = stage.getBoundingClientRect();
-    const availW = r.width * (mode === "spread" ? 0.94 : 0.92);
-    const availH = r.height * 0.94;
     const pages = mode === "spread" ? 2 : 1;
-    pageW = Math.floor(Math.min(availW / pages, availH / RATIO));
+    const availW = (r.width - 24) / pages;
+    const availH = r.height - (mode === "single" ? 16 : 24);
+    pageW = Math.floor(Math.min(availW, availH / RATIO));
     pageH = Math.floor(pageW * RATIO);
-    const bookW = pageW * pages;
-    book.style.width = bookW + "px";
+    book.style.width = pageW * pages + "px";
     book.style.height = pageH + "px";
     const left = mode === "spread" ? pageW : 0;
     leaves.forEach(l => {
@@ -382,35 +470,33 @@
   function render() {
     const n = leaves.length;
     let pos = 0;
+    // only leaves near the open spread (or in motion) need to be drawn;
+    // hiding the rest keeps phones from compositing 19 full-size pages
+    const near = new Set([target - 2, target - 1, target, target + 1]);
+    leaves.forEach((l, i) => { const t = -l.angle / 180; if (t > 0 && t < 1) [i - 1, i, i + 1].forEach(k => near.add(k)); });
+
     leaves.forEach((l, i) => {
       const a = l.angle;
-      const t = -a / 180;                 // 0 = lying right, 1 = lying left
+      const t = -a / 180;
       pos += t;
       const moving = t > 0 && t < 1;
-      // lift slightly off the stack while turning, for depth
       const lift = moving ? Math.sin(t * Math.PI) * 8 : 0;
       l.el.style.transform = `translateZ(${lift}px) rotateY(${a}deg)`;
-      let z;
-      if (!moving) z = t === 0 ? n - i : i;
-      else z = a > -90 ? 3 * n - i : 3 * n + i;
-      l.el.style.zIndex = z;
+      l.el.style.willChange = moving ? "transform" : "auto";
+      l.el.style.zIndex = !moving ? (t === 0 ? n - i : i) : (a > -90 ? 3 * n - i : 3 * n + i);
       const s = Math.sin(t * Math.PI);
-      l.frontShade.style.opacity = moving ? (t < .5 ? s * .9 : 0) : 0;
-      l.backShade.style.opacity = moving ? (t > .5 ? s * .9 : 0) : 0;
-
+      l.frontShade.style.opacity = moving && t < .5 ? s * .9 : 0;
+      l.backShade.style.opacity = moving && t > .5 ? s * .9 : 0;
+      let visible = near.has(i);
       if (mode === "single") {
-        // finished pages slide away; only the page itself is on screen
-        l.el.style.visibility = t >= 1 ? "hidden" : "visible";
+        if (t >= 1) visible = false;
         l.back.style.opacity = t > .5 ? Math.max(0, 1 - (t - .5) * 2.2) : 1;
-      } else {
-        l.el.style.visibility = "visible";
-        l.back.style.opacity = 1;
       }
+      l.el.style.visibility = visible ? "visible" : "hidden";
     });
 
     const [bl, br] = book.querySelectorAll(".base");
     if (mode === "spread") {
-      // centre the closed book; slide it open as the cover turns
       const shift = -pageW / 2 * clamp(1 - pos, 0, 1) + pageW / 2 * clamp(pos - (n - 1), 0, 1);
       book.style.transform = `translateX(${shift}px)`;
       bl.style.opacity = clamp(pos, 0, 1);
@@ -419,46 +505,38 @@
       book.style.transform = "";
       br.style.opacity = 1;
     }
-    updateUI();
   }
 
   function updateUI() {
-    const n = leaves.length;
-    document.getElementById("prev").disabled = target <= 0;
-    document.getElementById("first").disabled = target <= 0;
-    document.getElementById("next").disabled = target >= maxTarget();
+    const n = leaves.length, atEnd = target >= maxTarget();
+    $("prev").disabled = target <= 0;
+    $("nextIcon").classList.toggle("hidden", atEnd);
+    $("againIcon").classList.toggle("hidden", !atEnd);
+    $("next").setAttribute("aria-label", atEnd ? "Read again from the cover" : "Next page");
     let label;
-    if (mode === "single") {
-      const last = SINGLE_PAGES.length - 1;
-      // story pages are numbered from 1, between the two covers
-      label = target === 0 ? "Cover" : target === last ? "Back cover" : `Page ${target} of ${last - 1}`;
-    } else {
-      if (target === 0) label = "Cover";
-      else if (target === 1) label = "Title page";
-      else if (target >= n) label = "Back cover";
-      else if (target === n - 1) label = "The End";
-      else {
-        const L = leaves[target - 1].data.back.page, R = leaves[target].data.front.page;
-        label = `Pages ${L}–${R} of ${PAGE_COUNT}`;
-      }
+    if (target === 0) label = "Cover";
+    else if (atEnd) label = "Back cover";
+    else if (mode === "spread" && target === 1) label = "Title page";
+    else if (mode === "spread" && target === n - 1) label = "The End";
+    else {
+      const v = visiblePages().map(p => p - 2);
+      label = v.length > 1 ? `Pages ${v[0]}–${v[1]} of ${STORY_PAGES}` : `Page ${v[0]} of ${STORY_PAGES}`;
     }
-    counter.textContent = label;
-    document.getElementById("progress").style.width = (target / maxTarget() * 100) + "%";
+    $("counterText").textContent = label;
+    $("progress").style.width = (target / maxTarget() * 100) + "%";
+    store(currentPage());
+    markPicker();
   }
-
-  const maxTarget = () => mode === "single" ? leaves.length - 1 : leaves.length;
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
   // ---------- animation ----------
   let raf = 0;
-  function animateLeaf(i, to, duration) {
-    const l = leaves[i];
-    anims.set(i, { from: l.angle, to, start: performance.now(), duration });
+  function animateLeaf(i, to, duration, delay = 0) {
+    anims.set(i, { from: leaves[i].angle, to, start: performance.now() + delay, duration });
     if (!raf) raf = requestAnimationFrame(tick);
   }
   function tick(now) {
     anims.forEach((a, i) => {
+      if (now < a.start) return;
       const k = clamp((now - a.start) / a.duration, 0, 1);
       leaves[i].angle = a.from + (a.to - a.from) * ease(k);
       if (k >= 1) anims.delete(i);
@@ -466,72 +544,95 @@
     render();
     raf = anims.size ? requestAnimationFrame(tick) : 0;
   }
+  function finishAnims() {
+    anims.forEach((a, i) => leaves[i].angle = a.to);
+    anims.clear();
+    render();
+  }
 
   let lastDir = 0;
-  function busyOpposite(dir) { return anims.size > 0 && lastDir !== dir; }
+  const busyOpposite = dir => anims.size > 0 && lastDir !== dir;
+  const turnTime = i => leaves[i].data.hard ? TURN_MS + 150 : TURN_MS;
 
   function next() {
-    if (drag || target >= maxTarget() || busyOpposite(1)) return;
+    if (drag || busyOpposite(1)) return;
+    if (target >= maxTarget()) { goTo(0); return; }
     lastDir = 1;
     const i = target++;
-    animateLeaf(i, -180, leaves[i].data.hard ? 1000 : 850);
-    flipSound();
-    dismissHint();
-    updateUI();
+    animateLeaf(i, -180, turnTime(i));
+    turned();
   }
   function prev() {
     if (drag || target <= 0 || busyOpposite(-1)) return;
     lastDir = -1;
     const i = --target;
-    animateLeaf(i, 0, leaves[i].data.hard ? 1000 : 850);
-    flipSound();
-    dismissHint();
-    updateUI();
+    animateLeaf(i, 0, turnTime(i));
+    turned();
   }
+  // jump several leaves at once: they fan over in a quick ripple
   function goTo(t) {
     t = clamp(t, 0, maxTarget());
-    const step = () => {
-      if (target === t) return;
-      if (target < t) next(); else prev();
-      setTimeout(step, 140);
-    };
-    step();
+    if (t === target || drag) return;
+    finishAnims();
+    const dir = t > target ? 1 : -1;
+    lastDir = dir;
+    const steps = Math.abs(t - target);
+    const gap = Math.min(110, 700 / steps);
+    for (let k = 0; k < steps; k++) {
+      const i = dir === 1 ? target + k : target - 1 - k;
+      animateLeaf(i, dir === 1 ? -180 : 0, reduceMotion ? 300 : 650, k * gap);
+    }
+    target = t;
+    turned();
+  }
+  function turned(vol = 1) {
+    flipSound(vol);
+    if (navigator.vibrate && matchMedia("(pointer: coarse)").matches) { try { navigator.vibrate(8); } catch (_) {} }
+    hideToasts();
+    updateUI();
   }
 
   // ---------- pointer: tap or drag pages ----------
   stage.addEventListener("pointerdown", e => {
-    if (e.button !== 0 || anims.size) return;
+    if ((e.button && e.button !== 0) || anims.size) return;
+    if (e.target.closest(".toast")) return;
     const r = book.getBoundingClientRect();
-    if (e.clientX < r.left - 20 || e.clientX > r.right + 20 || e.clientY < r.top - 20 || e.clientY > r.bottom + 20) return;
+    if (e.clientX < r.left - 30 || e.clientX > r.right + 30 || e.clientY < r.top - 30 || e.clientY > r.bottom + 30) return;
     const rel = (e.clientX - r.left) / r.width;
     const dir = mode === "spread" ? (rel >= .5 ? 1 : -1) : (rel >= .3 ? 1 : -1);
     if (dir === 1 && target >= maxTarget()) return;
     if (dir === -1 && target <= 0) return;
-    drag = { dir, x0: e.clientX, x: e.clientX, t0: performance.now(), active: false, leaf: dir === 1 ? target : target - 1 };
-    stage.setPointerCapture(e.pointerId);
+    drag = { dir, x0: e.clientX, y0: e.clientY, x: e.clientX, t0: performance.now(), active: false, leaf: dir === 1 ? target : target - 1 };
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   });
   stage.addEventListener("pointermove", e => {
     if (!drag) return;
     drag.x = e.clientX;
     const dx = drag.x - drag.x0;
-    if (!drag.active && Math.abs(dx) > 8) { drag.active = true; dismissHint(); }
-    if (!drag.active) return;
+    if (!drag.active) {
+      if (Math.abs(dx) < 8) return;
+      drag.active = true; hideToasts();
+      // a swipe in the other direction than where it started still counts
+      const swipeDir = dx < 0 ? 1 : -1;
+      if (swipeDir !== drag.dir) {
+        if ((swipeDir === 1 && target >= maxTarget()) || (swipeDir === -1 && target <= 0)) { drag = null; return; }
+        drag.dir = swipeDir; drag.leaf = swipeDir === 1 ? target : target - 1;
+      }
+    }
     const span = mode === "spread" ? pageW * 1.6 : pageW * 1.1;
-    const p = clamp((drag.dir === 1 ? -dx : dx) / span, 0, 1);
-    drag.p = p;
-    const l = leaves[drag.leaf];
-    l.angle = drag.dir === 1 ? -180 * p : -180 * (1 - p);
+    drag.p = clamp((drag.dir === 1 ? -dx : dx) / span, 0, 1);
+    leaves[drag.leaf].angle = drag.dir === 1 ? -180 * drag.p : -180 * (1 - drag.p);
     render();
   });
   const endDrag = e => {
     if (!drag) return;
     const d = drag; drag = null;
-    if (!d.active) {                       // a tap
-      d.dir === 1 ? next() : prev();
+    if (!d.active) {
+      if (e.type === "pointerup") d.dir === 1 ? next() : prev();
       return;
     }
     const dt = performance.now() - d.t0;
-    const flick = Math.abs(d.x - d.x0) / dt > .5 && (d.dir === 1 ? d.x < d.x0 : d.x > d.x0);
+    const flick = Math.abs(d.x - d.x0) / dt > .45 && (d.dir === 1 ? d.x < d.x0 : d.x > d.x0);
     const complete = (d.p || 0) > .3 || flick;
     const l = leaves[d.leaf];
     lastDir = d.dir;
@@ -539,58 +640,119 @@
       const to = d.dir === 1 ? -180 : 0;
       target += d.dir;
       animateLeaf(d.leaf, to, 300 + 500 * Math.abs(to - l.angle) / 180);
-      flipSound(.6);
+      turned(.6);
     } else {
       const to = d.dir === 1 ? 0 : -180;
       animateLeaf(d.leaf, to, 250 + 350 * Math.abs(to - l.angle) / 180);
     }
-    updateUI();
   };
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
+  stage.addEventListener("contextmenu", e => e.preventDefault());
 
-  // ---------- keyboard + buttons ----------
-  document.getElementById("next").onclick = next;
-  document.getElementById("prev").onclick = prev;
-  document.getElementById("first").onclick = () => goTo(0);
+  // ---------- buttons + keyboard ----------
+  $("next").onclick = next;
+  $("prev").onclick = prev;
   addEventListener("keydown", e => {
+    if (picker.classList.contains("open")) { if (e.key === "Escape") closePicker(); return; }
+    if (e.target.closest && e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
     if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); next(); }
-    else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); prev(); }
     else if (e.key === "Home") goTo(0);
     else if (e.key === "End") goTo(maxTarget());
   });
 
+  // ---------- page picker ----------
+  const picker = $("picker"), grid = $("grid");
+  function buildPicker() {
+    const list = mode === "single" ? SINGLE_PAGES : Array.from({ length: PAGE_COUNT }, (_, i) => i + 1);
+    grid.innerHTML = list.map(p =>
+      `<button class="thumb" data-page="${p}" aria-label="${p === 1 ? "Cover" : p === 2 ? "Title page" : p === PAGE_COUNT ? "Back cover" : "Page " + (p - 2)}">` +
+      `<img src="${src(p)}" alt="" loading="lazy" decoding="async"><span>${pageName(p)}</span></button>`).join("");
+  }
+  function markPicker() {
+    const vis = visiblePages();
+    grid.querySelectorAll(".thumb").forEach(b => b.classList.toggle("current", vis.includes(+b.dataset.page)));
+  }
+  function openPicker() {
+    markPicker();
+    picker.classList.add("open");
+    const cur = grid.querySelector(".current");
+    (cur || $("pickerClose")).focus({ preventScroll: true });
+    if (cur) cur.scrollIntoView({ block: "center" });
+  }
+  function closePicker() { picker.classList.remove("open"); $("counter").focus({ preventScroll: true }); }
+  $("counter").onclick = openPicker;
+  $("pickerClose").onclick = closePicker;
+  picker.addEventListener("click", e => {
+    const b = e.target.closest(".thumb");
+    if (b) { closePicker(); setTimeout(() => goTo(pageToTarget(+b.dataset.page)), 220); }
+    else if (e.target === picker) closePicker();
+  });
+
   // ---------- page-turn sound (synthesised paper rustle) ----------
   let audio = null, soundOn = true;
+  try { soundOn = localStorage.getItem("bunny-sound") !== "off"; } catch (_) {}
   function flipSound(vol = 1) {
     if (!soundOn) return;
     try {
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume();
       const dur = .45, sr = audio.sampleRate;
-      const buf = audio.createBuffer(1, sr * dur, sr);
+      const buf = audio.createBuffer(1, Math.floor(sr * dur), sr);
       const ch = buf.getChannelData(0);
       for (let i = 0; i < ch.length; i++) {
         const t = i / ch.length;
         const env = Math.pow(Math.sin(Math.PI * Math.min(1, t * 1.25)), 2) * (1 - t);
         ch[i] = (Math.random() * 2 - 1) * env * (0.6 + 0.4 * Math.random());
       }
-      const srcN = audio.createBufferSource(); srcN.buffer = buf;
+      const s = audio.createBufferSource(); s.buffer = buf;
       const bp = audio.createBiquadFilter(); bp.type = "bandpass";
       bp.frequency.setValueAtTime(1800, audio.currentTime);
       bp.frequency.linearRampToValueAtTime(3800, audio.currentTime + dur);
       bp.Q.value = .7;
       const g = audio.createGain(); g.gain.value = .22 * vol;
-      srcN.connect(bp).connect(g).connect(audio.destination);
-      srcN.start();
+      s.connect(bp).connect(g).connect(audio.destination);
+      s.start();
     } catch (_) {}
   }
-  document.getElementById("sound").onclick = () => {
-    soundOn = !soundOn;
-    document.getElementById("soundOn").style.display = soundOn ? "" : "none";
-    document.getElementById("soundOff").style.display = soundOn ? "none" : "";
+  function setSoundUI() {
+    $("soundOn").classList.toggle("hidden", !soundOn);
+    $("soundOff").classList.toggle("hidden", soundOn);
+    $("sound").setAttribute("aria-pressed", soundOn);
+    $("sound").setAttribute("aria-label", soundOn ? "Page-turn sound on" : "Page-turn sound off");
+  }
+  $("sound").onclick = () => {
+    soundOn = !soundOn; setSoundUI();
+    try { localStorage.setItem("bunny-sound", soundOn ? "on" : "off"); } catch (_) {}
+  };
+  setSoundUI();
+
+  // ---------- full screen (hidden where the browser can't, e.g. iPhone) ----------
+  const root = document.documentElement;
+  const canFull = root.requestFullscreen || root.webkitRequestFullscreen;
+  if (!canFull || !(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $("full").classList.add("hidden");
+  $("full").onclick = () => {
+    const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+    try {
+      if (isFull) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else {
+        const p = canFull.call(root);
+        if (p && p.catch) p.catch(() => {});
+        if (screen.orientation && screen.orientation.lock && innerWidth > innerHeight) screen.orientation.lock("landscape").catch(() => {});
+      }
+    } catch (_) {}
   };
 
-  function dismissHint() { hint.classList.add("hide"); }
+  // ---------- remember where the reader was ----------
+  let saved = 0;
+  try { saved = +localStorage.getItem("bunny-page") || 0; } catch (_) {}
+  function store(p) { try { localStorage.setItem("bunny-page", p); } catch (_) {} }
+
+  const resume = $("resume");
+  function hideToasts() { hint.classList.add("hide"); resume.classList.add("hide"); }
+  $("resumeX").onclick = hideToasts;
+  $("resumeGo").onclick = () => { hideToasts(); goTo(pageToTarget(saved)); };
 
   // ---------- responsive mode ----------
   const pickMode = () => {
@@ -599,28 +761,41 @@
     return r.width / r.height > 1.05 && r.width >= 560 ? "spread" : "single";
   };
   let resizeT;
-  addEventListener("resize", () => {
+  const onResize = () => {
     clearTimeout(resizeT);
     resizeT = setTimeout(() => {
+      finishAnims();
       const m = pickMode();
-      if (m !== mode) build(m, currentPage()); else layout();
+      if (m !== mode) { build(m, currentPage()); updateUI(); } else layout();
     }, 120);
-  });
+  };
+  addEventListener("resize", onResize);
+  addEventListener("orientationchange", onResize);
 
   // ---------- boot ----------
   build(pickMode(), 1);
-  const preload = Array.from({ length: PAGE_COUNT }, (_, i) => new Promise(res => {
-    const im = new Image(); im.onload = im.onerror = res; im.src = src(i + 1);
+  updateUI();
+  const first = [1, 2, 3, 4].map(n => new Promise(res => {
+    const im = new Image(); im.onload = im.onerror = res; im.src = src(n);
   }));
-  Promise.race([Promise.all(preload.slice(0, 4)), new Promise(r => setTimeout(r, 4000))]).then(() => {
-    document.getElementById("loading").classList.add("done");
+  Promise.race([Promise.all(first), new Promise(r => setTimeout(r, 4000))]).then(() => {
+    $("loading").classList.add("done");
+    if (saved > 2 && saved < PAGE_COUNT) {
+      $("resumeText").textContent = `Continue from ${saved === PAGE_COUNT ? "the back cover" : "page " + (saved - 2)}?`;
+      hint.classList.add("hide");
+      resume.classList.remove("hide");
+    } else {
+      setTimeout(() => hint.classList.add("hide"), 6000);
+    }
     // a little tease: lift the cover corner so readers know it turns
-    setTimeout(() => {
+    if (!reduceMotion) setTimeout(() => {
       if (target !== 0 || anims.size || drag) return;
+      lastDir = 1;
       animateLeaf(0, -22, 600);
       setTimeout(() => { if (target === 0 && !drag) animateLeaf(0, 0, 700); }, 650);
     }, 700);
-    setTimeout(dismissHint, 7000);
+    // warm the rest of the pages in the background
+    for (let n = 5; n <= PAGE_COUNT; n++) { const im = new Image(); im.decoding = "async"; im.src = src(n); }
   });
 })();
 </script>
