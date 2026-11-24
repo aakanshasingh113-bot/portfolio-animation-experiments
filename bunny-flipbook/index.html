@@ -30,9 +30,10 @@
   body {
     height: 100vh; height: 100dvh;
     background:
-      radial-gradient(ellipse at 50% 115%, rgba(150, 190, 90, .55), transparent 55%),
-      radial-gradient(ellipse at 50% -20%, #fffaf0 0%, transparent 60%),
-      linear-gradient(180deg, #bfe0f3 0%, #dcefe9 55%, #f3ead2 100%);
+      radial-gradient(ellipse 70% 55% at 50% 42%, rgba(255, 250, 220, .55), transparent 70%),
+      radial-gradient(circle at 20% 80%, rgba(255,255,255,.18) 0 2px, transparent 3px) 0 0 / 46px 46px,
+      radial-gradient(circle at 70% 30%, rgba(60,110,30,.12) 0 2px, transparent 3px) 0 0 / 38px 38px,
+      linear-gradient(180deg, #c9e4a8 0%, #b2d68c 55%, #9cc677 100%);
     display: flex; flex-direction: column; align-items: stretch;
     user-select: none; -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -40,16 +41,6 @@
   }
   button { font: inherit; touch-action: manipulation; }
 
-  /* floating clouds */
-  .cloud {
-    position: fixed; z-index: 0; pointer-events: none;
-    width: 180px; height: 60px; border-radius: 60px; background: rgba(255,255,255,.7);
-    animation: drift linear infinite;
-  }
-  .cloud::before, .cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; }
-  .cloud::before { width: 80px; height: 80px; left: 25px; top: -40px; }
-  .cloud::after  { width: 60px; height: 60px; left: 90px; top: -25px; }
-  @keyframes drift { from { transform: translateX(-260px); } to { transform: translateX(calc(100vw + 260px)); } }
 
 
   .stage {
@@ -59,7 +50,43 @@
     touch-action: none;
     padding: max(8px, env(safe-area-inset-top)) env(safe-area-inset-right) 0 env(safe-area-inset-left);
   }
+  .scene { position: relative; transform-style: preserve-3d; }
   .book { position: relative; transform-style: preserve-3d; }
+  /* the picnic blanket the book lies on */
+  .blanket {
+    position: absolute; left: 50%; top: 50%; pointer-events: none; border-radius: 10px;
+    background-color: #fbf4ea;
+    background-image:
+      linear-gradient(90deg, rgba(196, 48, 58, .3) 50%, transparent 50%),
+      linear-gradient(rgba(196, 48, 58, .3) 50%, transparent 50%);
+    background-size: var(--check) var(--check);
+    box-shadow: 0 0 0 6px rgba(251, 244, 234, .9), 0 30px 70px rgba(40, 70, 20, .35);
+  }
+  /* page-block edges and board edges, standing up in 3D */
+  .base { transform-style: preserve-3d; }
+  .pe, .be { position: absolute; display: block; pointer-events: none; }
+  .pe { background: repeating-linear-gradient(180deg, #fdf6e8 0 1px, #dcc7a3 1px 2px); }
+  .pe.f { background: repeating-linear-gradient(90deg, #fdf6e8 0 1px, #dcc7a3 1px 2px); }
+  /* drawn flat in the board's plane: upright planes confuse some browsers' 3D sorting */
+  .pe.b { top: calc(100% - var(--ov)); height: calc(var(--th) * .6 + 1px); }
+  .base.right .pe.b { left: 0; right: var(--ov); }
+  .base.left  .pe.b { left: var(--ov); right: 0; }
+  .pe.f { top: var(--ov); bottom: calc(var(--ov) - var(--th) * .6 - 1px); width: calc(var(--th) * .3 + 1px); }
+  .base.right .pe.f { left: calc(100% - var(--ov)); }
+  .base.left  .pe.f { left: calc(var(--ov) - var(--th) * .3 - 1px); }
+  .be { display: none; }
+  /* moving shadow a turning page throws on the page below it */
+  .cast { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+  /* a page in motion is drawn as a row of hinged strips so it can bend */
+  .curl, .strip { position: absolute; top: 0; transform-origin: 0 50%; transform-style: preserve-3d; pointer-events: none; }
+  .sface {
+    position: absolute; top: 0; left: 0; height: 100%; width: calc(100% + 1px); overflow: hidden;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--paper);
+  }
+  .sface.back { transform: rotateY(180deg); }
+  .sw { position: absolute; top: 0; height: 100%; container-type: inline-size; }
+  .sw > img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .sshade { position: absolute; inset: 0; background: #2a1a10; opacity: 0; }
 
   /* ---------- hardcover case ----------
      Boards are a little bigger than the pages (--ov overhang), wrapped in
@@ -80,8 +107,7 @@
   }
   .base.right {
     border-radius: 0 8px 8px 0;
-    box-shadow: 1px 1px 0 var(--cloth-dark), 2px 2px 0 #5e171d, 3px 3px 0 #561419,
-      14px 22px 40px rgba(60, 40, 20, .32);
+    box-shadow: 0 2px 0 #7d2229, 1px 4px 0 #5e171d, 10px 18px 34px rgba(40, 30, 10, .38);
   }
   .base.right::before {
     left: 0; right: var(--ov);
@@ -89,8 +115,7 @@
   }
   .base.left {
     border-radius: 8px 0 0 8px;
-    box-shadow: -1px 1px 0 var(--cloth-dark), -2px 2px 0 #5e171d, -3px 3px 0 #561419,
-      -14px 22px 40px rgba(60, 40, 20, .32);
+    box-shadow: 0 2px 0 #7d2229, -1px 4px 0 #5e171d, -10px 18px 34px rgba(40, 30, 10, .38);
   }
   .base.left::before {
     right: 0; left: var(--ov);
@@ -348,17 +373,14 @@
     .group.nav, .group.tools { flex-basis: 100%; justify-content: center; }
     .controls { gap: 10px; }
     .counter { min-width: 0; flex: 1 1 auto; max-width: 200px; }
-    .cloud { opacity: .5; }
   }
   /* phones held sideways: every pixel goes to the book */
   @media (max-height: 500px) and (orientation: landscape) {
     .controls { padding-top: 4px; padding-bottom: max(6px, env(safe-area-inset-bottom)); gap: 8px 14px; }
     .btn { width: 40px; height: 40px; } .btn.small { width: 38px; height: 38px; }
     .pill { height: 38px; font-size: 14px; padding: 0 12px; }
-    .cloud { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .cloud { display: none; }
   }
   .thumb .mini {
     width: 100%; aspect-ratio: 1000 / 1334; border-radius: 8px; display: grid; place-items: center;
@@ -369,12 +391,10 @@
 </style>
 </head>
 <body>
-  <div class="cloud" style="top:12%; animation-duration:95s; animation-delay:-20s"></div>
-  <div class="cloud" style="top:30%; transform:scale(.7); animation-duration:130s; animation-delay:-80s; opacity:.6"></div>
 
 
   <main class="stage" id="stage" aria-label="Storybook. Tap the right side to turn forward, the left side to go back.">
-    <div class="book" id="book"></div>
+    <div class="scene" id="scene"><div class="blanket" id="blanket"></div><div class="book" id="book"></div></div>
     <div class="toast hint" id="hint">Tap, swipe or drag a page to turn it</div>
     <div class="toast hide" id="resume">
       <span id="resumeText">Continue where you left off?</span>
@@ -458,7 +478,7 @@
   const STORY_PAGES = PAGE_COUNT - 3;
 
   const $ = id => document.getElementById(id);
-  const stage = $("stage"), book = $("book"), hint = $("hint");
+  const stage = $("stage"), book = $("book"), hint = $("hint"), scene = $("scene"), blanket = $("blanket");
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const TURN_MS = reduceMotion ? 380 : 850;
 
@@ -541,7 +561,8 @@
     document.body.classList.toggle("spread", mode === "spread");
     document.body.classList.toggle("single", mode === "single");
     anims.clear(); drag = null;
-    book.innerHTML = '<div class="base left"></div><div class="base right"></div><div class="spine"></div>';
+    const baseHTML = '<i class="pe b"></i><i class="pe f"></i><i class="be"></i>';
+    book.innerHTML = `<div class="base left">${baseHTML}</div><div class="base right">${baseHTML}</div><div class="spine"></div>`;
     const data = mode === "spread" ? spreadLeaves() : singleLeaves();
     leaves = data.map(d => {
       const el = document.createElement("div");
@@ -550,7 +571,7 @@
       const side = (x, cls) => {
         const art = !!x.page;
         const inner = d.hard && !art ? `<div class="inside">${faceHTML(x)}</div>` : faceHTML(x);
-        return `<div class="face ${cls}${art ? " art" : ""}"${cls === "back" ? ' aria-hidden="true"' : ""}>${inner}<div class="shade"></div></div>`;
+        return `<div class="face ${cls}${art ? " art" : ""}"${cls === "back" ? ' aria-hidden="true"' : ""}>${inner}<div class="cast"></div><div class="shade"></div></div>`;
       };
       el.innerHTML = side(d.front, "front") + side(d.back, "back") + (d.hard ? '<div class="edge"></div>' : "");
       book.appendChild(el);
@@ -559,6 +580,11 @@
         frontShade: el.querySelector(".front .shade"),
         backShade: el.querySelector(".back .shade"),
         back: el.querySelector(".face.back"),
+        frontCast: el.querySelector(".front .cast"),
+        backCast: el.querySelector(".back .cast"),
+        // paper pages bend while turning; keep their content to build the strips from
+        html: d.hard ? null : [faceHTML(d.front), faceHTML(d.back)].map(s => s.replace(/\sid="[^"]*"/g, "")),
+        curl: null,
       };
     });
     target = pageToTarget(keepPage || 1);
@@ -597,24 +623,32 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
+  const CURL_N = 9;                     // strips per bending page
+  const BEND = reduceMotion ? 0 : 74;   // how much a page curls (degrees at the edge)
+  let tiltX = 0, tiltY = 0;             // gentle parallax from the pointer
+  const baseTilt = () => reduceMotion ? 6 : mode === "spread" ? 17 : 11;
+
   function layout() {
     const r = stage.getBoundingClientRect();
     const pages = mode === "spread" ? 2 : 1;
-    // leave room for the boards, which overhang the pages by ~3%
+    // leave room for the boards (they overhang ~3%) and for perspective growth
     const availW = (r.width - 24) / (pages + (mode === "single" ? .09 : .07));
     const availH = (r.height - (mode === "single" ? 20 : 40)) / (RATIO + .07);
-    pageW = Math.floor(Math.min(availW, availH));
+    pageW = Math.floor(Math.min(availW, availH) * (mode === "spread" ? .9 : .93));
     const ov = Math.max(5, Math.round(pageW * .03));
+    const T = Math.max(4, Math.round(pageW * .014));
     book.style.setProperty("--ov", ov + "px");
-    book.style.setProperty("--t", Math.max(4, Math.round(pageW * .014)) + "px");
+    book.style.setProperty("--t", T + "px");
     pageH = Math.floor(pageW * RATIO);
-    book.style.width = pageW * pages + "px";
-    book.style.height = pageH + "px";
+    const bw = pageW * pages;
+    book.style.width = bw + "px"; book.style.height = pageH + "px";
+    scene.style.width = bw + "px"; scene.style.height = pageH + "px";
     const left = mode === "spread" ? pageW : 0;
     leaves.forEach(l => {
       l.el.style.left = left + "px";
       l.el.style.width = pageW + "px";
       l.el.style.height = pageH + "px";
+      if (l.curl) { l.curl.remove(); l.curl = null; }
     });
     const [bl, br] = book.querySelectorAll(".base");
     bl.style.left = -ov + "px"; bl.style.width = pageW + ov + "px";
@@ -622,8 +656,44 @@
     const sp = book.querySelector(".spine");
     if (mode === "spread") { sp.style.left = pageW - ov + "px"; sp.style.width = 2 * ov + "px"; }
     else { sp.style.left = -Math.round(ov * 1.1) + "px"; sp.style.width = Math.round(ov * 1.1) + "px"; }
-    stage.style.perspective = (pageW * 7) + "px";
+    // blanket under the whole open book
+    const blW = (mode === "spread" ? 2 : 1.25) * pageW * 1.24, blH = pageH * 1.24;
+    blanket.style.width = blW + "px"; blanket.style.height = blH + "px";
+    blanket.style.setProperty("--check", Math.round(pageW / 9) + "px");
+    blanket.style.marginLeft = -blW / 2 + (mode === "single" ? -pageW * .02 : 0) + "px";
+    blanket.style.marginTop = -blH / 2 + "px";
+    blanket.style.transform = `translateZ(${-(stackPx() * leaves.length + T + 6)}px) rotateZ(-2.5deg)`;
+    stage.style.perspective = Math.round(pageW * (mode === "spread" ? 4.2 : 4.6)) + "px";
+    stage.style.perspectiveOrigin = "50% 30%";
+    applyTilt();
     render();
+  }
+  const stackPx = () => pageW * (mode === "spread" ? .0034 : .0021);   // thickness of one leaf
+  function applyTilt() {
+    scene.style.transform = `rotateX(${baseTilt() + tiltX}deg) rotateY(${tiltY}deg)`;
+  }
+
+  // build the bendable copy of a paper page (only done for pages that move)
+  function makeCurl(l) {
+    const s = pageW / CURL_N;
+    const root = document.createElement("div");
+    root.className = "curl";
+    root.style.cssText = `left:${mode === "spread" ? pageW : 0}px;width:${pageW}px;height:${pageH}px`;
+    let parent = root;
+    l.strips = [];
+    for (let k = 0; k < CURL_N; k++) {
+      const st = document.createElement("div");
+      st.className = "strip";
+      st.style.cssText = `left:${k ? s : 0}px;width:${s}px;height:${pageH}px`;
+      st.innerHTML =
+        `<div class="sface front"><div class="sw" style="width:${pageW}px;left:${-k * s}px">${l.html[0]}</div><div class="sshade"></div></div>` +
+        `<div class="sface back"><div class="sw" style="width:${pageW}px;left:${-(CURL_N - 1 - k) * s}px">${l.html[1]}</div><div class="sshade"></div></div>`;
+      parent.appendChild(st);
+      parent = st;
+      l.strips.push({ st, fs: st.querySelector(".front .sshade"), bs: st.querySelector(".back .sshade"), back: st.querySelector(".sface.back") });
+    }
+    book.appendChild(root);
+    l.curl = root;
   }
 
   // ---------- rendering ----------
@@ -640,32 +710,107 @@
       const t = -a / 180;
       pos += t;
       const moving = t > 0 && t < 1;
-      const lift = moving ? Math.sin(t * Math.PI) * 8 : 0;
-      l.el.style.transform = `translateZ(${lift}px) rotateY(${a}deg)`;
-      l.el.style.willChange = moving ? "transform" : "auto";
-      l.el.style.zIndex = !moving ? (t === 0 ? n - i : i) : (a > -90 ? 3 * n - i : 3 * n + i);
+      const lift = moving ? Math.sin(t * Math.PI) * pageW * .05 : 0;
+      const z = !moving ? (t === 0 ? n - i : i) : (a > -90 ? 3 * n - i : 3 * n + i);
       const s = Math.sin(t * Math.PI);
-      l.frontShade.style.opacity = moving && t < .5 ? s * .9 : 0;
-      l.backShade.style.opacity = moving && t > .5 ? s * .9 : 0;
       let visible = near.has(i);
-      if (mode === "single") {
-        if (t >= 1) visible = false;
-        l.back.style.opacity = t > .5 ? Math.max(0, 1 - (t - .5) * 2.2) : 1;
+      if (mode === "single" && t >= 1) visible = false;
+      // phones: the back cover only shows once the page above it starts to turn,
+      // otherwise its printed art would peek out around the last page
+      if (mode === "single" && i === n - 1 && leaves[n - 2].angle === 0) visible = false;
+      l.frontCast.style.opacity = 0; l.backCast.style.opacity = 0;
+
+      const bend = moving && l.html && BEND > 0;
+      if (bend) {
+        // the free edge leads on the way up and trails on the way down
+        if (!l.curl) makeCurl(l);
+        const c = -BEND * s * (1 - 2 * t);
+        const base = clamp(a - c * .35, -180, 0);
+        l.curl.style.transform = `translateZ(${lift}px) rotateY(${base}deg)`;
+        l.curl.style.zIndex = z;
+        l.curl.style.visibility = "visible";
+        const W = CURL_N * (CURL_N - 1) / 2;
+        let phi = base;
+        const fade = mode === "single" && t > .5 ? Math.max(0, 1 - (t - .5) * 2.2) : 1;
+        l.strips.forEach((sp, k) => {
+          const d = k ? c * k / W : 0;
+          phi += d;
+          sp.st.style.transform = k ? `rotateY(${d}deg)` : "";
+          // light falls off as a strip turns away from the reader
+          const cs = Math.cos(phi * Math.PI / 180);
+          sp.fs.style.opacity = phi > -90 ? (1 - cs) * .55 : 0;
+          sp.bs.style.opacity = phi < -90 ? (1 + cs) * .55 : 0;
+          sp.back.style.opacity = fade;
+        });
+        l.el.style.visibility = "hidden";
+      } else {
+        if (l.curl) l.curl.style.visibility = "hidden";
+        l.el.style.transform = `translateZ(${lift}px) rotateY(${a}deg)`;
+        l.el.style.zIndex = z;
+        l.frontShade.style.opacity = moving && t < .5 ? s * .9 : 0;
+        l.backShade.style.opacity = moving && t > .5 ? s * .9 : 0;
+        if (mode === "single") l.back.style.opacity = t > .5 ? Math.max(0, 1 - (t - .5) * 2.2) : 1;
+        l.el.style.visibility = visible ? "visible" : "hidden";
       }
-      l.el.style.visibility = visible ? "visible" : "hidden";
+      l.el.style.willChange = moving && !bend ? "transform" : "auto";
     });
 
+    // shadows thrown by pages in motion onto the page beneath them
+    leaves.forEach((l, i) => {
+      const t = -l.angle / 180;
+      if (!(t > 0 && t < 1)) return;
+      const cs = Math.cos(l.angle * Math.PI / 180), alpha = (.55 * Math.sin(t * Math.PI)).toFixed(3);
+      if (l.angle > -90) {
+        let j = i + 1; while (j < n && leaves[j].angle !== 0) j++;
+        if (j >= n) return;
+        const w = Math.round(cs * 100);
+        leaves[j].frontCast.style.background =
+          `linear-gradient(90deg, rgba(30,15,5,.5) 0%, rgba(30,15,5,.85) ${w}%, transparent ${Math.min(100, w + 18)}%)`;
+        leaves[j].frontCast.style.opacity = alpha;
+      } else {
+        let j = i - 1; while (j >= 0 && leaves[j].angle !== -180) j--;
+        if (j < 0) return;
+        const w = Math.round(-cs * 100);
+        leaves[j].backCast.style.background =
+          `linear-gradient(270deg, rgba(30,15,5,.5) 0%, rgba(30,15,5,.85) ${w}%, transparent ${Math.min(100, w + 18)}%)`;
+        leaves[j].backCast.style.opacity = alpha;
+      }
+    });
+
+    // page blocks: the left stack grows and the right one shrinks as you read
+    const per = stackPx();
+    const thL = Math.max(1, pos * per), thR = Math.max(1, (n - pos) * per);
     const [bl, br] = book.querySelectorAll(".base");
+    bl.style.setProperty("--th", thL + "px"); bl.style.transform = `translateZ(${-thL}px)`;
+    br.style.setProperty("--th", thR + "px"); br.style.transform = `translateZ(${-thR}px)`;
+    const sp = book.querySelector(".spine");
+    sp.style.transform = `translateZ(${-Math.max(thL, thR) - 1}px)`;
     if (mode === "spread") {
       const shift = -pageW / 2 * clamp(1 - pos, 0, 1) + pageW / 2 * clamp(pos - (n - 1), 0, 1);
       book.style.transform = `translateX(${shift}px)`;
-      bl.style.opacity = pos > .5 ? 1 : 0;
-      br.style.opacity = n - pos > .5 ? 1 : 0;
-      book.querySelector(".spine").style.opacity = pos > .5 && n - pos > .5 ? 1 : 0;
+      bl.style.visibility = pos > .5 ? "visible" : "hidden";
+      br.style.visibility = n - pos > .5 ? "visible" : "hidden";
+      sp.style.visibility = pos > .5 && n - pos > .5 ? "visible" : "hidden";
     } else {
       book.style.transform = "";
-      br.style.opacity = 1;
+      br.style.visibility = "visible";
     }
+  }
+
+  // tilt follows the mouse a little, so the book feels like an object on a table
+  let tiltRaf = 0, wantX = 0, wantY = 0;
+  if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    addEventListener("pointermove", e => {
+      if (drag) return;
+      wantX = -((e.clientY / innerHeight) - .5) * 3;
+      wantY = ((e.clientX / innerWidth) - .5) * 4;
+      if (!tiltRaf) tiltRaf = requestAnimationFrame(stepTilt);
+    });
+  }
+  function stepTilt() {
+    tiltX += (wantX - tiltX) * .12; tiltY += (wantY - tiltY) * .12;
+    applyTilt();
+    tiltRaf = Math.abs(wantX - tiltX) + Math.abs(wantY - tiltY) > .02 ? requestAnimationFrame(stepTilt) : 0;
   }
 
   function updateUI() {
