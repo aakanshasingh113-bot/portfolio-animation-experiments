@@ -61,25 +61,59 @@
   }
   .book { position: relative; transform-style: preserve-3d; }
 
-  /* page-stack bases (give the book its thickness) */
-  .base { position: absolute; top: 0; height: 100%; background: var(--paper); pointer-events: none; }
+  /* ---------- hardcover case ----------
+     Boards are a little bigger than the pages (--ov overhang), wrapped in
+     book cloth, with the page block sitting on top of them. */
+  :root {
+    --cloth: #9c2f36;
+    --cloth-dark: #6e1d24;
+    --cloth-tex:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 1px, transparent 1px 3px);
+  }
+  .base {
+    position: absolute; top: calc(-1 * var(--ov)); height: calc(100% + 2 * var(--ov));
+    background: var(--cloth-tex), var(--cloth); pointer-events: none;
+  }
+  .base::before {                       /* the page block resting on the board */
+    content: ""; position: absolute; top: var(--ov); bottom: var(--ov); background: var(--paper);
+  }
   .base.right {
-    box-shadow:
-      1px 1px 0 #efe1c6, 2px 2px 0 #fbf4e6, 3px 3px 0 #e8d8ba, 4px 4px 0 #f8efdd,
-      5px 5px 0 #e2cfae, 6px 7px 0 #b9875a, 14px 22px 40px rgba(60, 40, 20, .28);
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 1px 1px 0 var(--cloth-dark), 2px 2px 0 #5e171d, 3px 3px 0 #561419,
+      14px 22px 40px rgba(60, 40, 20, .32);
+  }
+  .base.right::before {
+    left: 0; right: var(--ov);
+    box-shadow: 1px 0 0 #e8d8ba, 2px 1px 0 #fbf4e6, 3px 1px 0 #e2cfae, 0 2px 0 #e8d8ba, 0 3px 0 #d9c4a0;
   }
   .base.left {
-    box-shadow:
-      -1px 1px 0 #efe1c6, -2px 2px 0 #fbf4e6, -3px 3px 0 #e8d8ba, -4px 4px 0 #f8efdd,
-      -5px 5px 0 #e2cfae, -6px 7px 0 #b9875a, -14px 22px 40px rgba(60, 40, 20, .28);
-    border-radius: 4px 0 0 4px;
+    border-radius: 8px 0 0 8px;
+    box-shadow: -1px 1px 0 var(--cloth-dark), -2px 2px 0 #5e171d, -3px 3px 0 #561419,
+      -14px 22px 40px rgba(60, 40, 20, .32);
+  }
+  .base.left::before {
+    right: 0; left: var(--ov);
+    box-shadow: -1px 0 0 #e8d8ba, -2px 1px 0 #fbf4e6, -3px 1px 0 #e2cfae, 0 2px 0 #e8d8ba, 0 3px 0 #d9c4a0;
   }
   .single .base.left { display: none; }
-  .single .base.right {
-    box-shadow: 1px 1px 0 #efe1c6, 2px 2px 0 #fbf4e6, 3px 3px 0 #e8d8ba, 4px 5px 0 #b9875a,
-      8px 16px 30px rgba(60, 40, 20, .25);
+  /* spine: shows between the boards above and below the open pages */
+  .spine {
+    position: absolute; top: calc(-1 * var(--ov)); height: calc(100% + 2 * var(--ov));
+    pointer-events: none;
+    background: var(--cloth-tex),
+      linear-gradient(90deg, var(--cloth-dark), #8a262d 30%, #b23b42 50%, #8a262d 70%, var(--cloth-dark));
   }
+  .spine::before, .spine::after {      /* little striped headbands */
+    content: ""; position: absolute; left: 15%; right: 15%; height: max(3px, calc(var(--ov) * .45));
+    background: repeating-linear-gradient(90deg, #f3e3c3 0 2px, #b23b42 2px 4px);
+    border-radius: 2px;
+  }
+  .spine::before { top: calc(var(--ov) - max(3px, calc(var(--ov) * .45)) + 1px); }
+  .spine::after  { bottom: calc(var(--ov) - max(3px, calc(var(--ov) * .45)) + 1px); }
+  .single .spine { border-radius: 8px 0 0 8px;
+    background: var(--cloth-tex), linear-gradient(90deg, #5a161c, var(--cloth-dark) 40%, #a5333a 85%, var(--cloth)); }
+  .single .spine::before, .single .spine::after { display: none; }
 
   .leaf { position: absolute; top: 0; transform-origin: 0 50%; transform-style: preserve-3d; }
   .face {
@@ -104,8 +138,40 @@
   .front .shade { background: linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,.35) 70%, rgba(255,255,255,.25) 96%, rgba(0,0,0,.1)); }
   .back .shade  { background: linear-gradient(270deg, rgba(0,0,0,.05), rgba(0,0,0,.30) 70%, rgba(255,255,255,.25) 96%, rgba(0,0,0,.1)); }
 
-  .leaf.hard .face { border-radius: 0 6px 6px 0; }
-  .leaf.hard .face.back { border-radius: 6px 0 0 6px; }
+  .leaf.hard .face {
+    top: calc(-1 * var(--ov)); bottom: calc(-1 * var(--ov)); left: 0; right: calc(-1 * var(--ov));
+    border-radius: 0 8px 8px 0; background: var(--cloth-tex), var(--cloth);
+  }
+  .leaf.hard .face.back { border-radius: 8px 0 0 8px; }
+  /* printed cover: hinge groove near the spine + a soft laminated sheen */
+  .leaf.hard .face.art::after {
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.28) 0, rgba(0,0,0,.06) 2.2%, rgba(255,255,255,.38) 3.3%, rgba(0,0,0,.2) 4.4%, rgba(255,255,255,.08) 5.4%, transparent 7%),
+      linear-gradient(118deg, rgba(255,255,255,.22), rgba(255,255,255,0) 38%, rgba(255,255,255,0) 70%, rgba(255,255,255,.1));
+  }
+  .leaf.hard .face.back.art::after {
+    background:
+      linear-gradient(270deg, rgba(0,0,0,.28) 0, rgba(0,0,0,.06) 2.2%, rgba(255,255,255,.38) 3.3%, rgba(0,0,0,.2) 4.4%, rgba(255,255,255,.08) 5.4%, transparent 7%),
+      linear-gradient(242deg, rgba(255,255,255,.22), rgba(255,255,255,0) 38%);
+  }
+  .leaf.hard .face.art { box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), inset 0 0 6px rgba(0,0,0,.15); }
+  /* inside of a board: endpaper pasted down, cloth turned in around it */
+  .inside {
+    position: absolute; top: calc(var(--ov) * 1.5); bottom: calc(var(--ov) * 1.5);
+    overflow: hidden; container-type: inline-size;
+    box-shadow: 0 0 0 1px rgba(80, 20, 20, .25), 0 0 4px rgba(60, 10, 10, .35);
+  }
+  .face.front > .inside { left: 0; right: calc(var(--ov) * 1.5); }
+  .face.back > .inside { left: calc(var(--ov) * 1.5); right: 0; }
+  .leaf.hard .face:not(.art)::after { z-index: 1; }
+  /* board thickness, seen as the cover swings over */
+  .edge {
+    position: absolute; top: calc(-1 * var(--ov)); height: calc(100% + 2 * var(--ov));
+    left: calc(100% + var(--ov)); width: var(--t);
+    background: linear-gradient(90deg, #5e171d, #7d2229 50%, #5e171d);
+    transform-origin: 0 50%;
+    transform: translateZ(calc(var(--t) / 2)) rotateY(90deg);
+  }
 
   .endpaper {
     width: 100%; height: 100%; background-color: #f6e2cf;
@@ -432,6 +498,7 @@
     '<div class="endpaper xpage"><div class="card"><h3>The End</h3><p class="soft">Meet the picnic friends</p>' +
     friendsHTML() + AGAIN + '</div></div>' };
   const PLAIN = { html: '<div class="plain-back"></div>' };
+  const DOTS = { html: '<div class="endpaper"></div>' };
 
   // Two-page spreads. The artwork is painted across 3|4, 5|6, 7|8 … 17|18,
   // so the cover and title page stand alone and the back cover closes the book.
@@ -450,7 +517,7 @@
   function singleLeaves() {
     return SINGLE_PAGES.map(p => ({
       front: p === 1 ? { page: 1, credit: true } : p === FRIENDS_PAGE ? END_SINGLE : img(p),
-      back: PLAIN, hard: p === 1,
+      back: p === 1 ? DOTS : PLAIN, hard: p === 1 || p === PAGE_COUNT,
     }));
   }
 
@@ -476,14 +543,18 @@
     document.body.classList.toggle("spread", mode === "spread");
     document.body.classList.toggle("single", mode === "single");
     anims.clear(); drag = null;
-    book.innerHTML = '<div class="base left"></div><div class="base right"></div>';
+    book.innerHTML = '<div class="base left"></div><div class="base right"></div><div class="spine"></div>';
     const data = mode === "spread" ? spreadLeaves() : singleLeaves();
     leaves = data.map(d => {
       const el = document.createElement("div");
       el.className = "leaf" + (d.hard ? " hard" : "");
-      el.innerHTML =
-        `<div class="face front">${faceHTML(d.front)}<div class="shade"></div></div>` +
-        `<div class="face back" aria-hidden="true">${faceHTML(d.back)}<div class="shade"></div></div>`;
+      // on a hardcover board, non-picture sides are endpapers pasted inside the cloth
+      const side = (x, cls) => {
+        const art = !!x.page;
+        const inner = d.hard && !art ? `<div class="inside">${faceHTML(x)}</div>` : faceHTML(x);
+        return `<div class="face ${cls}${art ? " art" : ""}"${cls === "back" ? ' aria-hidden="true"' : ""}>${inner}<div class="shade"></div></div>`;
+      };
+      el.innerHTML = side(d.front, "front") + side(d.back, "back") + (d.hard ? '<div class="edge"></div>' : "");
       book.appendChild(el);
       return {
         el, data: d, angle: 0,
@@ -531,9 +602,13 @@
   function layout() {
     const r = stage.getBoundingClientRect();
     const pages = mode === "spread" ? 2 : 1;
-    const availW = (r.width - 24) / pages;
-    const availH = r.height - (mode === "single" ? 16 : 24);
-    pageW = Math.floor(Math.min(availW, availH / RATIO));
+    // leave room for the boards, which overhang the pages by ~3%
+    const availW = (r.width - 24) / (pages + (mode === "single" ? .09 : .07));
+    const availH = (r.height - (mode === "single" ? 20 : 40)) / (RATIO + .07);
+    pageW = Math.floor(Math.min(availW, availH));
+    const ov = Math.max(5, Math.round(pageW * .03));
+    book.style.setProperty("--ov", ov + "px");
+    book.style.setProperty("--t", Math.max(4, Math.round(pageW * .014)) + "px");
     pageH = Math.floor(pageW * RATIO);
     book.style.width = pageW * pages + "px";
     book.style.height = pageH + "px";
@@ -544,8 +619,11 @@
       l.el.style.height = pageH + "px";
     });
     const [bl, br] = book.querySelectorAll(".base");
-    bl.style.left = "0px"; bl.style.width = pageW + "px";
-    br.style.left = left + "px"; br.style.width = pageW + "px";
+    bl.style.left = -ov + "px"; bl.style.width = pageW + ov + "px";
+    br.style.left = left + "px"; br.style.width = pageW + ov + "px";
+    const sp = book.querySelector(".spine");
+    if (mode === "spread") { sp.style.left = pageW - ov + "px"; sp.style.width = 2 * ov + "px"; }
+    else { sp.style.left = -Math.round(ov * 1.1) + "px"; sp.style.width = Math.round(ov * 1.1) + "px"; }
     stage.style.perspective = (pageW * 7) + "px";
     render();
   }
@@ -583,8 +661,9 @@
     if (mode === "spread") {
       const shift = -pageW / 2 * clamp(1 - pos, 0, 1) + pageW / 2 * clamp(pos - (n - 1), 0, 1);
       book.style.transform = `translateX(${shift}px)`;
-      bl.style.opacity = clamp(pos, 0, 1);
-      br.style.opacity = clamp(n - pos, 0, 1);
+      bl.style.opacity = pos > .5 ? 1 : 0;
+      br.style.opacity = n - pos > .5 ? 1 : 0;
+      book.querySelector(".spine").style.opacity = pos > .5 && n - pos > .5 ? 1 : 0;
     } else {
       book.style.transform = "";
       br.style.opacity = 1;
