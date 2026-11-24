@@ -9,7 +9,7 @@
 <title>The Bunny Who Packed Too Much</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #4a2f27;
@@ -51,24 +51,13 @@
   .cloud::after  { width: 60px; height: 60px; left: 90px; top: -25px; }
   @keyframes drift { from { transform: translateX(-260px); } to { transform: translateX(calc(100vw + 260px)); } }
 
-  header {
-    position: relative; z-index: 2; text-align: center; flex: 0 0 auto;
-    padding: max(10px, env(safe-area-inset-top)) 16px 0;
-  }
-  header h1 {
-    margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600;
-    font-size: clamp(18px, 2.6vw, 30px); line-height: 1.1; color: var(--berry);
-    text-wrap: balance;
-  }
-  header h1 span { color: #2d3a4a; font-weight: 500; }
-  header p { margin: 2px 0 0; font-size: clamp(12px, 1.2vw, 14px); opacity: .7; }
 
   .stage {
     position: relative; z-index: 1; flex: 1 1 auto; min-height: 0;
     display: flex; align-items: center; justify-content: center;
     perspective: 2600px; perspective-origin: 50% 40%;
     touch-action: none;
-    padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    padding: max(8px, env(safe-area-inset-top)) env(safe-area-inset-right) 0 env(safe-area-inset-left);
   }
   .book { position: relative; transform-style: preserve-3d; }
 
@@ -134,6 +123,66 @@
     font-size: clamp(12px, 1.4vw, 18px); line-height: 1.3;
   }
   .endpaper .tag small { display: block; color: var(--ink); opacity: .65; font-family: "Nunito", sans-serif; font-size: .75em; }
+  /* ---------- extra pages: name plate, The End, meet the friends ---------- */
+  .face { container-type: inline-size; }
+  .xpage {
+    position: relative; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3.5cqw; padding: 8cqw 7cqw; text-align: center;
+  }
+  .card {
+    background: var(--cream); border-radius: 4cqw; padding: 6cqw 7cqw;
+    box-shadow: 0 1.2cqw 4cqw rgba(120, 60, 30, .18); width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 2.5cqw;
+  }
+  .xpage h3 {
+    margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600; line-height: 1.05;
+    color: var(--berry); font-size: 11cqw;
+  }
+  .xpage h4 {
+    margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600; line-height: 1.1;
+    color: var(--berry); font-size: 7.4cqw;
+  }
+  .xpage p { margin: 0; font-size: 4.6cqw; line-height: 1.35; color: var(--ink); }
+  .xpage .soft { opacity: .7; }
+  .belongs { font-family: "Fredoka", sans-serif; font-weight: 500; font-size: 6.5cqw; color: var(--ink); }
+  .name {
+    width: 100%; border: 0; border-bottom: .6cqw dashed #c98b6b; background: transparent;
+    font-family: "Patrick Hand", "Comic Sans MS", cursive; font-size: 10cqw; color: #2d5d9a;
+    text-align: center; padding: 1cqw 0; outline: none; border-radius: 0;
+    -webkit-user-select: text; user-select: text;
+  }
+  .name::placeholder { color: #c9a58d; opacity: 1; }
+  .name:focus { border-bottom-style: solid; border-bottom-color: var(--berry); }
+  .stamp { width: 62%; aspect-ratio: 480 / 280; object-fit: cover; border-radius: 50%;
+    -webkit-mask-image: radial-gradient(closest-side, #000 70%, transparent);
+            mask-image: radial-gradient(closest-side, #000 70%, transparent); }
+  .again {
+    appearance: none; border: 0; cursor: pointer; border-radius: 999px;
+    background: var(--berry); color: #fff; font-weight: 700; font-family: "Nunito", sans-serif;
+    font-size: max(13px, 4.6cqw); padding: 2.6cqw 6cqw; margin-top: 1cqw;
+    box-shadow: 0 .8cqw 0 #7c2329, 0 2cqw 5cqw rgba(120, 40, 40, .25);
+  }
+  .again:active { transform: translateY(.6cqw); box-shadow: 0 .2cqw 0 #7c2329; }
+  .friends {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 4cqw 3cqw; width: 100%;
+  }
+  .friend {
+    appearance: none; border: 0; background: none; padding: 0; cursor: pointer;
+    width: 28%; display: flex; flex-direction: column; align-items: center; gap: 1cqw;
+    color: var(--ink); font-family: "Nunito", sans-serif;
+  }
+  .friend img {
+    width: 100%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; display: block;
+    border: 1.2cqw solid #fffaf0; box-shadow: 0 1cqw 3cqw rgba(80, 50, 20, .25);
+    pointer-events: none;
+  }
+  .friend b { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 5cqw; color: var(--berry); line-height: 1; margin-top: 1cqw; }
+  .friend small { font-size: 3.4cqw; line-height: 1.2; opacity: .8; }
+  .friend.boing img { animation: boing .7s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes boing { 30% { transform: translateY(-12%) scale(1.08, .94); } 60% { transform: translateY(0) scale(.96, 1.04); } }
+  .single .xpage { gap: 3cqw; padding: 6cqw 6cqw; }
+  .single .friend { width: 27%; }
   .plain-back { width: 100%; height: 100%; background: linear-gradient(90deg, #efe0c4, var(--paper) 30%, #f3e6cd); }
   .credit {
     position: absolute; left: 50%; bottom: 1.6%; transform: translateX(-50%);
@@ -237,7 +286,6 @@
   }
   /* phones held sideways: every pixel goes to the book */
   @media (max-height: 500px) and (orientation: landscape) {
-    header { display: none; }
     .controls { padding-top: 4px; padding-bottom: max(6px, env(safe-area-inset-bottom)); gap: 8px 14px; }
     .btn { width: 40px; height: 40px; } .btn.small { width: 38px; height: 38px; }
     .pill { height: 38px; font-size: 14px; padding: 0 12px; }
@@ -246,6 +294,11 @@
   @media (prefers-reduced-motion: reduce) {
     .cloud { display: none; }
   }
+  .thumb .mini {
+    width: 100%; aspect-ratio: 1000 / 1334; border-radius: 8px; display: grid; place-items: center;
+    box-shadow: 0 3px 10px rgba(80, 50, 20, .2);
+    font-family: "Fredoka", sans-serif; color: var(--berry); font-size: 16px;
+  }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -253,10 +306,6 @@
   <div class="cloud" style="top:12%; animation-duration:95s; animation-delay:-20s"></div>
   <div class="cloud" style="top:30%; transform:scale(.7); animation-duration:130s; animation-delay:-80s; opacity:.6"></div>
 
-  <header>
-    <h1><span>The Bunny Who</span> Packed Too Much</h1>
-    <p>by Aakansha Singh</p>
-  </header>
 
   <main class="stage" id="stage" aria-label="Storybook. Tap the right side to turn forward, the left side to go back.">
     <div class="book" id="book"></div>
@@ -313,6 +362,8 @@
   const PAGE_COUNT = 19;
   const RATIO = 1334 / 1000;            // page height / width
   const src = n => `pages/${String(n).padStart(2, "0")}.webp`;
+  const asset = name => `friends/${name}.webp`;
+  const FRIENDS_PAGE = 18.5;            // the "meet the friends" page sits between 18 and the back cover
 
   // The words on each page (alt text for screen readers).
   const TEXT = {
@@ -337,7 +388,7 @@
     19: "Pip is off on a picnic with two strawberry buns and a very full basket. Every time something falls out, someone new comes along. Will two buns be enough for five hungry friends?",
   };
   // Reader-facing numbers: story pages count from 1, covers and title page are named.
-  const pageName = p => p === 1 ? "Cover" : p === 2 ? "Title" : p === PAGE_COUNT ? "Back" : String(p - 2);
+  const pageName = p => p === 1 ? "Cover" : p === 2 ? "Title" : p === PAGE_COUNT ? "Back" : p === 18.5 ? "Friends" : String(p - 2);
   const STORY_PAGES = PAGE_COUNT - 3;
 
   const $ = id => document.getElementById(id);
@@ -347,28 +398,56 @@
 
   // ---------- leaves ----------
   const img = n => ({ page: n });
-  const ENDPAPER_FRONT = { html: '<div class="endpaper"></div>' };
-  const ENDPAPER_START = { html: '<div class="endpaper"><div class="tag">This book belongs to<br>a very good reader<small>♡</small></div></div>' };
-  const ENDPAPER_END = { html: '<div class="endpaper"><div class="tag">The End<small>Tomorrow… the sofa?</small></div></div>' };
+  const FRIENDS = [
+    ["pip", "Pip", "packed too much"],
+    ["dot", "Dot", "found a comfy seat"],
+    ["pipkin", "Pipkin", "scrambled up the stool"],
+    ["poppy", "Poppy", "shouted “Giddy-up!”"],
+    ["hazel", "Hazel", "brought strawberries"],
+  ];
+  const friendsHTML = () => '<div class="friends">' + FRIENDS.map(([k, name, what]) =>
+    `<button class="friend interactive" aria-label="${name}, who ${what.replace(/[“”]/g, "")}">` +
+    `<img src="${asset(k)}" alt="" draggable="false"><b>${name}</b><small>${what}</small></button>`).join("") + "</div>";
+  const AGAIN = '<button class="again interactive" data-again>Read it again ↺</button>';
+
+  // inside front cover: a child writes their name in the book
+  const NAMEPLATE = { html:
+    '<div class="endpaper xpage"><div class="card">' +
+    '<div class="belongs">This book belongs to</div>' +
+    '<input class="name interactive" id="ownerName" maxlength="24" placeholder="write your name" aria-label="Reader’s name" autocomplete="off" autocapitalize="words" spellcheck="false">' +
+    '<p class="soft">a very good reader ♡</p></div></div>' };
+  // inside back cover, left: The End
+  const THE_END = { html:
+    '<div class="endpaper xpage"><div class="card">' +
+    `<img class="stamp" src="${asset("buns")}" alt="" draggable="false">` +
+    '<h3>The End</h3><p class="soft">Tomorrow… the sofa?</p>' + AGAIN + '</div></div>' };
+  // inside back cover, right: meet the friends
+  const MEET = { html:
+    '<div class="endpaper xpage"><div class="card"><h4>Meet the picnic friends</h4>' + friendsHTML() +
+    '<p class="soft">Tap a friend to say hello!</p></div></div>' };
+  // phones: The End and the friends share one page
+  const END_SINGLE = { html:
+    '<div class="endpaper xpage"><div class="card"><h3>The End</h3><p class="soft">Meet the picnic friends</p>' +
+    friendsHTML() + AGAIN + '</div></div>' };
   const PLAIN = { html: '<div class="plain-back"></div>' };
 
   // Two-page spreads. The artwork is painted across 3|4, 5|6, 7|8 … 17|18,
   // so the cover and title page stand alone and the back cover closes the book.
   function spreadLeaves() {
     const L = [];
-    L.push({ front: img(1), back: ENDPAPER_START, hard: true });
+    L.push({ front: img(1), back: NAMEPLATE, hard: true });
     L.push({ front: img(2), back: img(3) });
     for (let p = 4; p <= 16; p += 2) L.push({ front: img(p), back: img(p + 1) });
-    L.push({ front: img(18), back: ENDPAPER_END });
-    L.push({ front: ENDPAPER_FRONT, back: img(19), hard: true });
+    L.push({ front: img(18), back: THE_END });
+    L.push({ front: MEET, back: img(19), hard: true });
     return L;
   }
   // Phone: one page at a time. The inside title page only repeats the cover,
   // so it is skipped and the author credit moves onto the cover instead.
-  const SINGLE_PAGES = [1, ...Array.from({ length: PAGE_COUNT - 2 }, (_, i) => i + 3)];
+  const SINGLE_PAGES = [1, ...Array.from({ length: PAGE_COUNT - 3 }, (_, i) => i + 3), FRIENDS_PAGE, PAGE_COUNT];
   function singleLeaves() {
     return SINGLE_PAGES.map(p => ({
-      front: p === 1 ? { page: 1, credit: true } : img(p),
+      front: p === 1 ? { page: 1, credit: true } : p === FRIENDS_PAGE ? END_SINGLE : img(p),
       back: PLAIN, hard: p === 1,
     }));
   }
@@ -414,6 +493,7 @@
     target = pageToTarget(keepPage || 1);
     leaves.forEach((l, i) => l.angle = i < target ? -180 : 0);
     buildPicker();
+    wirePages();
     layout();
   }
 
@@ -426,6 +506,7 @@
     if (p <= 1) return 0;
     if (p === 2) return 1;
     if (p >= PAGE_COUNT) return leaves.length;
+    if (p === FRIENDS_PAGE) return leaves.length - 1;
     return Math.floor(p / 2);            // 3|4 -> 2 ... 17|18 -> 9
   }
   // pages visible right now
@@ -434,6 +515,7 @@
     const n = leaves.length;
     if (target === 0) return [1];
     if (target >= n) return [PAGE_COUNT];
+    if (target === n - 1) return [FRIENDS_PAGE];
     return [leaves[target - 1].data.back.page, leaves[target].data.front.page].filter(Boolean);
   }
   const currentPage = () => {
@@ -518,6 +600,7 @@
     else if (atEnd) label = "Back cover";
     else if (mode === "spread" && target === 1) label = "Title page";
     else if (mode === "spread" && target === n - 1) label = "The End";
+    else if (visiblePages()[0] === FRIENDS_PAGE) label = "The End";
     else {
       const v = visiblePages().map(p => p - 2);
       label = v.length > 1 ? `Pages ${v[0]}–${v[1]} of ${STORY_PAGES}` : `Page ${v[0]} of ${STORY_PAGES}`;
@@ -595,7 +678,7 @@
   // ---------- pointer: tap or drag pages ----------
   stage.addEventListener("pointerdown", e => {
     if ((e.button && e.button !== 0) || anims.size) return;
-    if (e.target.closest(".toast")) return;
+    if (e.target.closest(".toast, .interactive")) return;
     const r = book.getBoundingClientRect();
     if (e.clientX < r.left - 30 || e.clientX > r.right + 30 || e.clientY < r.top - 30 || e.clientY > r.bottom + 30) return;
     const rel = (e.clientX - r.left) / r.width;
@@ -655,6 +738,7 @@
   $("prev").onclick = prev;
   addEventListener("keydown", e => {
     if (picker.classList.contains("open")) { if (e.key === "Escape") closePicker(); return; }
+    if (e.target.closest && e.target.closest("input, textarea")) { if (e.key === "Enter" || e.key === "Escape") e.target.blur(); return; }
     if (e.target.closest && e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
     if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); next(); }
     else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); prev(); }
@@ -662,13 +746,33 @@
     else if (e.key === "End") goTo(maxTarget());
   });
 
+  // ---------- things you can touch on the extra pages ----------
+  let ownerName = "";
+  try { ownerName = localStorage.getItem("bunny-owner") || ""; } catch (_) {}
+  function wirePages() {
+    const input = book.querySelector("#ownerName");
+    if (input) {
+      input.value = ownerName;
+      input.addEventListener("input", () => {
+        ownerName = input.value;
+        try { localStorage.setItem("bunny-owner", ownerName); } catch (_) {}
+      });
+    }
+    book.querySelectorAll("[data-again]").forEach(b => b.addEventListener("click", () => goTo(0)));
+    book.querySelectorAll(".friend").forEach(b => b.addEventListener("click", () => {
+      b.classList.remove("boing"); void b.offsetWidth; b.classList.add("boing");
+      popSound();
+    }));
+  }
+
   // ---------- page picker ----------
   const picker = $("picker"), grid = $("grid");
   function buildPicker() {
-    const list = mode === "single" ? SINGLE_PAGES : Array.from({ length: PAGE_COUNT }, (_, i) => i + 1);
+    const list = mode === "single" ? SINGLE_PAGES : [...Array.from({ length: PAGE_COUNT - 1 }, (_, i) => i + 1), FRIENDS_PAGE, PAGE_COUNT];
     grid.innerHTML = list.map(p =>
-      `<button class="thumb" data-page="${p}" aria-label="${p === 1 ? "Cover" : p === 2 ? "Title page" : p === PAGE_COUNT ? "Back cover" : "Page " + (p - 2)}">` +
-      `<img src="${src(p)}" alt="" loading="lazy" decoding="async"><span>${pageName(p)}</span></button>`).join("");
+      `<button class="thumb" data-page="${p}" aria-label="${p === 1 ? "Cover" : p === 2 ? "Title page" : p === PAGE_COUNT ? "Back cover" : p === FRIENDS_PAGE ? "The End and the picnic friends" : "Page " + (p - 2)}">` +
+      (p === FRIENDS_PAGE ? '<div class="mini endpaper">The End</div>' : `<img src="${src(p)}" alt="" loading="lazy" decoding="async">`) +
+      `<span>${pageName(p)}</span></button>`).join("");
   }
   function markPicker() {
     const vis = visiblePages();
@@ -714,6 +818,23 @@
       const g = audio.createGain(); g.gain.value = .22 * vol;
       s.connect(bp).connect(g).connect(audio.destination);
       s.start();
+    } catch (_) {}
+  }
+  // a cheerful little "boop" when a friend says hello
+  function popSound() {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume();
+      const t = audio.currentTime, o = audio.createOscillator(), g = audio.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(520, t);
+      o.frequency.exponentialRampToValueAtTime(980, t + .12);
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(.18, t + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t + .22);
+      o.connect(g).connect(audio.destination);
+      o.start(t); o.stop(t + .25);
     } catch (_) {}
   }
   function setSoundUI() {
@@ -781,7 +902,7 @@
   Promise.race([Promise.all(first), new Promise(r => setTimeout(r, 4000))]).then(() => {
     $("loading").classList.add("done");
     if (saved > 2 && saved < PAGE_COUNT) {
-      $("resumeText").textContent = `Continue from ${saved === PAGE_COUNT ? "the back cover" : "page " + (saved - 2)}?`;
+      $("resumeText").textContent = `Continue from ${saved === FRIENDS_PAGE ? "The End" : "page " + (saved - 2)}?`;
       hint.classList.add("hide");
       resume.classList.remove("hide");
     } else {
