@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oman Vision 2040 — Interactive Holographic Experience · Case Study</title>
+  <meta name="description" content="A touch-interactive holographic experience showcasing Oman's Vision 2040 at COMEX 2025." />
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23121110'/%3E%3Cpath d='M9 22V10h3v12zm5.5 0V10h3v12zm5.5 0V10h3v12z' fill='%23CDB48C'/%3E%3C/svg%3E" />
+  <link rel="preload" as="image" href="/media/screens/drive-transparency.webp" />
+  <script type="module" src="/src/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Scroll progress -->
+  <div class="progress" aria-hidden="true"><span class="progress__bar"></span></div>
+
+  <!-- Section navigation: rail on desktop, sheet on mobile -->
+  <header class="topbar" data-theme="dark">
+    <a class="topbar__title" href="#top">Oman Vision 2040 <span>Case study</span></a>
+    <button class="topbar__menu" type="button" aria-expanded="false" aria-controls="toc">
+      <span class="topbar__menu-label">Contents</span>
+      <span class="topbar__menu-current" data-current-section>Intro</span>
+    </button>
+  </header>
+
+  <nav class="toc" id="toc" aria-label="Case study sections">
+    <ol>
+      <li><a href="#context"><span>01</span>Event context</a></li>
+      <li><a href="#challenge"><span>02</span>The challenge</a></li>
+      <li><a href="#role"><span>03</span>My role</a></li>
+      <li><a href="#research"><span>04</span>Research &amp; approach</a></li>
+      <li><a href="#explorations"><span>05</span>Design explorations</a></li>
+      <li><a href="#final"><span>06</span>The final experience</a></li>
+      <li><a href="#storytelling"><span>07</span>Visual storytelling</a></li>
+      <li><a href="#production"><span>08</span>AI-assisted production</a></li>
+      <li><a href="#outcome"><span>09</span>Outcome</a></li>
+      <li><a href="#reflection"><span>10</span>Reflection</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <!-- ============================================================ -->
+    <!-- HERO                                                          -->
+    <!-- ============================================================ -->
+    <section class="hero tone-ink grain" id="top" aria-labelledby="hero-title" data-section="Intro">
+      <div class="wrap hero__inner">
+        <div class="hero__copy">
+          <p class="eyebrow reveal">Interactive holographic experience · COMEX Oman 2025</p>
+          <h1 class="hero__title reveal" id="hero-title">Oman Vision&nbsp;2040</h1>
+          <p class="hero__lede reveal">A touch-interactive holographic experience showcasing Oman's Vision&nbsp;2040 at COMEX&nbsp;2025.</p>
+        </div>
+
+        <dl class="meta reveal">
+          <div><dt>Client</dt><dd>MTCIT, Oman</dd></div>
+          <div><dt>Agency</dt><dd>EvolutionCo</dd></div>
+          <div><dt>Role</dt><dd>UX/UI Designer</dd></div>
+          <div><dt>Timeline</dt><dd>1 week</dd></div>
+          <div class="meta__wide"><dt>Scope</dt><dd>Research, UX/UI Design, Content Strategy &amp; AI-Assisted Creative Production</dd></div>
+        </dl>
+      </div>
+
+      <div class="hero__stage" aria-label="The five pillar screens of the final holographic interface">
+        <div class="stage" data-hero-stage></div>
+        <p class="hero__caption wrap">Final interface — one screen for each of the five pillars, as designed for the portrait holographic display.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 01 EVENT CONTEXT                                              -->
+    <!-- ============================================================ -->
+    <section class="section tone-ivory paper" id="context" aria-labelledby="context-title" data-section="Event context">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="kicker reveal"><span>01</span>Event context</p>
+          <h2 class="visually-hidden" id="context-title">Event context</h2>
+        </header>
+
+        <div class="triptych">
+          <article class="context-panel context-panel--event reveal">
+            <div class="context-panel__media" data-slot="comex" data-slot-ratio="4/5"
+                 data-slot-need="COMEX Oman 2025 — event photograph or official event identity"></div>
+            <p class="context-panel__role">The event</p>
+            <h3>COMEX Oman 2025</h3>
+            <p>One of Oman's leading annual technology exhibitions, COMEX brings together government entities, innovators and businesses to showcase advancements in technology and digital transformation.</p>
+          </article>
+
+          <article class="context-panel context-panel--vision reveal">
+            <div class="context-panel__media" data-slot="vision2040" data-slot-ratio="4/5"></div>
+            <p class="context-panel__role">The vision</p>
+            <h3>Oman Vision 2040</h3>
+            <p>A national development framework outlining Oman's long-term ambitions across economic diversification, technology, sustainability and social development.</p>
+          </article>
+
+          <article class="context-panel context-panel--client reveal">
+            <div class="context-panel__media" data-slot="mtcit" data-slot-ratio="4/5"></div>
+            <p class="context-panel__role">The client</p>
+            <h3>MTCIT</h3>
+            <p>The Ministry of Transport, Communications and Information Technology plays a key role in advancing Oman's digital transformation and technological infrastructure.</p>
+          </article>
+        </div>
+
+        <p class="bridge reveal">For COMEX 2025, we collaborated with MTCIT to bring Oman's Vision&nbsp;2040 initiatives to life through an <em>interactive holographic installation.</em></p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 02 THE CHALLENGE                                              -->
+    <!-- ============================================================ -->
+    <section class="section tone-stone paper" id="challenge" aria-labelledby="challenge-title" data-section="The challenge">
+      <div class="wrap challenge">
+        <div class="challenge__question">
+          <p class="kicker reveal"><span>02</span>The challenge</p>
+          <h2 class="display reveal" id="challenge-title">How do we communicate a national vision in a matter of&nbsp;seconds?</h2>
+          <p class="challenge__answer reveal">The challenge was to make complex initiatives easy to discover, understand and explore through short interactions.</p>
+        </div>
+
+        <ol class="constraints">
+          <li class="constraint reveal">
+            <div class="constraint__visual" aria-hidden="true">
+              <svg viewBox="0 0 200 120" class="viz-attention">
+                <rect x="138" y="22" width="34" height="62" rx="2" class="viz-line" />
+                <path d="M6 100 C 60 96, 100 92, 130 70 S 190 40, 196 12" class="viz-path" />
+                <circle cx="22" cy="99" r="3" /><circle cx="52" cy="97" r="3" /><circle cx="84" cy="93" r="3" />
+                <circle cx="112" cy="82" r="3" /><circle cx="128" cy="72" r="4.5" class="viz-accent" />
+                <circle cx="160" cy="52" r="3" /><circle cx="186" cy="26" r="3" />
+              </svg>
+            </div>
+            <div>
+              <h3><span class="num">A</span>Limited visitor attention</h3>
+              <p>Unlike a website, an exhibition doesn't guarantee a visitor's attention. People are constantly moving, exploring different installations and deciding what interests them.</p>
+            </div>
+          </li>
+          <li class="constraint reveal">
+            <div class="constraint__visual constraint__visual--list" aria-hidden="true" data-dense-list></div>
+            <div>
+              <h3><span class="num">B</span>Extensive information</h3>
+              <p>We had an extensive amount of information to communicate, but very little time to engage each visitor.</p>
+            </div>
+          </li>
+          <li class="constraint reveal">
+            <div class="constraint__visual" aria-hidden="true">
+              <div class="viz-glass"><span></span><span></span><span></span></div>
+            </div>
+            <div>
+              <h3><span class="num">C</span>Transparent holographic display</h3>
+              <p>An unfamiliar medium — a transparent, touch-interactive holographic display.</p>
+            </div>
+          </li>
+          <li class="constraint reveal">
+            <div class="constraint__visual" aria-hidden="true">
+              <div class="viz-week">
+                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              </div>
+            </div>
+            <div>
+              <h3><span class="num">D</span>One-week timeline</h3>
+              <p>A timeline of just one week.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 03 MY ROLE                                                    -->
+    <!-- ============================================================ -->
+    <section class="section tone-ivory paper" id="role" aria-labelledby="role-title" data-section="My role">
+      <div class="wrap">
+        <div class="split">
+          <header class="split__head">
+            <p class="kicker reveal"><span>03</span>My role</p>
+            <h2 class="h2 reveal" id="role-title">My role went beyond designing the interface.</h2>
+          </header>
+          <div class="split__body prose reveal">
+            <p>I researched individual initiatives, structured the information, explored different content formats and designed the end-to-end interactive experience.</p>
+            <p>I also conceptualised and produced AI-generated imagery, films and podcasts, taking ownership of both the interface and the content visitors would interact with.</p>
+          </div>
+        </div>
+
+        <ol class="role-chain" aria-label="Responsibilities, from research to production">
+          <li class="role-node role-node--research reveal">
+            <span class="role-node__index">01</span>
+            <h3>Initiative research</h3>
+            <div class="role-node__media role-doc" aria-hidden="true" data-role-doc></div>
+          </li>
+          <li class="role-node role-node--ia reveal">
+            <span class="role-node__index">02</span>
+            <h3>Information architecture</h3>
+            <div class="role-node__media role-tree" aria-hidden="true">
+              <svg viewBox="0 0 160 120">
+                <rect x="58" y="6" width="44" height="14" rx="1" />
+                <path d="M80 20v12M16 32h128M16 32v10M48 32v10M80 32v10M112 32v10M144 32v10" />
+                <g class="lvl2"><rect x="6" y="42" width="20" height="10"/><rect x="38" y="42" width="20" height="10"/><rect x="70" y="42" width="20" height="10"/><rect x="102" y="42" width="20" height="10"/><rect x="134" y="42" width="20" height="10"/></g>
+                <g class="lvl3">
+                  <rect x="9" y="62" width="14" height="22"/><rect x="41" y="62" width="14" height="22"/><rect x="73" y="62" width="14" height="22"/><rect x="105" y="62" width="14" height="22"/><rect x="137" y="62" width="14" height="22"/>
+                  <rect x="9" y="90" width="14" height="22"/><rect x="41" y="90" width="14" height="22"/><rect x="73" y="90" width="14" height="22"/><rect x="105" y="90" width="14" height="22"/><rect x="137" y="90" width="14" height="22"/>
+                </g>
+              </svg>
+            </div>
+          </li>
+          <li class="role-node role-node--ui reveal">
+            <span class="role-node__index">03</span>
+            <h3>UX/UI design</h3>
+            <figure class="role-node__media">
+              <img src="/media/screens/green-growth.webp" width="587" height="1031" loading="lazy" decoding="async" alt="Final interface screen for the Green Growth pillar" />
+            </figure>
+          </li>
+          <li class="role-node role-node--content reveal">
+            <span class="role-node__index">04</span>
+            <h3>Content strategy</h3>
+            <figure class="role-node__media">
+              <img src="/media/iteration-02/data.webp" width="256" height="460" loading="lazy" decoding="async" alt="Iteration 02 screen showing a cybersecurity incidents statistic and chart" />
+            </figure>
+          </li>
+          <li class="role-node role-node--story reveal">
+            <span class="role-node__index">05</span>
+            <h3>Visual storytelling</h3>
+            <figure class="role-node__media">
+              <img src="/media/films/posters/01-2.webp" width="588" height="927" loading="lazy" decoding="async" alt="Film still: students wearing VR headsets beside a lattice screen" />
+            </figure>
+          </li>
+          <li class="role-node role-node--ai reveal">
+            <span class="role-node__index">06</span>
+            <h3>AI-assisted creative production</h3>
+            <figure class="role-node__media">
+              <img src="/media/films/posters/04-2.webp" width="588" height="927" loading="lazy" decoding="async" alt="AI-generated film still: rows of solar-roofed eco homes among palm trees" />
+              <figcaption class="tag">AI-generated</figcaption>
+            </figure>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 04 RESEARCH & APPROACH                                        -->
+    <!-- ============================================================ -->
+    <section class="section tone-stone grid-bg" id="research" aria-labelledby="research-title" data-section="Research & approach">
+      <div class="wrap">
+        <div class="split">
+          <header class="split__head">
+            <p class="kicker reveal"><span>04</span>Research &amp; approach</p>
+            <h2 class="h2 reveal" id="research-title">Understanding the content before designing the experience</h2>
+          </header>
+          <div class="split__body prose reveal">
+            <p>Before starting with the interface, I spent time understanding the Vision&nbsp;2040 framework and the initiatives associated with it.</p>
+            <p class="muted">For each initiative, I focused on three questions:</p>
+          </div>
+        </div>
+
+        <ol class="questions">
+          <li class="reveal"><span class="questions__n">Q1</span><p>What is Oman working towards?</p></li>
+          <li class="reveal"><span class="questions__n">Q2</span><p>What progress has been made?</p></li>
+          <li class="reveal"><span class="questions__n">Q3</span><p>How can we communicate this to someone unfamiliar with the subject?</p></li>
+        </ol>
+        <p class="questions__after reveal">This helped me identify the most relevant information and explore how it could be communicated visually.</p>
+
+        <div class="ia">
+          <div class="ia__intro">
+            <h3 class="h3 reveal">Breaking down a national vision</h3>
+            <p class="reveal">We structured the experience around five pillars, with individual parameters representing different areas of development.</p>
+          </div>
+
+          <ol class="ia__levels reveal" aria-label="Hierarchy">
+            <li>Vision 2040</li><li>Five Pillars</li><li>Parameters</li><li>Individual Stories</li>
+          </ol>
+
+          <div class="ia-diagram reveal" data-ia-diagram>
+            <!-- rendered from src/data/project.js -->
+          </div>
+
+          <p class="ia__note reveal">Rather than taking visitors through a fixed narrative, we allowed them to explore topics independently, based on their interests and the time they had available.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 05 DESIGN EXPLORATIONS                                        -->
+    <!-- ============================================================ -->
+    <section class="section tone-ivory paper" id="explorations" aria-labelledby="explorations-title" data-section="Design explorations">
+      <div class="wrap">
+        <div class="split">
+          <header class="split__head">
+            <p class="kicker reveal"><span>05</span>Design explorations</p>
+            <h2 class="h2 reveal" id="explorations-title">Finding the right way to tell the story</h2>
+          </header>
+          <div class="split__body prose reveal">
+            <p>The information architecture gave us a starting point, but how we presented that information evolved through three iterations.</p>
+          </div>
+        </div>
+
+        <ol class="iter-index reveal" aria-label="Iterations">
+          <li><a href="#iteration-01"><span>01</span>Information-led</a></li>
+          <li><a href="#iteration-02"><span>02</span>Multimedia</a></li>
+          <li><a href="#iteration-03"><span>03</span>Motion-led</a></li>
+        </ol>
+
+        <!-- Iteration 01 -->
+        <article class="iteration" id="iteration-01" aria-labelledby="it1-title">
+          <header class="iteration__head reveal">
+            <p class="iteration__label">Iteration 01</p>
+            <h3 class="h3" id="it1-title">Information-led interface</h3>
+          </header>
+
+          <div class="iteration__grid it1">
+            <figure class="annotated reveal">
+              <button class="zoomable" type="button" data-zoom="/media/iteration-01/home.webp" data-zoom-alt="Iteration 01 home screen with six topic cards">
+                <img src="/media/iteration-01/home.webp" width="593" height="870" loading="lazy" decoding="async" alt="Iteration 01 home screen: an Oman Vision 2040 title above a grid of six grey topic cards" />
+                <span class="zoom-hint" aria-hidden="true">Expand</span>
+                <span class="pin" style="--x:14%;--y:44%" aria-hidden="true">1</span>
+                <span class="pin" style="--x:52%;--y:54%" aria-hidden="true">2</span>
+              </button>
+              <figcaption>
+                <ol class="pin-legend">
+                  <li><span>1</span>Content cards</li>
+                  <li><span>2</span>Descriptions</li>
+                  <li><span>3</span>Supporting imagery <em>(topic screens, below)</em></li>
+                </ol>
+              </figcaption>
+            </figure>
+
+            <div class="iteration__text prose reveal">
+              <p>We initially approached the experience much like a digital information platform, using content cards, descriptions and supporting imagery.</p>
+              <p>While the structure made the information easy to navigate, visitors still had to spend time reading to understand each initiative.</p>
+              <blockquote class="verdict">The information was organised, but the format wasn't quite right for an exhibition.</blockquote>
+            </div>
+          </div>
+
+          <figure class="strip reveal">
+            <div class="strip__scroller" tabindex="0" role="group" aria-label="Iteration 01 topic screens — scroll horizontally">
+              <button class="zoomable" type="button" data-zoom="/media/iteration-01/topics.webp" data-zoom-alt="Iteration 01 topic screens">
+                <img src="/media/iteration-01/topics.webp" width="1838" height="375" loading="lazy" decoding="async" alt="Eight Iteration 01 screens: the home grid, followed by topic pages each combining a large image, a paragraph of description and a thumbnail rail" />
+                <span class="pin pin--light" style="--x:18.5%;--y:30%" aria-hidden="true">3</span>
+              </button>
+            </div>
+            <figcaption><span class="swipe-hint" aria-hidden="true">Swipe →</span>Topic screens — each initiative pairs a large image with a description and a thumbnail rail.</figcaption>
+          </figure>
+        </article>
+
+        <!-- Iteration 02 -->
+        <article class="iteration" id="iteration-02" aria-labelledby="it2-title">
+          <header class="iteration__head reveal">
+            <p class="iteration__label">Iteration 02</p>
+            <h3 class="h3" id="it2-title">Multimedia experience</h3>
+          </header>
+
+          <figure class="strip strip--wide reveal">
+            <div class="strip__scroller" tabindex="0" role="group" aria-label="Iteration 02 topic screens — scroll horizontally">
+              <button class="zoomable" type="button" data-zoom="/media/iteration-02/topics.webp" data-zoom-alt="Iteration 02 topic screens">
+                <img src="/media/iteration-02/topics.webp" width="2471" height="605" loading="lazy" decoding="async" alt="Six Iteration 02 screens on a pale blue background, each with topic tabs and an image carousel" />
+              </button>
+            </div>
+          </figure>
+
+          <div class="iteration__grid it2">
+            <figure class="annotated annotated--wide reveal">
+              <div class="annotated__scroller" tabindex="0" role="group" aria-label="Iteration 02 detail screens — scroll horizontally on small screens">
+              <button class="zoomable" type="button" data-zoom="/media/iteration-02/data-podcast.webp" data-zoom-alt="Iteration 02 detail screens">
+                <img src="/media/iteration-02/data-podcast.webp" width="1203" height="460" loading="lazy" decoding="async" alt="Four Iteration 02 detail screens: a story card, a statistic with a line chart, a podcast player, and a full-bleed image" />
+                <span class="zoom-hint" aria-hidden="true">Expand</span>
+              <span class="pin" style="--x:2.5%;--y:12%" aria-hidden="true">1</span>
+              <span class="pin" style="--x:27%;--y:5%" aria-hidden="true">2</span>
+              <span class="pin" style="--x:46%;--y:30%" aria-hidden="true">3</span>
+              <span class="pin" style="--x:76%;--y:59%" aria-hidden="true">4</span>
+              </button>
+              </div>
+              <figcaption>
+                <ol class="pin-legend pin-legend--row">
+                  <li><span>1</span>Success stories</li>
+                  <li><span>2</span>Statistics</li>
+                  <li><span>3</span>Data visualisations</li>
+                  <li><span>4</span>Podcasts</li>
+                </ol>
+              </figcaption>
+            </figure>
+
+            <div class="iteration__text prose reveal">
+              <p>We explored a richer content experience through statistics, data visualisations, success stories and AI-generated podcasts.</p>
+              <div class="audio" data-audio-player></div>
+            </div>
+          </div>
+
+          <!-- Transparent display constraint -->
+          <section class="constraint-panel tone-ink grain" aria-labelledby="transparency-title">
+            <div class="constraint-panel__copy">
+              <p class="eyebrow">Hardware constraint</p>
+              <h4 class="h3" id="transparency-title">The display was transparent.</h4>
+              <p>This iteration also introduced an important hardware constraint. Since the display was transparent and the surroundings were visible through it, the interface required white to maintain visibility and legibility.</p>
+            </div>
+            <div class="transparency" role="group" aria-label="Illustration comparing a dark and a white interface on a transparent display">
+              <figure class="transparency__case">
+                <div class="see-through" aria-hidden="true">
+                  <div class="hall"><i></i><i></i><i></i><i></i><i></i></div>
+                  <img class="see-through__ui see-through__ui--dark" src="/media/iteration-02/podcast.webp" width="286" height="460" loading="lazy" decoding="async" alt="" />
+                </div>
+                <figcaption><strong>Dark interface</strong> The surroundings show through and compete with the content.</figcaption>
+              </figure>
+              <figure class="transparency__case">
+                <div class="see-through" aria-hidden="true">
+                  <div class="hall"><i></i><i></i><i></i><i></i><i></i></div>
+                  <img class="see-through__ui see-through__ui--light" src="/media/screens/invest-in-people.webp" width="587" height="1031" loading="lazy" decoding="async" alt="" />
+                </div>
+                <figcaption><strong>White interface</strong> Content stays visible and legible.</figcaption>
+              </figure>
+              <p class="illustration-note"><span>Illustration</span> Simulated surroundings — not footage of the installation. Uses an original Iteration 02 screen and a final screen.</p>
+            </div>
+          </section>
+
+          <p class="verdict verdict--solo reveal">Although multimedia offered more ways to explore the content, visitors still needed time to read, listen and interpret the information.</p>
+        </article>
+      </div>
+
+      <!-- Iteration 03 — full-bleed dark band -->
+      <article class="iteration iteration--motion tone-ink grain" id="iteration-03" aria-labelledby="it3-title">
+        <div class="wrap">
+          <header class="iteration__head reveal">
+            <p class="iteration__label">Iteration 03</p>
+            <h3 class="h3" id="it3-title">Motion-led experience</h3>
+          </header>
+
+          <p class="statement reveal">Instead of adding more ways to consume information, we reconsidered how much information visitors needed in the first&nbsp;place.</p>
+
+          <div class="shift">
+            <div class="shift__row shift__row--kept reveal">
+              <p class="shift__label">Retained</p>
+              <p class="shift__path"><span>Pillar</span><span>Parameter</span><span>Story</span></p>
+              <p class="shift__note">We retained the existing information architecture…</p>
+            </div>
+            <div class="shift__compare">
+              <figure class="shift__before reveal">
+                <img src="/media/iteration-02/data.webp" width="256" height="460" loading="lazy" decoding="async" alt="Iteration 02 detail screen with a statistic, a chart and a paragraph of description" />
+                <figcaption><span>Before</span>Detailed explanations</figcaption>
+              </figure>
+              <div class="shift__arrow" aria-hidden="true"><svg viewBox="0 0 80 16"><path d="M0 8h76M68 1l8 7-8 7"/></svg></div>
+              <figure class="shift__after reveal">
+                <button class="film-trigger" type="button" data-film="03-3">
+                  <img src="/media/films/posters/03-3.webp" width="588" height="927" loading="lazy" decoding="async" alt="Film still from “Strategic Data Monitoring”: a woman watching live data dashboards" />
+                  <span class="play" aria-hidden="true"></span>
+                  <span class="visually-hidden">Play film: Strategic Data Monitoring</span>
+                </button>
+                <figcaption><span>After</span>A short visual film</figcaption>
+              </figure>
+            </div>
+            <p class="shift__note shift__note--end reveal">…but replaced detailed explanations with short visual films.</p>
+          </div>
+
+          <div class="it3-showcase">
+            <figure class="it3-showcase__screen reveal">
+              <button class="zoomable" type="button" data-zoom="/media/screens/global-engagement.webp" data-zoom-alt="Final Global Engagement screen">
+                <img src="/media/screens/global-engagement.webp" width="587" height="1031" loading="lazy" decoding="async" alt="Final Global Engagement screen: two figures shaking hands beneath the pillar title, with a Watch Video button" />
+              </button>
+            </figure>
+            <div class="it3-showcase__films" data-it3-films></div>
+            <p class="it3-showcase__text reveal">This allowed us to communicate individual initiatives in seconds while making better use of the holographic medium.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Comparison -->
+      <div class="wrap">
+        <div class="compare" aria-labelledby="compare-title">
+          <h3 class="compare__title reveal" id="compare-title">Information-led <span aria-hidden="true">→</span> Multimedia <span aria-hidden="true">→</span> Motion-led</h3>
+          <ol class="compare__cols">
+            <li class="compare__col reveal" tabindex="0">
+              <figure>
+                <img src="/media/iteration-01/home.webp" width="593" height="870" loading="lazy" decoding="async" alt="Iteration 01: grid of topic cards" />
+              </figure>
+              <p class="compare__n">01</p>
+              <h4>Information-led</h4>
+              <p>Visitors had to spend time reading.</p>
+            </li>
+            <li class="compare__col reveal" tabindex="0">
+              <figure>
+                <img src="/media/iteration-02/topic-single.webp" width="343" height="605" loading="lazy" decoding="async" alt="Iteration 02: topic tabs with an image carousel on a pale blue background" />
+              </figure>
+              <p class="compare__n">02</p>
+              <h4>Multimedia</h4>
+              <p>Visitors still needed time to read, listen and interpret.</p>
+            </li>
+            <li class="compare__col compare__col--final reveal" tabindex="0">
+              <figure>
+                <img src="/media/screens/invest-in-people.webp" width="587" height="1031" loading="lazy" decoding="async" alt="Final: Invest in People pillar screen with a Watch Video button" />
+              </figure>
+              <p class="compare__n">03</p>
+              <h4>Motion-led</h4>
+              <p>Individual initiatives communicated in seconds.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 06 THE FINAL EXPERIENCE                                       -->
+    <!-- ============================================================ -->
+    <section class="section tone-charcoal grain" id="final" aria-labelledby="final-title" data-section="The final experience">
+      <div class="wrap">
+        <div class="split">
+          <header class="split__head">
+            <p class="kicker reveal"><span>06</span>The final experience</p>
+            <h2 class="h2 reveal" id="final-title">An experience built around exploration</h2>
+          </header>
+          <div class="split__body prose reveal">
+            <p>The final interface allowed visitors to navigate between five pillars, select individual parameters and discover the corresponding initiatives through short films.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Five pillars gallery -->
+      <div class="pillars" aria-labelledby="pillars-title">
+        <div class="wrap pillars__head">
+          <h3 class="eyebrow" id="pillars-title">The five pillars</h3>
+          <div class="rail-controls" data-rail-controls="pillars">
+            <button type="button" class="icon-btn" data-dir="-1" aria-label="Previous pillar"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <button type="button" class="icon-btn" data-dir="1" aria-label="Next pillar"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          </div>
+        </div>
+        <ol class="rail pillars__rail" data-rail="pillars" data-pillars-gallery tabindex="0" aria-label="Pillar screens — scroll horizontally"></ol>
+      </div>
+
+      <div class="wrap">
+        <!-- Anatomy -->
+        <div class="anatomy">
+          <figure class="anatomy__figure reveal">
+            <img src="/media/screens/invest-in-people.webp" width="587" height="1031" loading="lazy" decoding="async" alt="Final Invest in People screen with numbered interface regions" />
+            <button class="hotspot" type="button" style="--x:50%;--y:10.4%" data-hotspot="0" aria-label="1: Pillar navigation">1</button>
+            <button class="hotspot" type="button" style="--x:12%;--y:21.8%" data-hotspot="1" aria-label="2: Pillar title">2</button>
+            <button class="hotspot" type="button" style="--x:84%;--y:34.5%" data-hotspot="2" aria-label="3: Story headline and Watch Video">3</button>
+            <button class="hotspot" type="button" style="--x:5%;--y:51%" data-hotspot="3" aria-label="4: Parameter">4</button>
+            <button class="hotspot" type="button" style="--x:50%;--y:72.7%" data-hotspot="4" aria-label="5: Parameter carousel">5</button>
+            <button class="hotspot" type="button" style="--x:50%;--y:88%" data-hotspot="5" aria-label="6: Partner lockup">6</button>
+          </figure>
+          <div class="anatomy__copy">
+            <h3 class="h3 reveal">Minimal, by intent</h3>
+            <p class="reveal">We kept the interface minimal, with clear navigation, larger touch targets and a visual hierarchy suited to the transparent display.</p>
+            <ol class="anatomy__list" data-hotspot-list>
+              <li data-hotspot-item="0"><span>1</span><div><strong>Pillar navigation</strong>All five pillars, always one tap away.</div></li>
+              <li data-hotspot-item="1"><span>2</span><div><strong>Pillar title</strong>Sets the context behind the figure.</div></li>
+              <li data-hotspot-item="2"><span>3</span><div><strong>Story headline &amp; Watch Video</strong>Opens the parameter's short film.</div></li>
+              <li data-hotspot-item="3"><span>4</span><div><strong>Parameter</strong>Confirms the selected area of development.</div></li>
+              <li data-hotspot-item="4"><span>5</span><div><strong>Parameter carousel</strong>Larger touch targets to move between parameters.</div></li>
+              <li data-hotspot-item="5"><span>6</span><div><strong>Partner lockup</strong>Kept at the edges of the frame.</div></li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Journey -->
+        <div class="journey" aria-labelledby="journey-title">
+          <h3 class="eyebrow reveal" id="journey-title">Interaction journey</h3>
+          <ol class="journey__steps" data-journey></ol>
+          <p class="journey__note reveal">There was no prescribed starting point or fixed sequence. Visitors could explore one initiative or move between several.</p>
+        </div>
+
+        <!-- Interactive demo -->
+        <div class="demo" aria-labelledby="demo-title">
+          <div class="demo__head">
+            <div>
+              <p class="eyebrow"><span class="badge">Portfolio demo</span></p>
+              <h3 class="h3" id="demo-title">Explore the structure</h3>
+            </div>
+            <p class="demo__disclaimer">A lightweight demonstration built for this case study from the original screens and film stills. It is not the installation software, and each pillar is shown in the single state supplied.</p>
+          </div>
+          <div class="demo__body" data-demo></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 07 VISUAL STORYTELLING                                        -->
+    <!-- ============================================================ -->
+    <section class="section tone-ink grain" id="storytelling" aria-labelledby="storytelling-title" data-section="Visual storytelling">
+      <div class="wrap">
+        <div class="split">
+          <header class="split__head">
+            <p class="kicker reveal"><span>07</span>Visual storytelling</p>
+            <h2 class="h2 reveal" id="storytelling-title">Turning complex initiatives into visual narratives</h2>
+          </header>
+          <div class="split__body reveal">
+            <p class="pull">How do you visually communicate something like cybersecurity or digital transformation in just a few seconds?</p>
+          </div>
+        </div>
+
+        <p class="lead-narrow reveal">For each parameter, I researched the initiative, identified its central message and developed a visual concept around it.</p>
+
+        <div class="storyboards" data-storyboards></div>
+
+        <!-- Rooted in Oman -->
+        <div class="roots">
+          <p class="roots__text reveal">I drew inspiration from Oman's architecture, landscapes, people and infrastructure to make the films feel relevant to the country rather than relying on generic representations of technology.</p>
+          <ul class="roots__grid" data-roots></ul>
+        </div>
+
+        <!-- 7–8 seconds -->
+        <div class="duration" aria-labelledby="duration-title">
+          <div class="duration__head">
+            <h3 class="duration__title reveal" id="duration-title"><span class="visually-hidden">Why </span><span class="duration__big">7–8</span><span class="duration__unit">seconds</span></h3>
+            <div class="prose reveal">
+              <p><strong>The duration of the films was a deliberate design decision.</strong></p>
+              <p>Each film focused on a single idea, allowing visitors to understand the essence of an initiative without committing to a lengthy video.</p>
+            </div>
+          </div>
+          <div class="timeline reveal" data-timeline></div>
+          <div class="visit reveal" aria-hidden="false">
+            <p class="visit__text">It also made exploring multiple topics possible within a short visit to the installation.</p>
+            <ol class="visit__track" data-visit aria-label="Example of a visit moving between films from different pillars"></ol>
+          </div>
+        </div>
+
+        <!-- Film gallery -->
+        <div class="gallery" aria-labelledby="gallery-title">
+          <div class="gallery__head">
+            <h3 class="h3 reveal" id="gallery-title">Film gallery</h3>
+            <div class="gallery__filters" role="group" aria-label="Filter films by pillar" data-gallery-filters></div>
+          </div>
+          <div class="rail-controls rail-controls--end" data-rail-controls="films">
+            <button type="button" class="icon-btn" data-dir="-1" aria-label="Previous films"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <button type="button" class="icon-btn" data-dir="1" aria-label="Next films"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <ol class="rail films__rail" data-rail="films" data-film-gallery tabindex="0" aria-label="Films — scroll horizontally"></ol>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 08 AI-ASSISTED CREATIVE PRODUCTION                            -->
+    <!-- ============================================================ -->
+    <section class="section tone-ivory paper" id="production" aria-labelledby="production-title" data-section="AI-assisted production">
+      <div class="wrap">
+        <div class="split">
+          <header class="split__head">
+            <p class="kicker reveal"><span>08</span>AI-assisted creative production</p>
+            <h2 class="h2 reveal" id="production-title">From research to the final film</h2>
+          </header>
+          <div class="split__body prose reveal">
+            <p>With multiple initiatives to cover and just one week for the entire project, traditional media production would have been difficult.</p>
+            <p>I used generative AI to explore visual concepts, experiment with compositions and create motion sequences.</p>
+            <p>The generated clips were then edited, combined and enhanced with sound to create the final films.</p>
+          </div>
+        </div>
+
+        <ol class="stages" data-stages aria-label="Creative workflow in five stages"></ol>
+
+        <p class="stages__note reveal">Each stage involved experimentation and refinement to maintain visual consistency and ensure the films communicated their intended message.</p>
+
+        <div class="tools" aria-labelledby="tools-title">
+          <h3 class="eyebrow reveal" id="tools-title">Tools used</h3>
+          <div class="tools__grid" data-tools></div>
+        </div>
+
+        <p class="ownership reveal">AI helped accelerate production, while <em>the storytelling, art direction, editing and creative decisions</em> remained central to my role.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 09 OUTCOME                                                    -->
+    <!-- ============================================================ -->
+    <section class="section tone-ink grain" id="outcome" aria-labelledby="outcome-title" data-section="Outcome">
+      <div class="wrap">
+        <p class="kicker reveal"><span>09</span>Outcome</p>
+        <h2 class="visually-hidden" id="outcome-title">Outcome</h2>
+        <div class="outcome">
+          <div class="outcome__copy">
+            <p class="statement statement--left reveal">In one week, we developed an interactive holographic experience for COMEX 2025 that combined structured information, touch interactions and AI-generated films.</p>
+            <p class="reveal">Rather than presenting Vision&nbsp;2040 through lengthy descriptions, the final experience allowed visitors to discover Oman's initiatives through short, independent visual stories.</p>
+          </div>
+          <div class="outcome__media reveal" data-slot="installation" data-slot-ratio="16/10"
+               data-slot-need="Photograph of the installation in use at COMEX Oman 2025"></div>
+        </div>
+        <div class="matrix reveal" data-matrix aria-label="All fifteen stories, by pillar"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 10 REFLECTION                                                 -->
+    <!-- ============================================================ -->
+    <section class="section section--reflection tone-ivory paper" id="reflection" aria-labelledby="reflection-title" data-section="Reflection">
+      <div class="wrap reflection">
+        <p class="kicker reveal"><span>10</span>Reflection</p>
+        <h2 class="visually-hidden" id="reflection-title">Reflection</h2>
+        <div class="reflection__body prose reveal">
+          <p>What made this project particularly interesting was that the design extended beyond the screen.</p>
+          <p>The physical surroundings, the transparency of the display and the way visitors moved through the exhibition influenced both the interface and the content.</p>
+          <p>Looking back at the three iterations, the biggest shift wasn't in how we organised information, but in how we chose to communicate it.</p>
+        </div>
+        <p class="closing reveal">Sometimes, designing a better experience means showing&nbsp;<em>less.</em></p>
+      </div>
+      <footer class="footer wrap">
+        <p>Oman Vision 2040 · MTCIT · EvolutionCo · COMEX Oman 2025</p>
+        <a href="#top">Back to top <span aria-hidden="true">↑</span></a>
+      </footer>
+    </section>
+  </main>
+
+  <!-- Lightbox -->
+  <dialog class="lightbox" data-lightbox aria-label="Expanded image">
+    <button class="lightbox__close icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <img alt="" data-lightbox-img />
+  </dialog>
+
+  <!-- Film player -->
+  <dialog class="player" data-player aria-labelledby="player-title">
+    <div class="player__inner">
+      <div class="player__head">
+        <div>
+          <p class="eyebrow" data-player-meta></p>
+          <h2 class="player__title" id="player-title" data-player-title></h2>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="Close film"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="player__stage" data-player-stage></div>
+      <div class="player__nav">
+        <button type="button" class="text-btn" data-player-step="-1"><span aria-hidden="true">←</span> Previous film</button>
+        <button type="button" class="text-btn" data-player-step="1">Next film <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>

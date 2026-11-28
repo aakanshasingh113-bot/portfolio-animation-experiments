@@ -1,0 +1,21 @@
+{
+  "name": "oman-vision-2040-case-study",
+  "version": "1.0.0",
+  "description": "Oman Vision 2040 — portfolio case study",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "media": "bash scripts/prepare-media.sh",
+    "frames": "bash scripts/extract-frames.sh"
+  },
+  "devDependencies": {
+    "vite": "^8.4.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource/geist-mono": "^5.3.0"
+  },
+  "private": true,
+  "type": "module"
+}
