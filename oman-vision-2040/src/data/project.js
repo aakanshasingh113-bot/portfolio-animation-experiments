@@ -11,6 +11,10 @@
 
 const media = (p) => `${import.meta.env.BASE_URL}media/${p}`;
 
+/* Overrides from public/media-config.js (a plain script the site owner edits). */
+const user = (typeof window !== 'undefined' && window.CASE_STUDY_MEDIA) || {};
+const userFilms = user.films || {};
+
 /* ------------------------------------------------------------------ */
 /* Information architecture                                            */
 /* Vision 2040 → Five pillars → Parameters → Individual stories (films) */
@@ -100,7 +104,7 @@ export const films = Object.fromEntries(
         parameter: param.name,
         pillar: p.name,
         poster: media(`films/posters/${param.film}.webp`),
-        video: null, // e.g. media('films/video/01-1.mp4')
+        video: userFilms[param.film] || null, // set in public/media-config.js
       },
     ]),
   ),
@@ -112,25 +116,33 @@ export const films = Object.fromEntries(
 
 export const slots = {
   // 01 — Event context
-  comex: null, // { src, alt, caption } — COMEX Oman 2025 event photograph or identity
-  vision2040: { src: media('films/posters/05-3.webp'), alt: 'Film still: workers reviewing cargo at an Omani port at dusk', caption: 'Still from the “Global Supply” film · Global Engagement' },
-  mtcit: { src: media('films/posters/03-3.webp'), alt: 'Film still: a woman monitoring data dashboards in a control room', caption: 'Still from the “Strategic Data Monitoring” film · Drive Transparency' },
+  comex: user.comex
+    ? { src: user.comex, alt: 'COMEX Oman 2025', caption: '' }
+    : null, // placeholder: COMEX Oman 2025 event photograph or identity
+  vision2040: user.vision2040
+    ? { src: user.vision2040, alt: 'Oman Vision 2040', caption: '' }
+    : { src: media('films/posters/05-3.webp'), alt: 'Film still: workers reviewing cargo at an Omani port at dusk', caption: 'Still from the “Global Supply” film · Global Engagement' },
+  mtcit: user.mtcit
+    ? { src: user.mtcit, alt: 'Ministry of Transport, Communications and Information Technology', caption: '' }
+    : { src: media('films/posters/03-3.webp'), alt: 'Film still: a woman monitoring data dashboards in a control room', caption: 'Still from the “Strategic Data Monitoring” film · Drive Transparency' },
 
   // 05 — Iteration 02 podcast (NotebookLM)
-  podcastAudio: null, // { src: media('audio/cybersecurity-success-stories.mp3'), title: 'Cybersecurity & Data Protection Success Stories' }
+  podcastAudio: user.podcastAudio ? { src: user.podcastAudio, title: 'Cybersecurity & Data Protection Success Stories' } : null,
 
-  // 07 — Sequential frames for the 7–8 second filmstrip (run `npm run frames`)
+  // 07 — Sequential frames for the 7–8 second filmstrip
   filmstrip: {
-    film: '01-2',
-    frames: [], // e.g. [media('films/strip/01-2_0.webp'), …] — 8 frames, one per second
+    film: user.filmstripFilm || '01-2',
+    frames: user.filmstripFrames || [],
   },
 
   // 08 — Production material
-  imageVariations: [], // generated image explorations [{ src, alt }]
-  editingTimeline: null, // { src, alt } — screenshot of the Adobe Express edit
+  imageVariations: (user.imageVariations || []).map((src, i) => ({ src, alt: `Generated image variation ${i + 1}` })),
+  editingTimeline: user.editingTimeline ? { src: user.editingTimeline, alt: 'Editing timeline: clips, sound and transitions' } : null,
 
   // 09 — Outcome
-  installation: null, // { src, alt, caption } — photograph of the installation at COMEX 2025
+  installation: user.installation
+    ? { src: user.installation, alt: 'The holographic installation at COMEX Oman 2025', caption: '' }
+    : null, // placeholder: photograph of the installation at COMEX 2025
 };
 
 /* ------------------------------------------------------------------ */

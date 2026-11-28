@@ -44,19 +44,19 @@ The Behance PDFs supplied as references were studied for presentation quality on
 
 ## Replacing or adding media
 
-Everything replaceable is set in `src/data/project.js`. Where a value is `null` or an empty array, the site shows a labelled placeholder at the right aspect ratio.
+Every replaceable image, video and audio file is set in **`public/media-config.js`** (`media-config.js` in the built folder). It's a plain script, so you can edit it without rebuilding:
 
-| What | Where | How |
-|---|---|---|
-| **Film videos** (15) | `films[...].video` | Put the MP4s in `public/media/films/video/` (e.g. `01-1.mp4`). In the `films` builder, set `video: media(\`films/video/${param.film}.mp4\`)`. The player then plays the video with native controls and sound, using the still as its poster. |
-| **COMEX image** | `slots.comex` | `{ src: media('context/comex.jpg'), alt: '…', caption: '…' }` |
-| **Vision 2040 / MTCIT visuals** | `slots.vision2040`, `slots.mtcit` | These currently use film stills, with captions saying so. Swap in official identity or event imagery if you have it. |
-| **Podcast audio** | `slots.podcastAudio` | `{ src: media('audio/podcast.mp3'), title: '…' }`. This turns on the audio player in Iteration 02. |
-| **7–8 s filmstrip** | `slots.filmstrip.frames` | Once the film is in place, run `npm run frames -- public/media/films/video/01-2.mp4` (needs ffmpeg) and paste the line it prints. |
-| **Image variations** | `slots.imageVariations` | `[{ src, alt }, …]`. Shown in Production → Stage 02. |
-| **Editing timeline** | `slots.editingTimeline` | `{ src, alt }`. Replaces the labelled schematic in Stage 04. |
-| **Installation photo** | `slots.installation` | `{ src, alt, caption }`. Shown in Outcome. |
-| **Tools** | `toolGroups` | Adobe Express is listed as the post-production tool provisionally. Edit it here. |
+1. Put the file in `media/replace/` (images, podcast) or `media/films/video/` (MP4s).
+2. In `media-config.js`, change that slot's `null` to the path, e.g. `comex: 'media/replace/comex.jpg',`.
+3. Reload.
+
+The slots are: COMEX, Vision 2040 and MTCIT visuals · podcast audio · 8 filmstrip frames · image variations · editing timeline · installation photo · the 15 film MP4s. Anything left as `null` keeps its labelled placeholder.
+
+The built `dist/index.html` opens directly from disk (`file://`), because the bundle is a classic deferred script.
+
+To pull filmstrip frames from a film (needs ffmpeg), run `npm run frames -- public/media/films/video/01-2.mp4`.
+
+Tools (Adobe Express is provisional) and pillar, parameter and story names are in `src/data/project.js`.
 
 To regenerate the optimised media from the original export:
 
